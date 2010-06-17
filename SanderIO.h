@@ -7,10 +7,25 @@
  * Created by David Coss on June 16, 2010, 11:32 AM
  */
 
-#include <exception>
 
 #ifndef SANDERIO_H
 #define	SANDERIO_H
+
+
+//Standard Includes
+#include <stdexcept>
+#include <string>
+#include <fstream>
+#include <valarray>
+#include <streambuf>
+#include <sstream>
+#include <iostream>
+
+/**
+ * Removes white space at the beginning and end of a string.
+ * @param str
+ */
+void trimString(std::string& bean);//why doesn't stl have this??
 
 class SanderParm {
 public:
@@ -28,10 +43,21 @@ public:
     SanderParm(const SanderParm& orig);
 
     //Destructor
-    virtual ~SanderParm();
+    virtual ~SanderParm(){}
+
+    /**
+     * Reads the AMBER Topology Parameter files (prmtop) and
+     * @param file
+     * @return
+     */
+    static SanderParm raw_read_amber_parm(std::string file);
+
+    SanderParm & operator=(const SanderParm& orig);
 
 
-private:
+    //Here begin the many data types (public)
+
+    //public to be more easily accessed. change later(?)
     //Data read from parameter file
     int natom;///< total number of atoms
     int ntypes;///< total number of distinct atom types
@@ -69,13 +95,94 @@ private:
     int iptres;///<   last residue that is considered part of solute (base 1 index)
     int nspm;///<     total number of molecules
     int nspsol;///<   the first solvent "molecule" (base 1 index)
+
+    //Pointers to arrays that are read from the prmtop file
+    //pointers are stored here in case the vectors are swapped around later
+    //between difference classes. These arrays are LARGE; the goal here is to
+    //save memory/time if that happens.
+    std::string titles;
+    std::valarray<std::string> atom_names;
+    std::valarray<double> charges;
+    std::valarray<double> masses;
+    std::valarray<int> atom_type_indices;
+    std::valarray<int> number_excluded_atoms;
+    std::valarray<int> nonbonded_parm_indices;
+    std::valarray<std::string> residue_labels;
+    std::valarray<int> residue_pointers;//pointer means location in the array
+       //not c++ pointer. This is an amber name from the prmtop file
+       //(cf %FLAG RESIDUE_POINTER)
+    std::valarray<double> bond_force_constants;
+    std::valarray<double> bond_equil_values;
+    std::valarray<double> angle_force_constants;
+    std::valarray<double> angle_equil_values;
+    std::valarray<double> dihedral_force_constants;
+    std::valarray<double> dihedral_periodicities;
+    std::valarray<double> dihedral_phases;
+    std::valarray<double> soltys;//solubility?
+    std::valarray<double> lennard_jones_acoefs;
+    std::valarray<double> lennard_jones_bcoefs;
+    std::valarray<int> bonds_inc_hydrogen;
+    std::valarray<int> bonds_without_hydrogen;
+    std::valarray<int> angles_inc_hydrogen;
+    std::valarray<int> angles_without_hydrogen;
+    std::valarray<int> dihedrals_inc_hydrogen;
+    std::valarray<int> dihedrals_without_hydrogen;
+    std::valarray<int> excluded_atoms_list;
+    std::valarray<double> hbond_acoefs;
+    std::valarray<double> hbond_bcoefs;
+    std::valarray<double> hbcuts;
+    std::valarray<std::string> amber_atom_types;
+    std::valarray<std::string> tree_chain_classifications;
+    std::valarray<int> join_array;
+    std::valarray<int> irotats;
+    std::valarray<std::string> radius_sets;
+    std::valarray<double> radii;
+    std::valarray<double> screen;
+
+private:
+    /**
+     * Fills the appropriate valarray with data, based on the provided flag and
+     *      format.
+     *
+     * @param
+     * @param
+     * @param
+     * @return
+     */
+    void parseValarray(std::fstream& prmtopFile,const char* flag,
+            const char* format);
+    
+    void loadPointers(std::fstream& prmtopFile,const char* flag,
+            const char* format);
+
+    /**
+     * Gets the next line with data, ie empty, whitespace lines are ignored.
+     * @param file
+     * @return
+     */
+    static std::string getNextLine(std::fstream& file);
+
+    /**
+     * Reads the data
+     * 
+     * @param prmtopFile
+     * @param array pointer to new array. Contents of array will be replaced
+     *      with new values. If there is a disagreement between array.size() and
+     *      the parameter "size", array is deleted and replaced with new valarray(size)
+     * @param size expected size of array.
+     */
+    template <class T> static void loadArray(std::fstream& prmtopFile,
+        std::valarray<T> array, int size);
+
+    
+
 };
 
 
-class SanderIOException : public std::exception {
-    SanderIOException();
-    virtual ~SanderIOException();
-
+class SanderIOException : public std::runtime_error {
+public:
+    SanderIOException( const std::string &error) : runtime_error(error) {}
+    
 };
-#endif	/* SANDERIO_H */
+#endif	//SANDERIO_H
 
