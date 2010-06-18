@@ -11,15 +11,18 @@
 #ifndef SANDERIO_H
 #define	SANDERIO_H
 
+#define DEBUG_PRINT(X) std::cout << X << std::endl;
 
 //Standard Includes
-#include <stdexcept>
 #include <string>
 #include <fstream>
 #include <valarray>
 #include <streambuf>
 #include <sstream>
 #include <iostream>
+
+//project specific stuff
+#include "mmpbsa_exceptions.h"
 
 /**
  * Removes white space at the beginning and end of a string.
@@ -43,14 +46,14 @@ public:
     SanderParm(const SanderParm& orig);
 
     //Destructor
-    virtual ~SanderParm(){}
+    ~SanderParm();
 
     /**
      * Reads the AMBER Topology Parameter files (prmtop) and
      * @param file
      * @return
      */
-    static SanderParm raw_read_amber_parm(std::string file);
+    void raw_read_amber_parm(std::string file);
 
     SanderParm & operator=(const SanderParm& orig);
 
@@ -135,25 +138,26 @@ public:
     std::valarray<std::string> tree_chain_classifications;
     std::valarray<int> join_array;
     std::valarray<int> irotats;
-    std::valarray<std::string> radius_sets;
+    std::string radius_sets;
     std::valarray<double> radii;
     std::valarray<double> screen;
 
 private:
     /**
      * Fills the appropriate valarray with data, based on the provided flag and
-     *      format.
+     *      format. Format is used to get the number of columns and character
+     *      width of the column. Columns are *not* whitespace delimited.
      *
      * @param
      * @param
      * @param
      * @return
      */
-    void parseValarray(std::fstream& prmtopFile,const char* flag,
-            const char* format);
+    void parseValarray(std::fstream& prmtopFile,const std::string& flag,
+            const std::string& format);
     
-    void loadPointers(std::fstream& prmtopFile,const char* flag,
-            const char* format);
+    void loadPointers(std::fstream& prmtopFile,const std::string& flag,
+            const std::string& format);
 
     /**
      * Gets the next line with data, ie empty, whitespace lines are ignored.
@@ -172,17 +176,16 @@ private:
      * @param size expected size of array.
      */
     template <class T> static void loadArray(std::fstream& prmtopFile,
-        std::valarray<T> array, int size);
+        std::valarray<T>& array, int size,const std::string& format);
+
+    static void loadArray(std::fstream& prmtopFile,
+        std::valarray<std::string>& array, int size,const std::string& format);
 
     
 
 };
 
 
-class SanderIOException : public std::runtime_error {
-public:
-    SanderIOException( const std::string &error) : runtime_error(error) {}
-    
-};
+
 #endif	//SANDERIO_H
 

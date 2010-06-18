@@ -7,6 +7,8 @@
 
 #include <cstdlib>
 #include <iostream>
+#include "mmpbsa_exceptions.h"
+#include "SanderIO.h"
 
 using namespace std;
 
@@ -15,7 +17,20 @@ using namespace std;
  */
 int main(int argc, char** argv) {
 
-    std::cout << "Add mmpbsa code" << std::endl;
-    return 0;
+  try
+    {
+      SanderParm sp;
+      sp.raw_read_amber_parm("polyAT_cio.prmtop");
+      std::cout << "Done" << std::endl;
+    }
+  catch(SanderIOException sioe)
+    {
+      std::cerr << sioe.what() <<std::endl;
+      return sioe.getErrType();
+    }
+
+  return 0;
 }
+
+
 
