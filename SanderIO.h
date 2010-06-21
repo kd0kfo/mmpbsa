@@ -11,8 +11,6 @@
 #ifndef SANDERIO_H
 #define	SANDERIO_H
 
-#define DEBUG_PRINT(X) std::cout << X << std::endl;
-
 //Standard Includes
 #include <string>
 #include <fstream>
@@ -23,12 +21,6 @@
 
 //project specific stuff
 #include "mmpbsa_exceptions.h"
-
-/**
- * Removes white space at the beginning and end of a string.
- * @param str
- */
-void trimString(std::string& bean);//why doesn't stl have this??
 
 class SanderParm {
 public:
@@ -46,7 +38,7 @@ public:
     SanderParm(const SanderParm& orig);
 
     //Destructor
-    ~SanderParm();
+    ~SanderParm(){}
 
     /**
      * Reads the AMBER Topology Parameter files (prmtop) and
@@ -54,6 +46,15 @@ public:
      * @return
      */
     void raw_read_amber_parm(std::string file);
+
+    /**
+     * Determines if the data loaded by loadSolventPointers makes sense.
+     * Returns true if it passes and false if it fails but for a reason that is
+     * not crash worthy, for example when warnings are sent to cerr.
+     * 
+     * @return bool
+     */
+    bool sanityCheck() throw (SanderIOException);
 
     SanderParm & operator=(const SanderParm& orig);
 
@@ -142,6 +143,10 @@ public:
     std::valarray<double> radii;
     std::valarray<double> screen;
 
+    //solvent arrays
+    std::valarray<double> atoms_per_molecule;
+    std::valarray<double> box_dimensions;
+
 private:
     /**
      * Fills the appropriate valarray with data, based on the provided flag and
@@ -155,16 +160,27 @@ private:
      */
     void parseValarray(std::fstream& prmtopFile,const std::string& flag,
             const std::string& format);
-    
+
+    /**
+     * Loads the POINTERS from the file to the necessary variable in SanderParm
+     * For SOLVENT_POINTERS, see loadSolventPointers
+     * 
+     * @param prmtopFile
+     * @param flag
+     * @param format
+     */
     void loadPointers(std::fstream& prmtopFile,const std::string& flag,
             const std::string& format);
 
     /**
-     * Gets the next line with data, ie empty, whitespace lines are ignored.
-     * @param file
-     * @return
+     * Loads the SOLVENT_POINTERS from the file to the necessary variable in SanderParm
+     * 
+     * @param prmtopFile
+     * @param flag
+     * @param format
      */
-    static std::string getNextLine(std::fstream& file);
+    void loadSolventPointers(std::fstream& prmtopFile,const std::string& flag,
+            const std::string& format);
 
     /**
      * Reads the data
@@ -178,14 +194,56 @@ private:
     template <class T> static void loadArray(std::fstream& prmtopFile,
         std::valarray<T>& array, int size,const std::string& format);
 
+    /**
+     * Loads data from the file to the given array. Data in array will be replaced
+     *      by data read from file.
+     * 
+     * @param prmtopFile
+     * @param array
+     * @param size
+     * @param format
+     */
     static void loadArray(std::fstream& prmtopFile,
         std::valarray<std::string>& array, int size,const std::string& format);
 
-    
+
+    /**
+     * Determines if all of the values in array fall between max and min.
+     * array's template class must have operator> and operator<
+     *
+     * Returns true if everything is between max and min, false otherwise
+     * 
+     * @param array
+     * @param min
+     * @param max
+     * @return
+     */
+    template <class T> static bool rangeCheck(const std::valarray<T>& array, const T& min,
+        const T& max);
+
+    template <class T> static bool bondCheck(const std::valarray<T>& array,
+        const int& natoms, const int& nbonds, const int& ntype,
+        const int& atomsPerBond);
 
 };
 
+std::string read_crds(std::fstream& crdFile, std::valarray<double>& crds);
 
+void write_crds(const char* fileName,const std::valarray<double>& crds,
+    const char* title = "");
+
+/**
+ * Removes white space at the beginning and end of a string.
+ * @param str
+ */
+void trimString(std::string& bean);//why doesn't stl have this??
+
+/**
+     * Gets the next line with data, ie empty, whitespace lines are ignored.
+     * @param file
+     * @return
+     */
+static std::string getNextLine(std::fstream& file);
 
 #endif	//SANDERIO_H
 
