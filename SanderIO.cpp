@@ -1,6 +1,6 @@
 #include "SanderIO.h"
 
-SanderParm::SanderParm() {
+sanderio::SanderParm::SanderParm() {
     natom = 0;// total number of atoms
     ntypes = 0;//< total number of distinct atom types
     nbonh = 0;// number of bonds containing hydrogen
@@ -38,7 +38,7 @@ SanderParm::SanderParm() {
     nspm = 0;//     total number of molecules
     nspsol = 0;//   the first solvent "molecule" (base 1 index)
 
-    
+
     //pointers are stored here in case the vectors are swapped around later
     //between difference classes. These arrays are LARGE; the goal here is to
     //save memory/time if that happens.
@@ -82,7 +82,7 @@ SanderParm::SanderParm() {
     screen;/**/
 }
 
-SanderParm::SanderParm(const SanderParm& orig) {
+sanderio::SanderParm::SanderParm(const SanderParm& orig) {
     natom = orig.natom;// total number of atoms
     ntypes = orig.ntypes;// total number of distinct atom types
     nbonh = orig.nbonh;// number of bonds containing hydrogen
@@ -202,9 +202,7 @@ SanderParm::SanderParm(const SanderParm& orig) {
 
 }
 
-
-
-SanderParm & SanderParm::operator=(const SanderParm& orig)
+sanderio::SanderParm& sanderio::SanderParm::operator=(const sanderio::SanderParm& orig)
 {
     if(this == &orig)
         return *this;
@@ -287,11 +285,11 @@ SanderParm & SanderParm::operator=(const SanderParm& orig)
     radius_sets = orig.radius_sets;
     radii = orig.radii;
     screen = orig.screen;
-    
+
     return *this;
 }
 
-void SanderParm::raw_read_amber_parm(std::string file)
+void sanderio::SanderParm::raw_read_amber_parm(std::string file)
 {
 
     using std::fstream;
@@ -317,6 +315,9 @@ void SanderParm::raw_read_amber_parm(std::string file)
         currentLine = getNextLine(prmtopFile);//should be FLAG
         if(currentLine.substr(0,5) != "%FLAG")
         {
+            if(prmtopFile.eof())//there was whitespace before EOF
+                return;
+
             char* flagLocation;
             sprintf(flagLocation,"%i",flagCounter);
             throw SanderIOException(file.append(" is malformed. %FLAG is "
@@ -342,14 +343,14 @@ void SanderParm::raw_read_amber_parm(std::string file)
             trimString(format);
         }
 
-        parseValarray(prmtopFile,flag,format);
+        parseParmtopFile(prmtopFile,flag,format);
     }
 
 
 
 }
 
-bool SanderParm::sanityCheck() throw (SanderIOException)
+bool sanderio::SanderParm::sanityCheck() throw (SanderIOException)
 {
     using std::string;
 
@@ -492,10 +493,10 @@ bool SanderParm::sanityCheck() throw (SanderIOException)
 
     }
     return !thereIsAProblem;//sanity check returns true if everything checks out.
-    
+
 }//end sanitycheck
 
-void SanderParm::parseValarray(std::fstream& prmtopFile,const std::string& flag,
+void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::string& flag,
             const std::string& format)
 {
     //is the file still able to be read?
@@ -509,78 +510,78 @@ void SanderParm::parseValarray(std::fstream& prmtopFile,const std::string& flag,
     if(flag == "POINTERS")
         return loadPointers(prmtopFile,flag,format);
     else if(flag == "ATOM_NAME")
-        loadArray(prmtopFile,atom_names,natom,format);
+        loadPrmtopData(prmtopFile,atom_names,natom,format);
     else if(flag == "CHARGE")
-        loadArray(prmtopFile,charges,natom,format);
+        loadPrmtopData(prmtopFile,charges,natom,format);
     else if(flag == "MASS")
-        loadArray(prmtopFile,masses,natom,format);
+        loadPrmtopData(prmtopFile,masses,natom,format);
     else if(flag == "ATOM_TYPE_INDEX")
-        loadArray(prmtopFile,atom_type_indices,natom,format);
+        loadPrmtopData(prmtopFile,atom_type_indices,natom,format);
     else if(flag == "NUMBER_EXCLUDED_ATOMS")
-        loadArray(prmtopFile,number_excluded_atoms,natom,format);
+        loadPrmtopData(prmtopFile,number_excluded_atoms,natom,format);
     else if(flag == "NONBONDED_PARM_INDEX")
-        loadArray(prmtopFile,nonbonded_parm_indices,ntypes*ntypes,format);
+        loadPrmtopData(prmtopFile,nonbonded_parm_indices,ntypes*ntypes,format);
     else if(flag == "RESIDUE_LABEL")
-        loadArray(prmtopFile,residue_labels,nres,format);
+        loadPrmtopData(prmtopFile,residue_labels,nres,format);
     else if(flag == "RESIDUE_POINTER")
-        loadArray(prmtopFile,residue_pointers,nres,format);
+        loadPrmtopData(prmtopFile,residue_pointers,nres,format);
     else if(flag == "BOND_FORCE_CONSTANT")
-        loadArray(prmtopFile,bond_force_constants,numbnd,format);
+        loadPrmtopData(prmtopFile,bond_force_constants,numbnd,format);
     else if(flag == "BOND_EQUIL_VALUE")
-        loadArray(prmtopFile,bond_equil_values,numbnd,format);
+        loadPrmtopData(prmtopFile,bond_equil_values,numbnd,format);
     else if(flag == "ANGLE_FORCE_CONSTANT")
-        loadArray(prmtopFile,angle_force_constants,numang,format);
+        loadPrmtopData(prmtopFile,angle_force_constants,numang,format);
     else if(flag == "ANGLE_EQUIL_VALUE")
-        loadArray(prmtopFile,angle_equil_values,numang,format);
+        loadPrmtopData(prmtopFile,angle_equil_values,numang,format);
     else if(flag == "DIHEDRAL_FORCE_CONSTANT")
-        loadArray(prmtopFile,dihedral_force_constants,nptra,format);
+        loadPrmtopData(prmtopFile,dihedral_force_constants,nptra,format);
     else if(flag == "DIHEDRAL_PERIODICITY")
-        loadArray(prmtopFile,dihedral_periodicities,nptra,format);
+        loadPrmtopData(prmtopFile,dihedral_periodicities,nptra,format);
     else if(flag == "DIHEDRAL_PHASE")
-        loadArray(prmtopFile,dihedral_phases,nptra,format);
+        loadPrmtopData(prmtopFile,dihedral_phases,nptra,format);
     else if(flag == "SOLTY")
-        loadArray(prmtopFile,soltys,natyp,format);
+        loadPrmtopData(prmtopFile,soltys,natyp,format);
     else if(flag == "LENNARD_JONES_ACOEF")
-        loadArray(prmtopFile,lennard_jones_acoefs,int(0.5*ntypes*(ntypes+1)),format);
+        loadPrmtopData(prmtopFile,lennard_jones_acoefs,int(0.5*ntypes*(ntypes+1)),format);
     else if(flag == "LENNARD_JONES_BCOEF")
-        loadArray(prmtopFile,lennard_jones_bcoefs,int(0.5*ntypes*(ntypes+1)),format);
+        loadPrmtopData(prmtopFile,lennard_jones_bcoefs,int(0.5*ntypes*(ntypes+1)),format);
     else if(flag == "BONDS_INC_HYDROGEN")
-        loadArray(prmtopFile,bonds_inc_hydrogen,nbonh*3,format);
+        loadPrmtopData(prmtopFile,bonds_inc_hydrogen,nbonh*3,format);
     else if(flag == "BONDS_WITHOUT_HYDROGEN")
-        loadArray(prmtopFile,bonds_without_hydrogen,nbona*3,format);
+        loadPrmtopData(prmtopFile,bonds_without_hydrogen,nbona*3,format);
     else if(flag == "ANGLES_INC_HYDROGEN")
-        loadArray(prmtopFile,angles_inc_hydrogen,4*ntheth,format);
+        loadPrmtopData(prmtopFile,angles_inc_hydrogen,4*ntheth,format);
     else if(flag == "ANGLES_WITHOUT_HYDROGEN")
-        loadArray(prmtopFile,angles_without_hydrogen,4*ntheta,format);
+        loadPrmtopData(prmtopFile,angles_without_hydrogen,4*ntheta,format);
     else if(flag == "DIHEDRALS_INC_HYDROGEN")
-        loadArray(prmtopFile,dihedrals_inc_hydrogen,5*nphih,format);
+        loadPrmtopData(prmtopFile,dihedrals_inc_hydrogen,5*nphih,format);
     else if(flag == "DIHEDRALS_WITHOUT_HYDROGEN")
-        loadArray(prmtopFile,dihedrals_without_hydrogen,5*nphia,format);
+        loadPrmtopData(prmtopFile,dihedrals_without_hydrogen,5*nphia,format);
     else if(flag == "EXCLUDED_ATOMS_LIST")
-        loadArray(prmtopFile,excluded_atoms_list,nnb,format);
+        loadPrmtopData(prmtopFile,excluded_atoms_list,nnb,format);
     else if(flag == "HBOND_ACOEF")
-        loadArray(prmtopFile,hbond_acoefs,nphb,format);
+        loadPrmtopData(prmtopFile,hbond_acoefs,nphb,format);
     else if(flag == "HBOND_BCOEF")
-        loadArray(prmtopFile,hbond_bcoefs,nphb,format);
+        loadPrmtopData(prmtopFile,hbond_bcoefs,nphb,format);
     else if(flag == "HBCUT")
-        loadArray(prmtopFile,hbcuts,nphb,format);
+        loadPrmtopData(prmtopFile,hbcuts,nphb,format);
     else if(flag == "AMBER_ATOM_TYPE")
-        loadArray(prmtopFile,amber_atom_types,natom,format);
+        loadPrmtopData(prmtopFile,amber_atom_types,natom,format);
     else if(flag == "TREE_CHAIN_CLASSIFICATION")
-        loadArray(prmtopFile,tree_chain_classifications,natom,format);
+        loadPrmtopData(prmtopFile,tree_chain_classifications,natom,format);
     else if(flag == "JOIN_ARRAY")
-        loadArray(prmtopFile,join_array,natom,format);
+        loadPrmtopData(prmtopFile,join_array,natom,format);
     else if(flag == "IROTAT")
-        loadArray(prmtopFile,irotats,natom,format);
+        loadPrmtopData(prmtopFile,irotats,natom,format);
     else if(flag == "RADIUS_SET")
     {
         radius_sets = getNextLine(prmtopFile);
         trimString(radius_sets);
     }
     else if(flag == "RADII")
-        loadArray(prmtopFile,radii,natom,format);
+        loadPrmtopData(prmtopFile,radii,natom,format);
     else if(flag == "SCREEN")
-        loadArray(prmtopFile,screen,natom,format);
+        loadPrmtopData(prmtopFile,screen,natom,format);
     else if(flag == "TITLE")
     {
         titles = getNextLine(prmtopFile);
@@ -589,25 +590,25 @@ void SanderParm::parseValarray(std::fstream& prmtopFile,const std::string& flag,
     else if(flag == "SOLVENT_POINTERS")
         loadSolventPointers(prmtopFile,flag,format);
     else if(flag == "ATOMS_PER_MOLECULE")
-        loadArray(prmtopFile,atoms_per_molecule,nspm,format);
+        loadPrmtopData(prmtopFile,atoms_per_molecule,nspm,format);
     else if(flag == "BOX_DIMENSIONS")
-        loadArray(prmtopFile,box_dimensions,4,format);
+        loadPrmtopData(prmtopFile,box_dimensions,4,format);
     else
         std::cout << flag << " was not parsed." << std::endl;
 
 
 }
 
-void SanderParm::loadPointers(std::fstream& prmtopFile,const std::string& flag,
+void sanderio::SanderParm::loadPointers(std::fstream& prmtopFile,const std::string& flag,
             const std::string& format)
 {
     using std::string;
-    
+
     if(!prmtopFile.good())
         throw SanderIOException("Cannot read from file. loadPointers");
 
     std::valarray<int> pointers(0,31);
-    loadArray(prmtopFile,pointers,31,format);
+    loadPrmtopData(prmtopFile,pointers,31,format);
 
 
     //populate parameters
@@ -647,7 +648,7 @@ void SanderParm::loadPointers(std::fstream& prmtopFile,const std::string& flag,
 
 }
 
-void SanderParm::loadSolventPointers(std::fstream& prmtopFile,const std::string& flag,
+void sanderio::SanderParm::loadSolventPointers(std::fstream& prmtopFile,const std::string& flag,
             const std::string& format)
 {
     using std::string;
@@ -656,7 +657,7 @@ void SanderParm::loadSolventPointers(std::fstream& prmtopFile,const std::string&
         throw SanderIOException("Cannot read from file. loadPointers");
 
     std::valarray<int> pointers(0,3);
-    loadArray(prmtopFile,pointers,3,format);
+    loadPrmtopData(prmtopFile,pointers,3,format);
 
     int i = 0;
     iptres = pointers[i++];///<   last residue that is considered part of solute (base 1 index)
@@ -664,144 +665,7 @@ void SanderParm::loadSolventPointers(std::fstream& prmtopFile,const std::string&
     nspsol = pointers[i++];
 }
 
-template <class T> void SanderParm::loadArray(std::fstream& prmtopFile,
-        std::valarray<T>& array,int size,const std::string& format)
-{
-    using std::valarray;
-    using std::string;
-
-    //ensure array is of the correct size (or exists).
-    if(!prmtopFile.good())
-        throw SanderIOException("Cannot read from file. loadArray");
-
-    if(array.size() != size)
-        array.resize(size);
-
-    //use the format to obtain the array dimensions (in the 2-D sense).
-    int numberOfColumns = 0;
-    int columnWidth = 0;
-    sscanf(format.c_str(),"%*c%d%*c%d",&numberOfColumns,&columnWidth);
-
-    char next;//first character of next line
-    int currentIndex = 0;
-    do
-    {
-        //"peek" to see if are finished parsing, ie next flag begins.
-        prmtopFile.get(next);
-        if(next == '%')
-        {
-            prmtopFile.unget();
-
-            //check to see if the correct number of data values have been read.
-            if(currentIndex != array.size())
-                throw SanderIOException("SanderParm has read to many or too "
-                    "few data values.");
-
-            return;
-        }
-        else if(currentIndex == array.size())//if this is the case, we are at the end of the file or there is a space between this and the next flag.
-            break;
-
-        prmtopFile.unget();//undo the "peek"
-        string currentLine = getNextLine(prmtopFile);
-        
-        while (currentLine.size() > 0)
-        {
-            string currentDataValue = currentLine.substr(0,columnWidth);
-            double numericalValue = atof(currentDataValue.c_str());
-
-            array[currentIndex++] = numericalValue;
-            currentLine = currentLine.erase(0,columnWidth);
-        }
-
-    }while(prmtopFile.good());
-
-    //check to see if the correct number of data values have been read.
-    if(currentIndex != array.size())
-        throw SanderIOException("SanderParm has read to many or too "
-            "few data values.");
-}
-
-void SanderParm::loadArray(std::fstream& prmtopFile,
-    std::valarray<std::string>& array, int size,const std::string& format)
-{
-    using std::valarray;
-    using std::string;
-
-    //ensure array is of the correct size (or exists).
-    if(!prmtopFile.good())
-        throw SanderIOException("Cannot read from file. loadArray");
-
-    if(array.size() != size)
-        array.resize(size);
-
-    //use the format to get the array dimensions(in the 2-D sense).
-    //cf Sander prmtop descript in Appendix B of Amber8 manual
-    int numberOfColumns = 0;
-    int columnWidth = 0;
-    sscanf(format.c_str(),"(%d%*c%d",&numberOfColumns,&columnWidth);
-
-    char next;//first character of next line
-    int currentIndex = 0;
-    do
-    {
-        //"peek" to see if are finished parsing, ie next flag begins.
-        prmtopFile.get(next);
-        if(next == '%')
-        {
-            prmtopFile.unget();
-
-            //check to see if the correct number of data values have been read.
-            if(currentIndex != array.size())
-                throw SanderIOException("SanderParm has read to many or too "
-                    "few data values.");
-
-            return;
-        }
-
-        prmtopFile.unget();//undo the "peek"
-        string currentLine = getNextLine(prmtopFile);
-
-        while (currentLine.size() > 0)
-        {
-            string currentDataValue = currentLine.substr(0,columnWidth);
-            array[currentIndex++] = currentDataValue;
-            currentLine = currentLine.erase(0,columnWidth);
-        }
-
-    }while(prmtopFile.good());
-
-    //check to see if the correct number of data values have been read.
-    if(currentIndex != array.size())
-        throw SanderIOException("SanderParm has read to many or too "
-            "few data values.");
-}
-
-std::string getNextLine(std::fstream& file)
-{
-    if(!file.good())
-        throw SanderIOException("Could not read from file");
-
-    std::string returnMe;
-    getline(file,returnMe);
-    return returnMe;
-}
-
-void trimString(std::string& bean)
-{
-    using std::string;
-    int pos = bean.find_last_not_of(' ');
-    if(pos != string::npos)
-    {
-        bean.erase(pos + 1);
-        pos = bean.find_first_not_of(' ');
-        if(pos != string::npos) bean.erase(0, pos);
-    }
-    else
-        bean.erase(bean.begin(), bean.end());
-}
-
-template <class T> bool SanderParm::rangeCheck(const std::valarray<T>& array, 
+template <class T> bool sanderio::SanderParm::rangeCheck(const std::valarray<T>& array,
     const T& min, const T& max)
 {
     if(array.max() > max)
@@ -813,7 +677,7 @@ template <class T> bool SanderParm::rangeCheck(const std::valarray<T>& array,
     return true;
 }
 
-template <class T> bool SanderParm::bondCheck(const std::valarray<T>& array,
+template <class T> bool sanderio::SanderParm::bondCheck(const std::valarray<T>& array,
         const int& natoms, const int& nbonds, const int& ntypes,
         const int& atomsPerBond)
 {
@@ -854,7 +718,29 @@ template <class T> bool SanderParm::bondCheck(const std::valarray<T>& array,
     return true;
 }
 
-std::string read_crds(std::fstream& crdFile, std::valarray<double>& crds)
+
+template <class T> void sanderio::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
+        std::valarray<T>& array,int size,const std::string& format)
+{
+    using std::valarray;
+    using std::string;
+
+    //ensure array is of the correct size (or exists).
+    if(!prmtopFile.good())
+        throw SanderIOException("Cannot read from file. loadPrmtopData");
+
+    //use the format to obtain the array dimensions (in the 2-D sense).
+    int numberOfColumns = 0;
+    int columnWidth = 0;
+    sscanf(format.c_str(),"%*c%d%*c%d",&numberOfColumns,&columnWidth);
+
+    if(!loadValarray(prmtopFile,array,size,columnWidth,numberOfColumns))
+        throw SanderIOException("Could not load Parameter Data",BROKEN_PRMTOP_FILE);
+
+}
+
+
+std::string sanderio::read_crds(std::fstream& crdFile, std::valarray<double>& crds)
 {
     using std::string;
 
@@ -867,44 +753,13 @@ std::string read_crds(std::fstream& crdFile, std::valarray<double>& crds)
     int natoms = 0;
     sscanf(strNatoms.c_str(),"%d",&natoms);
 
-    if(crds.size() != natoms*3)
-        crds.resize(3*natoms,0.0);
-
-    int width = 12;
-    int lineIndex = 0;
-    float dblCurrentData = 0;
-    int crdsIndex = 0;
-    do
-    {
-        string currentLine = getNextLine(crdFile);//do not trim string. Spaces are part of formatted size.
-        if(currentLine.size() % width )
-        {
-            char* error;
-            sprintf(error,"Coordinate file contains a short line. "
-                    "Lines must be at least 36 characters, but line #%d is only"
-                    "%d characters long.",lineIndex+1,currentLine.size());
-            std::cerr << error << std::endl;
-        }
-
-        //tokenize line into data. put data into valarray.
-        while(currentLine.size() > 0)
-        {
-            string currentData = currentLine.substr(0,width);
-            sscanf(currentData.c_str(),"%e",&dblCurrentData);
-            crds[crdsIndex++] = dblCurrentData;
-            currentLine.erase(0,width);
-        }
-
-        lineIndex++;
-        if(crdsIndex == natoms*3)
-            break;//in case the file has too much data, ie periodic box
-    }
-    while(crdFile.good());
+    if(!loadValarray(crdFile,crds,natoms*3,12,8))
+        throw SanderIOException("Coordinate file is too short.",FILE_READ_ERROR);
 
     return title;
 }
 
-void write_crds(const char* fileName,const std::valarray<double>& crds,
+void sanderio::write_crds(const char* fileName,const std::valarray<double>& crds,
     const char* title)
 {
     using std::valarray;
@@ -915,10 +770,10 @@ void write_crds(const char* fileName,const std::valarray<double>& crds,
                 "must be a multiple of 3, ie 3-dimensions.",DATA_FORMAT_ERROR);
 
     int natoms = int(crds.size()/3);
-    
+
     std::fstream outFile(fileName,std::ios::out);
     char* format = "%12.7f";//format of the coordinate data
-    
+
     if(!outFile.good())
         throw SanderIOException(std::string("Could not open: ").append(fileName),FILE_READ_ERROR);
 
@@ -960,3 +815,153 @@ void write_crds(const char* fileName,const std::valarray<double>& crds,
     outFile.close();
 }
 
+std::string sanderio::get_traj_title(std::fstream& trajFile)
+{
+    trajFile.seekg(0,std::ios::beg);
+    return getNextLine(trajFile);
+}
+
+bool sanderio::get_next_snap(std::fstream& trajFile, std::valarray<double>& snapshot,
+    const int& natoms,bool isPeriodic)
+{
+    bool returnMe = loadValarray(trajFile,snapshot,natoms*3,8,10);
+    if(isPeriodic)
+        getNextLine(trajFile);//ignoring periodic box information
+    return returnMe;
+}
+
+void sanderio::skip_next_snap(std::fstream& trajFile, const int& natoms, bool isPeriodic)
+{
+    int numlines = int(natoms*3/10);
+    if(natoms*3 % 10)
+        numlines++;
+    if(isPeriodic)
+        numlines++;
+    trajFile.seekg(numlines,trajFile.cur);
+}
+
+template <class T> bool sanderio::loadValarray(std::fstream& dataFile,
+        std::valarray<T>& dataArray, const int& arrayLength, const int& width,
+        const int& numberOfColumns)
+{
+    using std::string;
+
+    if(dataFile.eof())
+        return false;
+
+    if(dataArray.size() != arrayLength)
+        dataArray.resize(arrayLength,0);
+
+    int lineIndex = 0;
+    float fltCurrentData = 0;
+    int dataIndex = 0;
+
+     for(int i = 0;i<arrayLength;i++)
+    {
+        if(dataFile.eof())
+            throw SanderIOException("Data file ended in the middle of the "
+                    "data.",BROKEN_TRAJECTORY_FILE);
+
+        string currentLine = getNextLine(dataFile);//do not trim string. Spaces are part of formatted size.
+        if(currentLine.size() % width )
+        {
+            char* error;
+            sprintf(error,"Data file contains a short line. "
+                    "Lines must be at least 36 characters, but line #%d is only"
+                    "%d characters long.",lineIndex+1,currentLine.size());
+            std::cerr << error << std::endl;
+        }
+
+        //tokenize line into data. put data into valarray.
+        int currentColumn = 0;
+        while(currentLine.size() > 0 && currentColumn < numberOfColumns)
+        {
+            string currentData = currentLine.substr(0,width);
+            sscanf(currentData.c_str(),"%f",&fltCurrentData);
+            dataArray[dataIndex++] = fltCurrentData;
+            currentLine.erase(0,width);
+            currentColumn++;
+        }
+
+        lineIndex++;
+        if(dataIndex == arrayLength)
+            return true;//in case the file has too much data, ie periodic box
+    }
+
+
+    return true;
+
+}
+
+template <> bool sanderio::loadValarray<std::string>(std::fstream& dataFile,
+        std::valarray<std::string>& dataArray, const int& arrayLength, const int& width,
+        const int& numberOfColumns)
+{
+    using std::string;
+
+    if(dataFile.eof())
+        return false;
+
+    if(dataArray.size() != arrayLength)
+        dataArray.resize(arrayLength,"");
+
+    int lineIndex = 0;
+    int dataIndex = 0;
+
+    for(int i = 0;i<arrayLength;i++)
+    {
+        if(dataFile.eof())
+            throw SanderIOException("Data file ended in the middle of the "
+                    "data.",BROKEN_TRAJECTORY_FILE);
+
+        string currentLine = getNextLine(dataFile);//do not trim string. Spaces are part of formatted size.
+        if(currentLine.size() % width )
+        {
+            char* error;
+            sprintf(error,"Data file contains a short line. "
+                    "Lines must be at least 36 characters, but line #%d is only"
+                    "%d characters long.",lineIndex+1,currentLine.size());
+            std::cerr << error << std::endl;
+        }
+
+        //tokenize line into data. put data into valarray.
+        int currentColumn = 0;
+        while(currentLine.size() > 0 && currentColumn < numberOfColumns)
+        {
+            dataArray[dataIndex++] = currentLine.substr(0,width);
+            currentLine.erase(0,width);
+            currentColumn++;
+        }
+
+        lineIndex++;
+        if(dataIndex == arrayLength)
+            return true;//in case the file has too much data, ie periodic box
+    }
+
+
+    return true;
+}
+
+std::string getNextLine(std::fstream& file)
+{
+    if(!file.good())
+        throw SanderIOException("Could not read from file");
+
+    std::string returnMe;
+    getline(file,returnMe);
+    return returnMe;
+}
+
+void sanderio::trimString(std::string& bean)
+{
+    using std::string;
+    int pos = bean.find_last_not_of(' ');
+    if(pos != string::npos)
+    {
+        bean.erase(pos + 1);
+        pos = bean.find_first_not_of(' ');
+        if(pos != string::npos) bean.erase(0, pos);
+    }
+    else
+        bean.erase(bean.begin(), bean.end());
+}

@@ -22,6 +22,8 @@
 //project specific stuff
 #include "mmpbsa_exceptions.h"
 
+namespace sanderio{
+
 class SanderParm {
 public:
     /**
@@ -158,7 +160,7 @@ private:
      * @param
      * @return
      */
-    void parseValarray(std::fstream& prmtopFile,const std::string& flag,
+    void parseParmtopFile(std::fstream& prmtopFile,const std::string& flag,
             const std::string& format);
 
     /**
@@ -191,23 +193,10 @@ private:
      *      the parameter "size", array is deleted and replaced with new valarray(size)
      * @param size expected size of array.
      */
-    template <class T> static void loadArray(std::fstream& prmtopFile,
+    template <class T> static void loadPrmtopData(std::fstream& prmtopFile,
         std::valarray<T>& array, int size,const std::string& format);
 
-    /**
-     * Loads data from the file to the given array. Data in array will be replaced
-     *      by data read from file.
-     * 
-     * @param prmtopFile
-     * @param array
-     * @param size
-     * @param format
-     */
-    static void loadArray(std::fstream& prmtopFile,
-        std::valarray<std::string>& array, int size,const std::string& format);
-
-
-    /**
+        /**
      * Determines if all of the values in array fall between max and min.
      * array's template class must have operator> and operator<
      *
@@ -227,10 +216,51 @@ private:
 
 };
 
+/**
+ * Reads the Coordinates or Velocities from the given file, using the first
+ * natoms*3 values. The title (first line value) is returned as a std::string
+ *
+ * @param crdFile
+ * @param crds
+ * @return title
+ */
 std::string read_crds(std::fstream& crdFile, std::valarray<double>& crds);
 
+/**
+ * Writes the provided coordinate data to a file. Each line contains 6 columns
+ * with 12.7f formatting.
+ *
+ * @param fileName
+ * @param crds
+ * @param title
+ */
 void write_crds(const char* fileName,const std::valarray<double>& crds,
     const char* title = "");
+
+/**
+ * Moves the current read line of the file stream to the beginning, increments
+ * to the first snapshot and returns the title.
+ * 
+ * @param trajFile
+ * @return title
+ */
+std::string get_traj_title(std::fstream& trajFile);
+
+/**
+ * Gets the next snapshot from the provided trajectory file. The snapshot data
+ * is loaded into the provided snapshot valarray, overwriting data and resizing,
+ * if necessary. True is returned in the snapshot is read. False otherwise, ie
+ * trajFile is at EOF.
+ * 
+ * @param trajFile
+ * @param snapshot
+ * @param natoms
+ * @return
+ */
+bool get_next_snap(std::fstream& trajFile, std::valarray<double>& snapshot,
+    const int& natoms,bool isPeriodic = false);
+
+void skip_next_snap(std::fstream& trajFile, const int& natoms,bool isPeriodic = false);
 
 /**
  * Removes white space at the beginning and end of a string.
@@ -239,11 +269,37 @@ void write_crds(const char* fileName,const std::valarray<double>& crds,
 void trimString(std::string& bean);//why doesn't stl have this??
 
 /**
+ * Takes a given file and loads data into the given valarray, overwriting data
+ * if it already exists in valarray. The size of the valarray is set to arrayLength,
+ * if it is not already. The width of each column (including whitespace) is 
+ * equal to width. True is returned in the snapshot is read. False otherwise, ie
+ * trajFile is at EOF.
+ * 
+ * @param dataFile
+ * @param dataArray
+ * @param arrayLength
+ * @param width
+ * @return 
+ */
+template <class T> bool loadValarray(std::fstream& dataFile,
+        std::valarray<T>& dataArray, const int& arrayLength, const int& width,
+        const int& numberOfColumns);
+
+template <> bool loadValarray<std::string>(std::fstream& dataFile,
+            std::valarray<std::string>& dataArray, const int& arrayLength, const int& width,
+            const int& numberOfColumns);
+
+/**
      * Gets the next line with data, ie empty, whitespace lines are ignored.
      * @param file
      * @return
      */
-static std::string getNextLine(std::fstream& file);
+
+}//end namespace sanderio
+
+std::string getNextLine(std::fstream& file);
 
 #endif	//SANDERIO_H
+
+
 

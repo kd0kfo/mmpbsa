@@ -11,9 +11,10 @@
 //Error types (don't use 0 )
 static const int UNKNOWN_ERROR = -1;///<Avoid, as this is vague.
 static const int FILE_READ_ERROR = 1;///<IO problem reading prmtop file.
-static const int BROKEN_PRMTOP_FILE = 2;///<prmtop file is improperly formatted.
-static const int INVALID_PRMTOP_DATA = 3;///<Data which was loaded into an array is incorrect based on what is expected.
-static const int DATA_FORMAT_ERROR = 4;///<Use this error, when data *within* the program no long matches what it should due to formatting problems.
+static const int BROKEN_PRMTOP_FILE = 2;///<prmtop file is improperly formatted or missing data.
+static const int BROKEN_TRAJECTORY_FILE = 3;///<trajectory file is improperly formatted or missing data.
+static const int INVALID_PRMTOP_DATA = 4;///<Data which was loaded into an array is incorrect based on what is expected.
+static const int DATA_FORMAT_ERROR = 5;///<Use this error, when data *within* the program no long matches what it should due to formatting problems.
 
 class SanderIOException : public std::runtime_error {
 public:
@@ -41,6 +42,7 @@ private:
     int errorType;
 
 };
+
 
 #endif	/* MMPBSA_EXCEPTIONS_H */
 
