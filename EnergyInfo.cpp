@@ -72,7 +72,7 @@ void EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
     while(currentLine.substr(1,5) != "-----")
     {
         sanderio::trimString(currentLine);
-        utils::StringTokenizer tokens(currentLine);
+        mmpbsa_utils::StringTokenizer tokens(currentLine);
         while(tokens.hasMoreTokens())
         {
             string identifier = tokens.nextToken();
@@ -106,7 +106,7 @@ bool EnergyInfo::loadEnergyValue(const std::string& identifier,const std::string
     return loadEnergyValue(identifier,dblValue);
 }
 
-bool EnergyInfo::loadEnergyValue(const std::string& identifier,const double& value)
+bool EnergyInfo::loadEnergyValue(const std::string& identifier,const mmpbsa_t& value)
 {
     //ensure the energydata valarray is the correct size. If not, whatever is
     //there is lost. Not a problem, because in that case something is wrong anyways.
@@ -220,9 +220,9 @@ AveRmsEnerInfo::AveRmsEnerInfo(const EnergyInfo& avgs, const EnergyInfo& rmses)
     relrms;
 
     //Calculate relrms, according to relrms = rms/abs(avg)
-    const valarray<double>& avgdata = avg.getEnergyData();
-    const valarray<double>& rmsdata = rms.getEnergyData();
-    valarray<double> relrmsData(0.0,avgdata.size());
+    const valarray<mmpbsa_t>& avgdata = avg.getEnergyData();
+    const valarray<mmpbsa_t>& rmsdata = rms.getEnergyData();
+    valarray<mmpbsa_t> relrmsData(0.0,avgdata.size());
     relrmsData[0] = rmsdata[0];
     for(int i = 1;i<avgdata.size();i++)
         if(avgdata[i] != 0)
@@ -367,7 +367,7 @@ float get_minimized_energy(std::fstream& mdout) throw (SanderIOException)
         currentLine = getNextLine(mdout);
     }
     currentLine = getNextLine(mdout);
-    utils::StringTokenizer tokens(currentLine);
+    mmpbsa_utils::StringTokenizer tokens(currentLine);
     tokens.nextToken();//NSTEP
     string strEnergy = tokens.nextToken();
     float fEnergy = 0;

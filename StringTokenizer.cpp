@@ -1,18 +1,18 @@
 #include "StringTokenizer.h"
 
-utils::StringTokenizer::StringTokenizer(const std::string& string)
+mmpbsa_utils::StringTokenizer::StringTokenizer(const std::string& string)
 	{
 		StringTokenizer temp(string," ",false);
 		*this = temp;
 	}
 
-utils::StringTokenizer::StringTokenizer(const std::string& newString, const char * newDelim)
+mmpbsa_utils::StringTokenizer::StringTokenizer(const std::string& newString, const char * newDelim)
 	{
 		StringTokenizer temp(newString,newDelim,false);
 		*this = temp;
 	}
 
-utils::StringTokenizer::StringTokenizer(const std::string& newString, const char * newDelim, bool keepDelim)
+mmpbsa_utils::StringTokenizer::StringTokenizer(const std::string& newString, const char * newDelim, bool keepDelim)
 	{
 		
 	  delim = newDelim;
@@ -22,7 +22,7 @@ utils::StringTokenizer::StringTokenizer(const std::string& newString, const char
 	  tokenStream << newString;
 	}
 
-utils::StringTokenizer::StringTokenizer(const StringTokenizer& rhs)
+mmpbsa_utils::StringTokenizer::StringTokenizer(const StringTokenizer& rhs)
 	{
 	  delim = rhs.getDelim();
 	  index = rhs.index;
@@ -31,7 +31,7 @@ utils::StringTokenizer::StringTokenizer(const StringTokenizer& rhs)
 	  tokenStream << string;
 	}
 
-utils::StringTokenizer utils::StringTokenizer::operator=(const StringTokenizer& rhs)
+mmpbsa_utils::StringTokenizer mmpbsa_utils::StringTokenizer::operator=(const StringTokenizer& rhs)
 	{
 	  if(this == &rhs)
 	    return *this;
@@ -43,7 +43,7 @@ utils::StringTokenizer utils::StringTokenizer::operator=(const StringTokenizer& 
 	  return *this;
 	}
 
-std::string utils::StringTokenizer::nextToken(bool keepD)
+std::string mmpbsa_utils::StringTokenizer::nextToken(bool keepD)
 	{
 	  if(tokenStream.eof())
 	    throw TokenizerException("No more tokens in string tokenizer");
@@ -67,12 +67,12 @@ std::string utils::StringTokenizer::nextToken(bool keepD)
 	  return returnMe;
 	}
 	
-bool utils::StringTokenizer::hasMoreTokens()
+bool mmpbsa_utils::StringTokenizer::hasMoreTokens()
 {
   return !tokenStream.eof();
 }
 
-std::string utils::StringTokenizer::peek()
+std::string mmpbsa_utils::StringTokenizer::peek()
 {
   std::string bean = nextToken(this->keepDelim);
   this->index -= 1;

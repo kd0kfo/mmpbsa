@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 
-namespace utils{
+namespace mmpbsa_utils{
 
   /**
    * String Tokenizer
@@ -117,12 +117,14 @@ namespace utils{
 
   };
 
-  class TokenizerException : public std::runtime_error {
+  
+}
+
+
+class TokenizerException : public std::runtime_error {
   public:
       TokenizerException( const std::string& error) : std::runtime_error(error){}
   };
-}
-
 
 #endif
 

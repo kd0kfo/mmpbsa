@@ -163,8 +163,8 @@ sanderio::SanderParm::SanderParm(const SanderParm& orig) {
     screen = orig.screen;
     /*
     atom_names = new std::valarray<std::string>(*(orig.atom_names));
-    charges = new std::valarray<double>(*(orig.charges));
-    masses = new std::valarray<double>(*(orig.masses));
+    charges = new std::valarray<mmpbsa_t>(*(orig.charges));
+    masses = new std::valarray<mmpbsa_t>(*(orig.masses));
     atom_type_indices = new std::valarray<int>(*(orig.atom_type_indices));
     number_excluded_atoms = new std::valarray<int>(*(orig.number_excluded_atoms));
     nonbonded_parm_indices = new std::valarray<int>(*(orig.nonbonded_parm_indices));
@@ -172,16 +172,16 @@ sanderio::SanderParm::SanderParm(const SanderParm& orig) {
     residue_pointers = new std::valarray<int>(*(orig.residue_pointers));//pointer means location in the array
        //not c++ pointer. This is an amber name from the prmtop file
        //(cf %FLAG RESIDUE_POINTER)
-    bond_force_constants = new std::valarray<double>(*(orig.bond_force_constants));
-    bond_equil_values = new std::valarray<double>(*(orig.bond_equil_values));
-    angle_force_constants = new std::valarray<double>(*(orig.angle_force_constants));
-    angle_equil_values = new std::valarray<double>(*(orig.angle_equil_values));
-    dihedral_force_constants = new std::valarray<double>(*(orig.dihedral_force_constants));
-    dihedral_periodicities = new std::valarray<double>(*(orig.dihedral_periodicities));
-    dihedral_phases = new std::valarray<double>(*(orig.dihedral_phases));
-    soltys = new std::valarray<double>(*(orig.soltys));//solubility?
-    lennard_jones_acoefs = new std::valarray<double>(*(orig.lennard_jones_acoefs));
-    lennard_jones_bcoefs = new std::valarray<double>(*(orig.lennard_jones_bcoefs));
+    bond_force_constants = new std::valarray<mmpbsa_t>(*(orig.bond_force_constants));
+    bond_equil_values = new std::valarray<mmpbsa_t>(*(orig.bond_equil_values));
+    angle_force_constants = new std::valarray<mmpbsa_t>(*(orig.angle_force_constants));
+    angle_equil_values = new std::valarray<mmpbsa_t>(*(orig.angle_equil_values));
+    dihedral_force_constants = new std::valarray<mmpbsa_t>(*(orig.dihedral_force_constants));
+    dihedral_periodicities = new std::valarray<mmpbsa_t>(*(orig.dihedral_periodicities));
+    dihedral_phases = new std::valarray<mmpbsa_t>(*(orig.dihedral_phases));
+    soltys = new std::valarray<mmpbsa_t>(*(orig.soltys));//solubility?
+    lennard_jones_acoefs = new std::valarray<mmpbsa_t>(*(orig.lennard_jones_acoefs));
+    lennard_jones_bcoefs = new std::valarray<mmpbsa_t>(*(orig.lennard_jones_bcoefs));
     bonds_inc_hydrogen = new std::valarray<int>(*(orig.bonds_inc_hydrogen));
     bonds_without_hydrogen = new std::valarray<int>(*(orig.bonds_without_hydrogen));
     angles_inc_hydrogen = new std::valarray<int>(*(orig.angles_inc_hydrogen));
@@ -189,16 +189,16 @@ sanderio::SanderParm::SanderParm(const SanderParm& orig) {
     dihedrals_inc_hydrogen = new std::valarray<int>(*(orig.dihedrals_inc_hydrogen));
     dihedrals_without_hydrogen = new std::valarray<int>(*(orig.dihedrals_without_hydrogen));
     excluded_atoms_list = new std::valarray<int>(*(orig.excluded_atoms_list));
-    hbond_acoefs = new std::valarray<double>(*(orig.hbond_acoefs));
-    hbond_bcoefs = new std::valarray<double>(*(orig.hbond_bcoefs));
-    hbcuts = new std::valarray<double>(*(orig.hbcuts));
+    hbond_acoefs = new std::valarray<mmpbsa_t>(*(orig.hbond_acoefs));
+    hbond_bcoefs = new std::valarray<mmpbsa_t>(*(orig.hbond_bcoefs));
+    hbcuts = new std::valarray<mmpbsa_t>(*(orig.hbcuts));
     amber_atom_types = new std::valarray<std::string>(*(orig.amber_atom_types));
     tree_chain_classifications = new std::valarray<std::string>(*(orig.tree_chain_classifications));
     join_array = new std::valarray<int>(*(orig.join_array));
     irotats = new std::valarray<int>(*(orig.irotats));
     radius_sets = new std::valarray<std::string>(*(orig.radius_sets));
-    radii = new std::valarray<double>(*(orig.radii));
-    screen = new std::valarray<double>(*(orig.screen));*/
+    radii = new std::valarray<mmpbsa_t>(*(orig.radii));
+    screen = new std::valarray<mmpbsa_t>(*(orig.screen));*/
 
 }
 
@@ -740,7 +740,7 @@ template <class T> void sanderio::SanderParm::loadPrmtopData(std::fstream& prmto
 }
 
 
-std::string sanderio::read_crds(std::fstream& crdFile, std::valarray<double>& crds)
+std::string sanderio::read_crds(std::fstream& crdFile, std::valarray<mmpbsa_t>& crds)
 {
     using std::string;
 
@@ -759,7 +759,7 @@ std::string sanderio::read_crds(std::fstream& crdFile, std::valarray<double>& cr
     return title;
 }
 
-void sanderio::write_crds(const char* fileName,const std::valarray<double>& crds,
+void sanderio::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& crds,
     const char* title)
 {
     using std::valarray;
@@ -785,11 +785,11 @@ void sanderio::write_crds(const char* fileName,const std::valarray<double>& crds
     outFile << strOutput << std::endl;
 
     int m;
-    double dblOutput;
+    mmpbsa_t dblOutput;
     //save data in rows of 6
     for(m = 0;m<crds.size() - 6;m+=6)
     {
-        valarray<double> row = crds[slice(m,6,1)];//m-th row
+        valarray<mmpbsa_t> row = crds[slice(m,6,1)];//m-th row
 
         for(int i = 0;i<6;i++)
         {
@@ -821,7 +821,7 @@ std::string sanderio::get_traj_title(std::fstream& trajFile)
     return getNextLine(trajFile);
 }
 
-bool sanderio::get_next_snap(std::fstream& trajFile, std::valarray<double>& snapshot,
+bool sanderio::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
     const int& natoms,bool isPeriodic)
 {
     bool returnMe = loadValarray(trajFile,snapshot,natoms*3,8,10);

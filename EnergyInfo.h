@@ -47,11 +47,11 @@ public:
      * @param value
      * @return
      */
-    bool loadEnergyValue(const std::string& identifier,const double& value);
+    bool loadEnergyValue(const std::string& identifier,const mmpbsa_t& value);
     bool loadEnergyValue(const std::string& identifier,const std::string& value);
 
-    const std::valarray<double>& getEnergyData(){return energydata;}
-    void setEnergyData(const std::valarray<double>& newData){energydata = newData;}
+    const std::valarray<mmpbsa_t>& getEnergyData(){return energydata;}
+    void setEnergyData(const std::valarray<mmpbsa_t>& newData){energydata = newData;}
     void clear();
 
     EnergyInfo& operator=(const EnergyInfo& rhs);
@@ -106,7 +106,7 @@ public:
 
 
 protected:
-    std::valarray<double> energydata;//keys correspond to above listed variables.
+    std::valarray<mmpbsa_t> energydata;//keys correspond to above listed variables.
 };
 
 class AveRmsEnerInfo

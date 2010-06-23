@@ -60,7 +60,6 @@ public:
 
     SanderParm & operator=(const SanderParm& orig);
 
-
     //Here begin the many data types (public)
 
     //public to be more easily accessed. change later(?)
@@ -108,8 +107,8 @@ public:
     //save memory/time if that happens.
     std::string titles;
     std::valarray<std::string> atom_names;
-    std::valarray<double> charges;
-    std::valarray<double> masses;
+    std::valarray<mmpbsa_t> charges;
+    std::valarray<mmpbsa_t> masses;
     std::valarray<int> atom_type_indices;
     std::valarray<int> number_excluded_atoms;
     std::valarray<int> nonbonded_parm_indices;
@@ -117,16 +116,16 @@ public:
     std::valarray<int> residue_pointers;//pointer means location in the array
        //not c++ pointer. This is an amber name from the prmtop file
        //(cf %FLAG RESIDUE_POINTER)
-    std::valarray<double> bond_force_constants;
-    std::valarray<double> bond_equil_values;
-    std::valarray<double> angle_force_constants;
-    std::valarray<double> angle_equil_values;
-    std::valarray<double> dihedral_force_constants;
-    std::valarray<double> dihedral_periodicities;
-    std::valarray<double> dihedral_phases;
-    std::valarray<double> soltys;//solubility?
-    std::valarray<double> lennard_jones_acoefs;
-    std::valarray<double> lennard_jones_bcoefs;
+    std::valarray<mmpbsa_t> bond_force_constants;
+    std::valarray<mmpbsa_t> bond_equil_values;
+    std::valarray<mmpbsa_t> angle_force_constants;
+    std::valarray<mmpbsa_t> angle_equil_values;
+    std::valarray<mmpbsa_t> dihedral_force_constants;
+    std::valarray<mmpbsa_t> dihedral_periodicities;
+    std::valarray<mmpbsa_t> dihedral_phases;
+    std::valarray<mmpbsa_t> soltys;//solubility?
+    std::valarray<mmpbsa_t> lennard_jones_acoefs;
+    std::valarray<mmpbsa_t> lennard_jones_bcoefs;
     std::valarray<int> bonds_inc_hydrogen;
     std::valarray<int> bonds_without_hydrogen;
     std::valarray<int> angles_inc_hydrogen;
@@ -134,20 +133,20 @@ public:
     std::valarray<int> dihedrals_inc_hydrogen;
     std::valarray<int> dihedrals_without_hydrogen;
     std::valarray<int> excluded_atoms_list;
-    std::valarray<double> hbond_acoefs;
-    std::valarray<double> hbond_bcoefs;
-    std::valarray<double> hbcuts;
+    std::valarray<mmpbsa_t> hbond_acoefs;
+    std::valarray<mmpbsa_t> hbond_bcoefs;
+    std::valarray<mmpbsa_t> hbcuts;
     std::valarray<std::string> amber_atom_types;
     std::valarray<std::string> tree_chain_classifications;
     std::valarray<int> join_array;
     std::valarray<int> irotats;
     std::string radius_sets;
-    std::valarray<double> radii;
-    std::valarray<double> screen;
+    std::valarray<mmpbsa_t> radii;
+    std::valarray<mmpbsa_t> screen;
 
     //solvent arrays
-    std::valarray<double> atoms_per_molecule;
-    std::valarray<double> box_dimensions;
+    std::valarray<mmpbsa_t> atoms_per_molecule;
+    std::valarray<mmpbsa_t> box_dimensions;
 
 private:
     /**
@@ -224,7 +223,7 @@ private:
  * @param crds
  * @return title
  */
-std::string read_crds(std::fstream& crdFile, std::valarray<double>& crds);
+std::string read_crds(std::fstream& crdFile, std::valarray<mmpbsa_t>& crds);
 
 /**
  * Writes the provided coordinate data to a file. Each line contains 6 columns
@@ -234,7 +233,7 @@ std::string read_crds(std::fstream& crdFile, std::valarray<double>& crds);
  * @param crds
  * @param title
  */
-void write_crds(const char* fileName,const std::valarray<double>& crds,
+void write_crds(const char* fileName,const std::valarray<mmpbsa_t>& crds,
     const char* title = "");
 
 /**
@@ -257,7 +256,7 @@ std::string get_traj_title(std::fstream& trajFile);
  * @param natoms
  * @return
  */
-bool get_next_snap(std::fstream& trajFile, std::valarray<double>& snapshot,
+bool get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
     const int& natoms,bool isPeriodic = false);
 
 void skip_next_snap(std::fstream& trajFile, const int& natoms,bool isPeriodic = false);
