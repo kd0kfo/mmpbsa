@@ -13,15 +13,15 @@ template <class T> std::vector<T> mmpbsa_utils::compress_ge(const std::vector<T>
 }
 
 template <class T> std::vector<T> mmpbsa_utils::compress_ge(const std::valarray<T>& oldVector,
-    const T& conditional)
+    const std::slice& currSlice, const T& conditional)
 {
     std::vector<T> returnMe;
 
-    for(int i = 0;i<oldVector.size();i++)
+    for(int i = currSlice.start();i<oldVector.size();i += currSlice.stride())
         if(oldVector[i] >= conditional)
             returnMe.push_back(oldVector[i]);
 
-    return returnMe;
+    return returnMe;/**/
 }
 
 template <class T> std::valarray<T> mmpbsa_utils::take(const std::valarray<T>& largerArray,
@@ -38,8 +38,14 @@ template <class T> std::valarray<T> mmpbsa_utils::cumsum(const std::valarray<T>&
     int size = orig.size();
     std::valarray<T> returnMe(size);
 
+    returnMe[0] = orig[0];
+
+    std::valarray<T> curr = orig[slice(0,1,1)];
     for(int i = 1;i<size;i++)
-        returnMe[i] = orig[slice(0,i,1)].sum();
+    {
+        returnMe[i] = curr.sum();
+        curr = orig[slice(0,i,1)];
+    }
 
     return returnMe;
 }
@@ -47,19 +53,53 @@ template <class T> std::valarray<T> mmpbsa_utils::cumsum(const std::valarray<T>&
 template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<T>& left,
             const std::valarray<T>& right)
 {
-    using std::slice;
-    using std::slice_array;
     if(left.size() != right.size())
         throw MMPBSAException("When using zip, the two arrays must have the same size.",DATA_FORMAT_ERROR);
 
     int oldsize = left.size();
     std::valarray<T> returnMe(2*oldsize);
-    for(int i = 0;i<oldsize;i++)
+    size_t returnMeIndex = 0;
+    for(size_t i = 0;i<oldsize;i++)
     {
-        slice_array<T> curr = returnMe[slice(i,2,1)];
-        curr[0] = left[i];
-        curr[1] = right[i];
+        returnMe[returnMeIndex++] = left[i];
+        returnMe[returnMeIndex++] = right[i];
     }
+    return returnMe;
+}
+
+template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<T>& left, const std::slice& leftSlice,
+         const std::valarray<T>& right, const std::slice& rightSlice)
+{
+    int oldsize = leftSlice.size();
+    if(oldsize != rightSlice.size())
+        throw MMPBSAException("Cannot zip two slices of difference sizes.",DATA_FORMAT_ERROR);
+    
+    std::valarray<T> returnMe(2*oldsize);
+    size_t returnMeIndex = 0;
+    for(size_t i = 0;i<oldsize;i++)
+    {
+        returnMe[returnMeIndex++] = left[leftSlice.start()+i*leftSlice.stride()];
+        returnMe[returnMeIndex++] = right[rightSlice.start()+i*rightSlice.stride()];
+    }
+    return returnMe;
+
+}
+
+template <class T> std::valarray<T> mmpbsa_utils::zip(const std::vector<T>& left,
+            const std::valarray<T>& right)
+{
+    if(left.size() != right.size())
+        throw MMPBSAException("When using zip, the two arrays must have the same size.",DATA_FORMAT_ERROR);
+
+    int oldsize = left.size();
+    std::valarray<T> returnMe(2*oldsize);
+    size_t returnMeIndex = 0;
+    for(size_t i = 0;i<oldsize;i++)
+    {
+        returnMe[returnMeIndex++] = left[i];
+        returnMe[returnMeIndex++] = right[i];
+    }
+    return returnMe;
 }
 
 template <class T> std::valarray<T> mmpbsa_utils::cshift(const std::vector<T>& orig,
@@ -85,11 +125,11 @@ template <class T> std::valarray<T> mmpbsa_utils::cshift(const std::vector<T>& o
 
 }
 
-template <class T> int find_first(const std::valarray<T>& array,
+template <class T> size_t mmpbsa_utils::find_first(const std::valarray<T>& array,
             const T& reference)
 {
-    int half_size = int(array.size()/2);
-    for(int i = 0;i<half_size;i++)
+    size_t half_size = size_t(array.size()/2);
+    for(size_t i = 0;i<half_size;i++)
     {
         if(array[i] == reference)
             return i;

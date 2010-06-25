@@ -8,6 +8,7 @@
 #ifndef ENERGYINFO_H
 #define	ENERGYINFO_H
 
+#include <cmath>
 #include <valarray>
 #include <string>
 #include <sstream>

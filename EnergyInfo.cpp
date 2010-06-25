@@ -226,7 +226,7 @@ AveRmsEnerInfo::AveRmsEnerInfo(const EnergyInfo& avgs, const EnergyInfo& rmses)
     relrmsData[0] = rmsdata[0];
     for(int i = 1;i<avgdata.size();i++)
         if(avgdata[i] != 0)
-            relrmsData[i] = rmsdata[i]/abs(avgdata[i]);
+            relrmsData[i] = rmsdata[i]/std::abs(avgdata[i]);
 }
 
 AveRmsEnerInfo& AveRmsEnerInfo::operator=(const AveRmsEnerInfo& rhs)

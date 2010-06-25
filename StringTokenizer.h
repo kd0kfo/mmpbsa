@@ -5,6 +5,7 @@
 #include <string>
 #include <stdexcept>
 
+#include "mmpbsa_exceptions.h"
 
 namespace mmpbsa_utils{
 
@@ -121,9 +122,16 @@ namespace mmpbsa_utils{
 }
 
 
-class TokenizerException : public std::runtime_error {
-  public:
-      TokenizerException( const std::string& error) : std::runtime_error(error){}
+class TokenizerException : public MMPBSAException
+{
+public:
+    TokenizerException(const std::string& error) : MMPBSAException( error){}
+
+    TokenizerException(const std::string& error, const int& errorType)
+        : MMPBSAException(error,errorType){}
+
+    const char* identifier(){return "String Tokenizer Error";}
+
   };
 
 #endif

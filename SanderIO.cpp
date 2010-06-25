@@ -69,6 +69,8 @@ sanderio::SanderParm::SanderParm() {
     angles_without_hydrogen;
     dihedrals_inc_hydrogen;
     dihedrals_without_hydrogen;
+    dihedral_h_mask;
+    dihedral_mask;
     excluded_atoms_list;
     hbond_acoefs;
     hbond_bcoefs;
@@ -150,6 +152,8 @@ sanderio::SanderParm::SanderParm(const SanderParm& orig) {
     angles_without_hydrogen = orig.angles_without_hydrogen;
     dihedrals_inc_hydrogen = orig.dihedrals_inc_hydrogen;
     dihedrals_without_hydrogen = orig.dihedrals_without_hydrogen;
+    dihedral_h_mask = orig.dihedral_h_mask;
+    dihedral_mask = orig.dihedral_mask;
     excluded_atoms_list = orig.excluded_atoms_list;
     hbond_acoefs = orig.hbond_acoefs;
     hbond_bcoefs = orig.hbond_bcoefs;
@@ -161,44 +165,7 @@ sanderio::SanderParm::SanderParm(const SanderParm& orig) {
     radius_sets = orig.radius_sets;
     radii = orig.radii;
     screen = orig.screen;
-    /*
-    atom_names = new std::valarray<std::string>(*(orig.atom_names));
-    charges = new std::valarray<mmpbsa_t>(*(orig.charges));
-    masses = new std::valarray<mmpbsa_t>(*(orig.masses));
-    atom_type_indices = new std::valarray<int>(*(orig.atom_type_indices));
-    number_excluded_atoms = new std::valarray<int>(*(orig.number_excluded_atoms));
-    nonbonded_parm_indices = new std::valarray<int>(*(orig.nonbonded_parm_indices));
-    residue_labels = new std::valarray<std::string>(*(orig.residue_labels));
-    residue_pointers = new std::valarray<int>(*(orig.residue_pointers));//pointer means location in the array
-       //not c++ pointer. This is an amber name from the prmtop file
-       //(cf %FLAG RESIDUE_POINTER)
-    bond_force_constants = new std::valarray<mmpbsa_t>(*(orig.bond_force_constants));
-    bond_equil_values = new std::valarray<mmpbsa_t>(*(orig.bond_equil_values));
-    angle_force_constants = new std::valarray<mmpbsa_t>(*(orig.angle_force_constants));
-    angle_equil_values = new std::valarray<mmpbsa_t>(*(orig.angle_equil_values));
-    dihedral_force_constants = new std::valarray<mmpbsa_t>(*(orig.dihedral_force_constants));
-    dihedral_periodicities = new std::valarray<mmpbsa_t>(*(orig.dihedral_periodicities));
-    dihedral_phases = new std::valarray<mmpbsa_t>(*(orig.dihedral_phases));
-    soltys = new std::valarray<mmpbsa_t>(*(orig.soltys));//solubility?
-    lennard_jones_acoefs = new std::valarray<mmpbsa_t>(*(orig.lennard_jones_acoefs));
-    lennard_jones_bcoefs = new std::valarray<mmpbsa_t>(*(orig.lennard_jones_bcoefs));
-    bonds_inc_hydrogen = new std::valarray<int>(*(orig.bonds_inc_hydrogen));
-    bonds_without_hydrogen = new std::valarray<int>(*(orig.bonds_without_hydrogen));
-    angles_inc_hydrogen = new std::valarray<int>(*(orig.angles_inc_hydrogen));
-    angles_without_hydrogen = new std::valarray<int>(*(orig.angles_without_hydrogen));
-    dihedrals_inc_hydrogen = new std::valarray<int>(*(orig.dihedrals_inc_hydrogen));
-    dihedrals_without_hydrogen = new std::valarray<int>(*(orig.dihedrals_without_hydrogen));
-    excluded_atoms_list = new std::valarray<int>(*(orig.excluded_atoms_list));
-    hbond_acoefs = new std::valarray<mmpbsa_t>(*(orig.hbond_acoefs));
-    hbond_bcoefs = new std::valarray<mmpbsa_t>(*(orig.hbond_bcoefs));
-    hbcuts = new std::valarray<mmpbsa_t>(*(orig.hbcuts));
-    amber_atom_types = new std::valarray<std::string>(*(orig.amber_atom_types));
-    tree_chain_classifications = new std::valarray<std::string>(*(orig.tree_chain_classifications));
-    join_array = new std::valarray<int>(*(orig.join_array));
-    irotats = new std::valarray<int>(*(orig.irotats));
-    radius_sets = new std::valarray<std::string>(*(orig.radius_sets));
-    radii = new std::valarray<mmpbsa_t>(*(orig.radii));
-    screen = new std::valarray<mmpbsa_t>(*(orig.screen));*/
+    
 
 }
 
@@ -274,6 +241,8 @@ sanderio::SanderParm& sanderio::SanderParm::operator=(const sanderio::SanderParm
     angles_without_hydrogen = orig.angles_without_hydrogen;
     dihedrals_inc_hydrogen = orig.dihedrals_inc_hydrogen;
     dihedrals_without_hydrogen = orig.dihedrals_without_hydrogen;
+    dihedral_h_mask = orig.dihedral_h_mask;
+    dihedral_mask = orig.dihedral_mask;
     excluded_atoms_list = orig.excluded_atoms_list;
     hbond_acoefs = orig.hbond_acoefs;
     hbond_bcoefs = orig.hbond_bcoefs;
@@ -357,7 +326,7 @@ bool sanderio::SanderParm::sanityCheck() throw (SanderIOException)
     bool thereIsAProblem = false;
 
     char* error;
-    int minAtomType = 1;
+    size_t minAtomType = 1;
     if(!rangeCheck(atom_type_indices,minAtomType,ntypes))
     {
         sprintf(error,"Incorrect number of atom types. There should be %d types but "
@@ -366,15 +335,11 @@ bool sanderio::SanderParm::sanityCheck() throw (SanderIOException)
     }
 
 
-    int icobot = 1;
-    if(nphb != 0)
-        icobot = -nphb;
-
-    int maxParmIndex = int(0.5*ntypes*(ntypes+1));
-    if(!rangeCheck(nonbonded_parm_indices,icobot,maxParmIndex))
+    size_t maxParmIndex = size_t(0.5*ntypes*(ntypes+1));
+    if(!rangeCheck(nonbonded_parm_indices,size_t(1),maxParmIndex))//nonbonded_parm_indices are positive here. The values that were negative in the prmtop file are indicated in the nonbonded_parm_mask
     {
         sprintf(error,"Incorrect number of Non bonded parameter indices. "
-                "They should be between %d and %d",icobot,int(0.5*ntypes*(ntypes+1)));
+                "They should be between %d and %d",1,maxParmIndex);
         throw SanderIOException(error,INVALID_PRMTOP_DATA);
     }
 
@@ -383,10 +348,11 @@ bool sanderio::SanderParm::sanityCheck() throw (SanderIOException)
         sprintf(error,"The first residue pointer must equal one. Instead, it equals %d",residue_pointers[0]);
         throw SanderIOException(error,INVALID_PRMTOP_DATA);
     }
+    
     //check the order of the residue_pointers. Each element must be greater
     //      than the previous one.
-    int lastResiduePointer = 0;
-    for(int i = 0;i<residue_pointers.size();i++)
+    size_t lastResiduePointer = 0;
+    for(size_t i = 0;i<residue_pointers.size();i++)
         if(lastResiduePointer < residue_pointers[i])
             lastResiduePointer = residue_pointers[i];
         else
@@ -433,17 +399,17 @@ bool sanderio::SanderParm::sanityCheck() throw (SanderIOException)
     }
 
     //Check atom exclusions.
-    int exclusionIndex = 0;
-    for(int i = 0;i<natom;i++)
+    size_t exclusionIndex = 0;
+    for(size_t i = 0;i<natom;i++)
     {
         if(number_excluded_atoms[i] < 0 || number_excluded_atoms[i] > natom-1)
         {
             sprintf(error,"Number of excluded atoms must be between 0 and %d",natom-1);
             throw SanderIOException(error,INVALID_PRMTOP_DATA);
         }
-        for(int j = exclusionIndex;j<exclusionIndex+number_excluded_atoms[i];j++)
+        for(size_t j = exclusionIndex;j<exclusionIndex+number_excluded_atoms[i];j++)
         {
-            int currentExcludedAtom = excluded_atoms_list[j];
+            size_t currentExcludedAtom = excluded_atoms_list[j];
             if(currentExcludedAtom != 0 &&
                     !(currentExcludedAtom > i && currentExcludedAtom <= natom))
             {
@@ -520,7 +486,7 @@ void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::
     else if(flag == "NUMBER_EXCLUDED_ATOMS")
         loadPrmtopData(prmtopFile,number_excluded_atoms,natom,format);
     else if(flag == "NONBONDED_PARM_INDEX")
-        loadPrmtopData(prmtopFile,nonbonded_parm_indices,ntypes*ntypes,format);
+        loadPrmtopMaskedData(prmtopFile,nonbonded_parm_indices,nonbonded_parm_mask,ntypes*ntypes,format);
     else if(flag == "RESIDUE_LABEL")
         loadPrmtopData(prmtopFile,residue_labels,nres,format);
     else if(flag == "RESIDUE_POINTER")
@@ -554,9 +520,9 @@ void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::
     else if(flag == "ANGLES_WITHOUT_HYDROGEN")
         loadPrmtopData(prmtopFile,angles_without_hydrogen,4*ntheta,format);
     else if(flag == "DIHEDRALS_INC_HYDROGEN")
-        loadPrmtopData(prmtopFile,dihedrals_inc_hydrogen,5*nphih,format);
+        loadPrmtopMaskedData(prmtopFile,dihedrals_inc_hydrogen,dihedral_h_mask,5*nphih,format);
     else if(flag == "DIHEDRALS_WITHOUT_HYDROGEN")
-        loadPrmtopData(prmtopFile,dihedrals_without_hydrogen,5*nphia,format);
+        loadPrmtopMaskedData(prmtopFile,dihedrals_without_hydrogen,dihedral_mask,5*nphia,format);
     else if(flag == "EXCLUDED_ATOMS_LIST")
         loadPrmtopData(prmtopFile,excluded_atoms_list,nnb,format);
     else if(flag == "HBOND_ACOEF")
@@ -607,12 +573,12 @@ void sanderio::SanderParm::loadPointers(std::fstream& prmtopFile,const std::stri
     if(!prmtopFile.good())
         throw SanderIOException("Cannot read from file. loadPointers");
 
-    std::valarray<int> pointers(0,31);
+    std::valarray<size_t> pointers(size_t(0),31);
     loadPrmtopData(prmtopFile,pointers,31,format);
 
 
     //populate parameters
-    int i=0;
+    size_t i=0;
     natom = pointers[i++];// total number of atoms
     ntypes = pointers[i++];// total number of distinct atom types
     nbonh = pointers[i++];// number of bonds containing hydrogen
@@ -656,10 +622,10 @@ void sanderio::SanderParm::loadSolventPointers(std::fstream& prmtopFile,const st
     if(!prmtopFile.good())
         throw SanderIOException("Cannot read from file. loadPointers");
 
-    std::valarray<int> pointers(0,3);
+    std::valarray<size_t> pointers(size_t(0),3);
     loadPrmtopData(prmtopFile,pointers,3,format);
 
-    int i = 0;
+    size_t i = 0;
     iptres = pointers[i++];///<   last residue that is considered part of solute (base 1 index)
     nspm = pointers[i++];///<     total number of molecules
     nspsol = pointers[i++];
@@ -678,11 +644,11 @@ template <class T> bool sanderio::SanderParm::rangeCheck(const std::valarray<T>&
 }
 
 template <class T> bool sanderio::SanderParm::bondCheck(const std::valarray<T>& array,
-        const int& natoms, const int& nbonds, const int& ntypes,
-        const int& atomsPerBond)
+        const size_t& natoms, const size_t& nbonds, const size_t& ntypes,
+        const size_t& atomsPerBond)
 {
     char * error;
-    int maxi = (natoms-1)*3;
+    size_t maxi = (natoms-1)*3;
     if(array.size() != nbonds*(atomsPerBond+1))
     {
         std::string message("Incorrect number of bonds. Expected ");
@@ -692,9 +658,9 @@ template <class T> bool sanderio::SanderParm::bondCheck(const std::valarray<T>& 
     }
 
     //check bond code range in respect to their specific bonds.
-    for(int i = 0;i<nbonds*(atomsPerBond+1);i+=atomsPerBond+1)
+    for(size_t i = 0;i<nbonds*(atomsPerBond+1);i+=atomsPerBond+1)
     {
-        for(int j = i;j<i+atomsPerBond;j++)
+        for(size_t j = i;j<i+atomsPerBond;j++)
         {
             int absbnd = abs(array[j]);
             if(absbnd > maxi)
@@ -720,7 +686,7 @@ template <class T> bool sanderio::SanderParm::bondCheck(const std::valarray<T>& 
 
 
 template <class T> void sanderio::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
-        std::valarray<T>& array,int size,const std::string& format)
+        std::valarray<T>& array,size_t size,const std::string& format)
 {
     using std::valarray;
     using std::string;
@@ -730,13 +696,52 @@ template <class T> void sanderio::SanderParm::loadPrmtopData(std::fstream& prmto
         throw SanderIOException("Cannot read from file. loadPrmtopData");
 
     //use the format to obtain the array dimensions (in the 2-D sense).
-    int numberOfColumns = 0;
-    int columnWidth = 0;
+    size_t numberOfColumns = 0;
+    size_t columnWidth = 0;
     sscanf(format.c_str(),"%*c%d%*c%d",&numberOfColumns,&columnWidth);
 
     if(!loadValarray(prmtopFile,array,size,columnWidth,numberOfColumns))
         throw SanderIOException("Could not load Parameter Data",BROKEN_PRMTOP_FILE);
 
+}
+
+template <class T> void sanderio::SanderParm::loadPrmtopMaskedData(std::fstream& prmtopFile,
+        std::valarray<T>& array,std::valarray<bool>& maskArray,size_t size,const std::string& format)
+{
+    using std::valarray;
+    using std::string;
+
+    //ensure array is of the correct size (or exists).
+    if(!prmtopFile.good())
+        throw SanderIOException("Cannot read from file. loadPrmtopData");
+
+    //use the format to obtain the array dimensions (in the 2-D sense).
+    size_t numberOfColumns = 0;
+    size_t columnWidth = 0;
+    sscanf(format.c_str(),"%*c%d%*c%d",&numberOfColumns,&columnWidth);
+
+    valarray<int> tmpArray(size);
+    if(!loadValarray(prmtopFile,tmpArray,size,columnWidth,numberOfColumns))
+        throw SanderIOException("Could not load Parameter Data",BROKEN_PRMTOP_FILE);
+
+    if(maskArray.size() != size)
+        maskArray.resize(size);
+    maskArray = tmpArray < 0;//the mask indicates whether or not the value is negative, which is a flag used in BondWalker.walk(...)
+    std::cerr << maskArray.max() << ", " << maskArray.min() << std::endl;
+    tmpArray = abs(tmpArray);
+    if(array.size() != size)
+        array.resize(size);
+
+    size_t half_size = size_t(array.size()/2);
+    for(size_t i = 0;i<half_size;i++)
+    {
+        array[i] = size_t(tmpArray[i]);
+        array[i+half_size] = size_t(tmpArray[i]);
+    }
+    if(array[size-1] != tmpArray[size-1])//in case of an odd sized array.
+        array[size-1] = size_t(tmpArray[size-1]);
+
+    return;
 }
 
 
@@ -750,7 +755,7 @@ std::string sanderio::read_crds(std::fstream& crdFile, std::valarray<mmpbsa_t>& 
     string title = getNextLine(crdFile);
     string strNatoms = getNextLine(crdFile);
     trimString(strNatoms);
-    int natoms = 0;
+    size_t natoms = 0;
     sscanf(strNatoms.c_str(),"%d",&natoms);
 
     if(!loadValarray(crdFile,crds,natoms*3,12,8))
@@ -769,7 +774,7 @@ void sanderio::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& cr
         throw SanderIOException("The number of elements in the coordinate array "
                 "must be a multiple of 3, ie 3-dimensions.",DATA_FORMAT_ERROR);
 
-    int natoms = int(crds.size()/3);
+    size_t natoms = size_t(crds.size()/3);
 
     std::fstream outFile(fileName,std::ios::out);
     char* format = "%12.7f";//format of the coordinate data
@@ -784,14 +789,14 @@ void sanderio::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& cr
     sprintf(strOutput,"%5d",natoms);//number of atoms
     outFile << strOutput << std::endl;
 
-    int m;
+    size_t m;
     mmpbsa_t dblOutput;
     //save data in rows of 6
     for(m = 0;m<crds.size() - 6;m+=6)
     {
         valarray<mmpbsa_t> row = crds[slice(m,6,1)];//m-th row
 
-        for(int i = 0;i<6;i++)
+        for(size_t i = 0;i<6;i++)
         {
             dblOutput = row[i];
             sprintf(strOutput,format,dblOutput);
@@ -822,7 +827,7 @@ std::string sanderio::get_traj_title(std::fstream& trajFile)
 }
 
 bool sanderio::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
-    const int& natoms,bool isPeriodic)
+    const size_t& natoms,bool isPeriodic)
 {
     bool returnMe = loadValarray(trajFile,snapshot,natoms*3,8,10);
     if(isPeriodic)
@@ -830,9 +835,9 @@ bool sanderio::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& sn
     return returnMe;
 }
 
-void sanderio::skip_next_snap(std::fstream& trajFile, const int& natoms, bool isPeriodic)
+void sanderio::skip_next_snap(std::fstream& trajFile, const size_t& natoms, bool isPeriodic)
 {
-    int numlines = int(natoms*3/10);
+    size_t numlines = size_t(natoms*3/10);
     if(natoms*3 % 10)
         numlines++;
     if(isPeriodic)
@@ -841,8 +846,8 @@ void sanderio::skip_next_snap(std::fstream& trajFile, const int& natoms, bool is
 }
 
 template <class T> bool sanderio::loadValarray(std::fstream& dataFile,
-        std::valarray<T>& dataArray, const int& arrayLength, const int& width,
-        const int& numberOfColumns)
+        std::valarray<T>& dataArray, const size_t& arrayLength, const size_t& width,
+        const size_t& numberOfColumns)
 {
     using std::string;
 
@@ -852,11 +857,11 @@ template <class T> bool sanderio::loadValarray(std::fstream& dataFile,
     if(dataArray.size() != arrayLength)
         dataArray.resize(arrayLength,0);
 
-    int lineIndex = 0;
+    size_t lineIndex = 0;
     float fltCurrentData = 0;
-    int dataIndex = 0;
+    size_t dataIndex = 0;
 
-     for(int i = 0;i<arrayLength;i++)
+     for(size_t i = 0;i<arrayLength;i++)
     {
         if(dataFile.eof())
             throw SanderIOException("Data file ended in the middle of the "
@@ -873,12 +878,12 @@ template <class T> bool sanderio::loadValarray(std::fstream& dataFile,
         }
 
         //tokenize line into data. put data into valarray.
-        int currentColumn = 0;
+        size_t currentColumn = 0;
         while(currentLine.size() > 0 && currentColumn < numberOfColumns)
         {
             string currentData = currentLine.substr(0,width);
             sscanf(currentData.c_str(),"%f",&fltCurrentData);
-            dataArray[dataIndex++] = fltCurrentData;
+            dataArray[dataIndex++] = T(fltCurrentData);
             currentLine.erase(0,width);
             currentColumn++;
         }
@@ -894,8 +899,8 @@ template <class T> bool sanderio::loadValarray(std::fstream& dataFile,
 }
 
 template <> bool sanderio::loadValarray<std::string>(std::fstream& dataFile,
-        std::valarray<std::string>& dataArray, const int& arrayLength, const int& width,
-        const int& numberOfColumns)
+        std::valarray<std::string>& dataArray, const size_t& arrayLength, const size_t& width,
+        const size_t& numberOfColumns)
 {
     using std::string;
 
@@ -905,10 +910,10 @@ template <> bool sanderio::loadValarray<std::string>(std::fstream& dataFile,
     if(dataArray.size() != arrayLength)
         dataArray.resize(arrayLength,"");
 
-    int lineIndex = 0;
-    int dataIndex = 0;
+    size_t lineIndex = 0;
+    size_t dataIndex = 0;
 
-    for(int i = 0;i<arrayLength;i++)
+    for(size_t i = 0;i<arrayLength;i++)
     {
         if(dataFile.eof())
             throw SanderIOException("Data file ended in the middle of the "
@@ -925,7 +930,7 @@ template <> bool sanderio::loadValarray<std::string>(std::fstream& dataFile,
         }
 
         //tokenize line into data. put data into valarray.
-        int currentColumn = 0;
+        size_t currentColumn = 0;
         while(currentLine.size() > 0 && currentColumn < numberOfColumns)
         {
             dataArray[dataIndex++] = currentLine.substr(0,width);
@@ -955,7 +960,7 @@ std::string getNextLine(std::fstream& file)
 void sanderio::trimString(std::string& bean)
 {
     using std::string;
-    int pos = bean.find_last_not_of(' ');
+    size_t pos = bean.find_last_not_of(' ');
     if(pos != string::npos)
     {
         bean.erase(pos + 1);

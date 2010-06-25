@@ -11,8 +11,11 @@
 
 typedef double mmpbsa_t;
 
+#include <cmath>
 #include <vector>
 #include <valarray>
+
+#include "mmpbsa_exceptions.h"
 
 namespace mmpbsa_utils {
 
@@ -28,7 +31,7 @@ namespace mmpbsa_utils {
     template <class T> std::vector<T> compress_ge(const std::vector<T>& oldVector,
         const T& conditional);
     template <class T> std::vector<T> compress_ge(const std::valarray<T>& oldVector,
-        const T& conditional);
+            const std::slice& currSlice, const T& conditional);
 
     /**
      * Returns a valarray with elements that are 0 if the previous array's
@@ -39,11 +42,11 @@ namespace mmpbsa_utils {
      */
     template <class T> std::valarray<bool> logical_not(const std::valarray<T>& array)
     {
-        return array != 0;
+        return array != T(0);
     }
 
     /**
-     * Returns a valarray whos elements are the contents of largerArray,
+     * Returns a valarray whose elements are the contents of largerArray,
      * correspoding to the elements whose indices equal the values of subsetIndices.
      *
      * For example, if subsetIndices = {1,3,5}
@@ -56,7 +59,7 @@ namespace mmpbsa_utils {
      * @return
      */
     template <class T> std::valarray<T> take(const std::valarray<T>& largerArray,
-    const std::slice_array<T>& subsetIndices); //perhaps use indirect_array
+        const std::slice_array<T>& subsetIndices); //perhaps use indirect_array
 
 
     /**
@@ -79,6 +82,10 @@ namespace mmpbsa_utils {
      */
     template <class T> std::valarray<T> zip(const std::valarray<T>& left,
             const std::valarray<T>& right);
+    template <class T> std::valarray<T> zip(const std::valarray<T>& left, const std::slice& leftSlice,
+         const std::valarray<T>& right, const std::slice& rightSlice);
+    template <class T> std::valarray<T> zip(const std::vector<T>& left,
+            const std::valarray<T>& right);
 
     /**
      * Returns a valarray copy of the vector with elements clically shifted by n.
@@ -100,9 +107,10 @@ namespace mmpbsa_utils {
      * @param reference
      * @return int
      */
-    template <class T> int find_first(const std::valarray<T>& array,
+    template <class T> size_t find_first(const std::valarray<T>& array,
             const T& reference);
 
+    
 }//end mmpbsa_utils namespace
 
 #endif	/* MMPBSA_UTILS_H */
