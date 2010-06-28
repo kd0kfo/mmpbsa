@@ -47,7 +47,7 @@ public:
     ~EmpEnerFun(){//do not delete parminfo. It is externally made and should be deleted outside of EmpEnerInfo
     }
 
-    sanderio::SanderParm * parminfo;
+    sanderio::SanderParm * parminfo;//do not delete via EmpEnerFun
     mmpbsa_t inv_scnb;
     mmpbsa_t inv_scee;
     mmpbsa_t dielc;

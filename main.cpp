@@ -74,7 +74,7 @@ int main(int argc, char** argv)
         printf("Loaded energyinfo\n");
         cout.flush();
 
-        EmpEnerFun efun(sp);
+        EmpEnerFun * efun = new EmpEnerFun(sp);
 
         delete sp;
         cout << "Everything went well." << endl;

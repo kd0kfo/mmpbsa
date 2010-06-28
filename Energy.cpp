@@ -13,7 +13,7 @@ EmpEnerFun::EmpEnerFun(sanderio::SanderParm * newparminfo, const mmpbsa_t& scnb,
     const int& ntypes = parminfo->ntypes;
     const int& natom = parminfo->natom;
     valarray<size_t> resptr = parminfo->residue_pointers - size_t(1); //sander file pointers are 1-indexed
-    valarray<size_t> res_ranges = get_res_ranges(resptr,natom); //getranges should be of the type (min,max),(min,max),...
+    valarray<size_t> res_ranges = get_res_ranges(resptr,natom); //ranges is of the type (min,max),(min,max),...
 
 
     //Non-bonded stuff
@@ -53,18 +53,18 @@ EmpEnerFun::EmpEnerFun(sanderio::SanderParm * newparminfo, const mmpbsa_t& scnb,
 
     //# excluded atom stuff
     const valarray<size_t>& numex = parminfo->number_excluded_atoms;
-    valarray<size_t> natex = parminfo->excluded_atoms_list - 1;//1-indexed
     vector<size_t> exclst;
     size_t num = 0;
     for (size_t i = 0; i < natom; i++) {
         //# This compress is because a single zero element seems to
         //# be the parmtop way of indicating an empty list
-        vector<size_t> irow = compress_ge(natex,slice(num, num + numex[i], 1), size_t(0));
+        vector<size_t> irow = compress_ge(parminfo->excluded_atoms_list,slice(num, numex[i], 1), size_t(0));
+        
 
         //# shift indices to refer to list of atoms AFTER i:
         for (size_t j = 0; j < irow.size(); j++) {
-            irow[j] -= i + 1;
-            exclst.push_back(irow[j]);
+            irow.at(j) -= i + 1;
+            exclst.push_back(irow.at(j));
         }
         num += numex[i];
     }
@@ -73,53 +73,53 @@ EmpEnerFun::EmpEnerFun(sanderio::SanderParm * newparminfo, const mmpbsa_t& scnb,
     size_t columnWidth;
 
     //# bond stuff
-    valarray<size_t>& bondcodes = parminfo->bonds_inc_hydrogen;
+    valarray<size_t>* bondcodes = &(parminfo->bonds_inc_hydrogen);
     columnWidth = 3;
     //divide for (i,j,k) bondcodes, divide i and j by 3 and decrement k
-    bond_h_i = slice(0, bondcodes.size() / columnWidth, columnWidth);
-    bond_h_j = slice(1, bondcodes.size() / columnWidth, columnWidth);
-    bond_h_k = slice(2, bondcodes.size() / columnWidth, columnWidth);
+    bond_h_i = slice(0, bondcodes->size() / columnWidth, columnWidth);
+    bond_h_j = slice(1, bondcodes->size() / columnWidth, columnWidth);
+    bond_h_k = slice(2, bondcodes->size() / columnWidth, columnWidth);
     
-    valarray<mmpbsa_t> bond_h_const = parminfo->bond_force_constants[bondcodes[bond_h_k]];
-    valarray<mmpbsa_t> bond_h_eq = parminfo->bond_equil_values[bondcodes[bond_h_k]];
+    valarray<mmpbsa_t> bond_h_const = parminfo->bond_force_constants[(*bondcodes)[bond_h_k]];
+    valarray<mmpbsa_t> bond_h_eq = parminfo->bond_equil_values[(*bondcodes)[bond_h_k]];
 
-    bondcodes = parminfo->bonds_without_hydrogen;
-    bond_i = slice(0, bondcodes.size() / columnWidth, columnWidth);
-    bond_j = slice(1, bondcodes.size() / columnWidth, columnWidth);
-    bond_k = slice(2, bondcodes.size() / columnWidth, columnWidth);
-    valarray<mmpbsa_t> bond_const = parminfo->bond_force_constants[bondcodes[bond_k]];
-    valarray<mmpbsa_t> bond_eq = parminfo->bond_equil_values[bondcodes[bond_k]];
+    bondcodes = &(parminfo->bonds_without_hydrogen);
+    bond_i = slice(0, bondcodes->size() / columnWidth, columnWidth);
+    bond_j = slice(1, bondcodes->size() / columnWidth, columnWidth);
+    bond_k = slice(2, bondcodes->size() / columnWidth, columnWidth);
+    valarray<mmpbsa_t> bond_const = parminfo->bond_force_constants[(*bondcodes)[bond_k]];
+    valarray<mmpbsa_t> bond_eq = parminfo->bond_equil_values[(*bondcodes)[bond_k]];
 
     //# angle stuff
-    bondcodes = parminfo->angles_without_hydrogen;
+    bondcodes = &(parminfo->angles_without_hydrogen);
     columnWidth = 4;
-    angle_i = slice(0, bondcodes.size() / columnWidth, columnWidth);
-    angle_j = slice(1, bondcodes.size() / columnWidth, columnWidth);
-    angle_k = slice(2, bondcodes.size() / columnWidth, columnWidth);
-    angle_l = slice(3, bondcodes.size() / columnWidth, columnWidth);
-    valarray<mmpbsa_t> angle_const = parminfo->angle_force_constants[bondcodes[angle_l]];
-    valarray<mmpbsa_t> angle_eq = parminfo->angle_equil_values[bondcodes[angle_l]];
+    angle_i = slice(0, bondcodes->size() / columnWidth, columnWidth);
+    angle_j = slice(1, bondcodes->size() / columnWidth, columnWidth);
+    angle_k = slice(2, bondcodes->size() / columnWidth, columnWidth);
+    angle_l = slice(3, bondcodes->size() / columnWidth, columnWidth);
+    valarray<mmpbsa_t> angle_const = parminfo->angle_force_constants[(*bondcodes)[angle_l]];
+    valarray<mmpbsa_t> angle_eq = parminfo->angle_equil_values[(*bondcodes)[angle_l]];
 
-    bondcodes = parminfo->angles_inc_hydrogen;
-    angle_h_i = slice(0, bondcodes.size() / columnWidth, columnWidth);
-    angle_h_j = slice(1, bondcodes.size() / columnWidth, columnWidth);
-    angle_h_k = slice(2, bondcodes.size() / columnWidth, columnWidth);
-    angle_h_l = slice(3, bondcodes.size() / columnWidth, columnWidth);
-    valarray<mmpbsa_t> angle_h_const = parminfo->angle_force_constants[bondcodes[angle_h_l]];
-    valarray<mmpbsa_t> angle_h_eq = parminfo->angle_equil_values[bondcodes[angle_h_l]];
+    bondcodes = &(parminfo->angles_inc_hydrogen);
+    angle_h_i = slice(0, bondcodes->size() / columnWidth, columnWidth);
+    angle_h_j = slice(1, bondcodes->size() / columnWidth, columnWidth);
+    angle_h_k = slice(2, bondcodes->size() / columnWidth, columnWidth);
+    angle_h_l = slice(3, bondcodes->size() / columnWidth, columnWidth);
+    valarray<mmpbsa_t> angle_h_const = parminfo->angle_force_constants[(*bondcodes)[angle_h_l]];
+    valarray<mmpbsa_t> angle_h_eq = parminfo->angle_equil_values[(*bondcodes)[angle_h_l]];
 
     //# dihedral stuff
-    bondcodes = parminfo->dihedrals_without_hydrogen;
+    bondcodes = &(parminfo->dihedrals_without_hydrogen);
     columnWidth = 5;
-    phi_i = slice(0, bondcodes.size() / columnWidth, columnWidth);
-    phi_j = slice(1, bondcodes.size() / columnWidth, columnWidth);
-    phi_k = slice(2, bondcodes.size() / columnWidth, columnWidth);
-    phi_l = slice(3, bondcodes.size() / columnWidth, columnWidth);
-    phi_m = slice(4, bondcodes.size() / columnWidth, columnWidth);
+    phi_i = slice(0, bondcodes->size() / columnWidth, columnWidth);
+    phi_j = slice(1, bondcodes->size() / columnWidth, columnWidth);
+    phi_k = slice(2, bondcodes->size() / columnWidth, columnWidth);
+    phi_l = slice(3, bondcodes->size() / columnWidth, columnWidth);
+    phi_m = slice(4, bondcodes->size() / columnWidth, columnWidth);
     valarray<bool> phi_ignend_mask = parminfo->dihedral_mask[phi_k];
     valarray<bool> phi_imp_mask = parminfo->dihedral_mask[phi_l];
-    valarray<mmpbsa_t> phi_const = parminfo->dihedral_force_constants[bondcodes[phi_m]];
-    valarray<mmpbsa_t> phi_periodicity = parminfo->dihedral_periodicities[bondcodes[phi_m]];
+    valarray<mmpbsa_t> phi_const = parminfo->dihedral_force_constants[(*bondcodes)[phi_m]];
+    valarray<mmpbsa_t> phi_periodicity = parminfo->dihedral_periodicities[(*bondcodes)[phi_m]];
     valarray<bool> phi_prd_mask = phi_periodicity < 0.0;
     phi_periodicity = abs(phi_periodicity);
 
@@ -131,17 +131,17 @@ EmpEnerFun::EmpEnerFun(sanderio::SanderParm * newparminfo, const mmpbsa_t& scnb,
     valarray<mmpbsa_t> phi_cos_phase = cos(phi_phase);
     valarray<mmpbsa_t> phi_sin_phase = sin(phi_phase);
 
-    bondcodes = parminfo->dihedrals_inc_hydrogen;
-    phi_h_i = slice(0, bondcodes.size() / columnWidth, columnWidth);
-    phi_h_j = slice(1, bondcodes.size() / columnWidth, columnWidth);
-    phi_h_k = slice(2, bondcodes.size() / columnWidth, columnWidth);
-    phi_h_l = slice(3, bondcodes.size() / columnWidth, columnWidth);
-    phi_h_m = slice(4, bondcodes.size() / columnWidth, columnWidth);
+    bondcodes = &(parminfo->dihedrals_inc_hydrogen);
+    phi_h_i = slice(0, bondcodes->size() / columnWidth, columnWidth);
+    phi_h_j = slice(1, bondcodes->size() / columnWidth, columnWidth);
+    phi_h_k = slice(2, bondcodes->size() / columnWidth, columnWidth);
+    phi_h_l = slice(3, bondcodes->size() / columnWidth, columnWidth);
+    phi_h_m = slice(4, bondcodes->size() / columnWidth, columnWidth);
     valarray<bool> phi_h_ignend_mask = parminfo->dihedral_h_mask[phi_h_k];
     valarray<bool> phi_h_imp_mask = parminfo->dihedral_h_mask[phi_h_l];
-    valarray<mmpbsa_t> phi_h_const = parminfo->dihedral_force_constants[bondcodes[phi_h_m]];
-    valarray<mmpbsa_t> phi_h_periodicity = parminfo->dihedral_periodicities[bondcodes[phi_h_m]];
-    valarray<mmpbsa_t> phi_h_phase = parminfo->dihedral_phases[bondcodes[phi_h_m]];
+    valarray<mmpbsa_t> phi_h_const = parminfo->dihedral_force_constants[(*bondcodes)[phi_h_m]];
+    valarray<mmpbsa_t> phi_h_periodicity = parminfo->dihedral_periodicities[(*bondcodes)[phi_h_m]];
+    valarray<mmpbsa_t> phi_h_phase = parminfo->dihedral_phases[(*bondcodes)[phi_h_m]];
     //really want these?
     valarray<mmpbsa_t> phi_h_cos_phase = cos(phi_h_phase);
     valarray<mmpbsa_t> phi_h_sin_phase = sin(phi_h_phase);
@@ -157,15 +157,20 @@ EmpEnerFun::EmpEnerFun(sanderio::SanderParm * newparminfo, const mmpbsa_t& scnb,
     {
         valarray<size_t> molptrs = cumsum(parminfo->atoms_per_molecule);
         if (molptrs[molptrs.size() - 1] != natom)
-            throw "The last column sum of atoms per molecule should equal "
-            "the number of atoms";
+        {
+            char * error;
+            int lastSum = int(molptrs[molptrs.size()-1]);
+            sprintf(error,"The last column sum of atoms per molecule should equal "
+            "the number of atoms (%d) but instead it equaled %d",natom,lastSum);
+            throw MMPBSAException(error,DATA_FORMAT_ERROR);
+        }
 
         valarray<size_t> mol_ranges = get_mol_ranges(molptrs); //getranges should be of the type (min,max),(min,max),...
-        if (mol_ranges.size() != parminfo->nspm)
+        if (mol_ranges.size()/2 != parminfo->nspm)
             throw "The number of ranges must match the total number of molecules";
 
-        int end_solute_atoms = res_ranges[1+(parminfo->iptres-1)*res_ranges.size()];
-        int begin_solvent_atoms = mol_ranges[mol_ranges.size()*(parminfo->nspsol-1)];
+        int end_solute_atoms = res_ranges[1+2*(parminfo->iptres - 1)];
+        int begin_solvent_atoms = mol_ranges[2*(parminfo->nspsol - 1)];
         //# TODO Make sure stripEnerFun fixes the above begin and end ptrs!
     }
     else//# Darn, no ATOMS_PER_MOLECULE INFO!  Walk the bond list
@@ -202,9 +207,11 @@ std::valarray<size_t> EmpEnerFun::get_res_ranges(const std::valarray<size_t>& re
         const size_t& natoms) {
     std::valarray<size_t> res_ranges(2 * resptr.size());
 
-    for (int i = 0; i < resptr.size() - 2; i += 2) {
-        res_ranges[i] = resptr[i];
-        res_ranges[i + 1] = resptr[i + 1];
+    size_t res_range_index = 0;
+    for(size_t i = 0;i<resptr.size()-2;i++)
+    {
+        res_ranges[res_range_index++] = resptr[i];
+        res_ranges[res_range_index++] = resptr[i+1];
     }
     res_ranges[resptr.size() - 2] = resptr[resptr.size() - 1];
     res_ranges[resptr.size() - 1] = natoms;
@@ -216,12 +223,14 @@ std::valarray<size_t> EmpEnerFun::get_mol_ranges(const std::valarray<size_t>& mo
     //[0] + molptrs[:-1], molptrs
     std::valarray<size_t> mol_ranges(2 * molptrs.size());
 
-    mol_ranges[0] = molptrs[molptrs.size() - 1];
-    mol_ranges[1] = molptrs[0];
+    size_t mol_range_index = 0;
+    mol_ranges[mol_range_index++] = 0;
+    mol_ranges[mol_range_index++] = molptrs[0];
 
-    for (int i = 1; i < molptrs.size(); i += 2) {
-        mol_ranges[i + 1] = molptrs[i - 1];
-        mol_ranges[i + 2] = molptrs[i];
+    for (size_t i = 1; i < molptrs.size(); i++)
+    {
+        mol_ranges[mol_range_index++] = molptrs[i];
+        mol_ranges[mol_range_index++] = molptrs[i+1];
     }
 
     return mol_ranges;

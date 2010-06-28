@@ -1,0 +1,27 @@
+comp = g++
+comp_options = -Wno-deprecated -static -g -D__DEBUG__
+SUFFIX =  
+MYLIBS = #../libmygl/libmygl.a ../libdnstd/libdnstd.a
+
+all: build
+	
+test-clean: clean test
+
+clean-test: test-clean
+
+clean:
+	@if [ -e mmpbsa${SUFFIX} ] ; then rm mmpbsa${SUFFIX} ;echo "linal4.exe removed"; fi
+	@if rm -f *.o ; then echo "Object files removed"; fi
+
+test: build
+	./mmpbsa
+
+.cpp.o:
+	${comp} ${comp_options} -c $< -o $@
+
+mmpbsa.a: Energy.o EnergyInfo.o mmpbsa_exceptions.o mmpbsa_utils.o SanderIO.o StringTokenizer.o
+	ar rcs $@ $^
+
+build: mmpbsa.a
+	${comp} ${comp_options} main.cpp mmpbsa.a ${MYLIBS} -o mmpbsa${SUFFIX}
+

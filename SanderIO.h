@@ -13,6 +13,7 @@
 
 //Standard Includes
 #include <string>
+#include <cstring>
 #include <fstream>
 #include <valarray>
 #include <streambuf>
@@ -194,16 +195,22 @@ private:
             const std::string& format);
 
     /**
-     * Reads the data
+     * Reads the data. An optional offset is given to shift data value, for example
+     * with 1-indexed atom indices.
      * 
      * @param prmtopFile
      * @param array pointer to new array. Contents of array will be replaced
      *      with new values. If there is a disagreement between array.size() and
      *      the parameter "size", array is deleted and replaced with new valarray(size)
      * @param size expected size of array.
+     * @param offset If this value is non-zero, this offset will be added to the data.
      */
     template <class T> static void loadPrmtopData(std::fstream& prmtopFile,
-        std::valarray<T>& array, size_t size,const std::string& format);
+        std::valarray<T>& array, size_t size,const std::string& format,
+        const T& offset = T(0),const int& offsetSign = 1);
+
+    static void loadPrmtopData(std::fstream& prmtopFile,std::valarray<std::string>& array,
+    size_t size,const std::string& format);
 
     /**
      * Reads parmtop bond data that is specific to Dihedral Bonds. Unlike other

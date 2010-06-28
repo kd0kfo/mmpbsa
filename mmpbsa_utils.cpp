@@ -5,7 +5,7 @@ template <class T> std::vector<T> mmpbsa_utils::compress_ge(const std::vector<T>
 {
     std::vector<T> returnMe;
 
-    for(int i = 0;i<oldVector.size();i++)
+    for(size_t i = 0;i<oldVector.size();i++)
         if(oldVector[i] >= conditional)
             returnMe.push_back(oldVector[i]);
 
@@ -17,7 +17,7 @@ template <class T> std::vector<T> mmpbsa_utils::compress_ge(const std::valarray<
 {
     std::vector<T> returnMe;
 
-    for(int i = currSlice.start();i<oldVector.size();i += currSlice.stride())
+    for(size_t i = currSlice.start();i<oldVector.size();i += currSlice.stride())
         if(oldVector[i] >= conditional)
             returnMe.push_back(oldVector[i]);
 
@@ -40,11 +40,10 @@ template <class T> std::valarray<T> mmpbsa_utils::cumsum(const std::valarray<T>&
 
     returnMe[0] = orig[0];
 
-    std::valarray<T> curr = orig[slice(0,1,1)];
     for(int i = 1;i<size;i++)
     {
+        std::valarray<T> curr = orig[slice(0,i+1,1)];
         returnMe[i] = curr.sum();
-        curr = orig[slice(0,i,1)];
     }
 
     return returnMe;
