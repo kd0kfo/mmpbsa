@@ -32,6 +32,8 @@ namespace mmpbsa_utils {
         const T& conditional);
     template <class T> std::vector<T> compress_ge(const std::valarray<T>& oldVector,
             const std::slice& currSlice, const T& conditional);
+    template <class T> std::vector<T> compress_ge(const std::valarray<T>& oldVector,
+            const T& conditional);
 
     /**
      * Returns a valarray with elements that are 0 if the previous array's
@@ -45,9 +47,12 @@ namespace mmpbsa_utils {
         return array != T(0);
     }
 
+    //template <class T> std::valrarry<bool> all
+
     /**
-     * Returns a valarray whose elements are the contents of largerArray,
+     * Returns a vector whose elements are the contents of largerArray,
      * correspoding to the elements whose indices equal the values of subsetIndices.
+     * 
      *
      * For example, if subsetIndices = {1,3,5}
      * and largerArray = {323,8,13,42,15,9,23,11}
@@ -58,9 +63,8 @@ namespace mmpbsa_utils {
      * @param subsetIndices
      * @return
      */
-    template <class T> std::valarray<T> take(const std::valarray<T>& largerArray,
-        const std::slice_array<T>& subsetIndices); //perhaps use indirect_array
-
+    template <class T> std::vector<T> take(const std::valarray<T>& largerArray,
+        const std::mask_array<T>& subsetIndices);
 
     /**
      * Returns an array whose elements correspond to the sum of all preceeding
@@ -72,6 +76,8 @@ namespace mmpbsa_utils {
      * @return
      */
     template <class T> std::valarray<T> cumsum(const std::valarray<T>& orig);
+
+    template <class T> std::valarray<size_t> cumBoolSum(const std::valarray<bool>& orig);
 
     /**
      * Returns an array which alternates elements of the two provided arrays
@@ -86,6 +92,7 @@ namespace mmpbsa_utils {
          const std::valarray<T>& right, const std::slice& rightSlice);
     template <class T> std::valarray<T> zip(const std::vector<T>& left,
             const std::valarray<T>& right);
+    template <class T> std::valarray<T> zip(const std::valarray<std::valarray<T> >& toBeZipped);
 
     /**
      * Returns a valarray copy of the vector with elements clically shifted by n.

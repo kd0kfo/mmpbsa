@@ -21,15 +21,54 @@ template <class T> std::vector<T> mmpbsa_utils::compress_ge(const std::valarray<
         if(oldVector[i] >= conditional)
             returnMe.push_back(oldVector[i]);
 
-    return returnMe;/**/
-}
-
-template <class T> std::valarray<T> mmpbsa_utils::take(const std::valarray<T>& largerArray,
-    const std::slice_array<T>& subsetIndices)
-{
-    std::valarray<T> returnMe = largerArray[subsetIndices];
     return returnMe;
 }
+
+template <class T> std::vector<T> mmpbsa_utils::compress_ge(const std::valarray<T>& oldVector,
+    const T& conditional)
+{
+    std::vector<T> returnMe;
+
+    for(size_t i = 0;i<oldVector.size();i++)
+        if(oldVector[i] >= conditional)
+            returnMe.push_back(oldVector[i]);
+
+    return returnMe;
+}
+
+template <class T> std::vector<T> mmpbsa_utils::take(const std::valarray<T>& largerArray,
+    const std::mask_array<T>& subsetIndices)
+{
+    std::valarray<T> subset = largerArray[subsetIndices];
+    std::vector<T> returnMe;
+    for(size_t i = 0;i<subset.size();i++)
+    {
+        returnMe.push_back(subset[i]);
+    }
+    return returnMe;
+}
+
+template <class T> std::valarray<size_t> mmpbsa_utils::cumBoolSum(const std::valarray<bool>& orig)
+{
+    using std::slice;
+    using std::valarray;
+
+    int size = orig.size();
+    valarray<size_t> returnMe(1,size);
+
+    returnMe[0] = orig[0];
+
+    for(int i = 1;i<size;i++)
+    {
+        valarray<bool> curr = orig[slice(0,i+1,1)];
+        valarray<size_t> ones(1,curr.size());
+        valarray<size_t> maskedValues = ones[curr];
+        returnMe[i] = maskedValues.sum();
+    }
+
+    return returnMe;
+}
+
 
 template <class T> std::valarray<T> mmpbsa_utils::cumsum(const std::valarray<T>& orig)
 {
@@ -48,6 +87,8 @@ template <class T> std::valarray<T> mmpbsa_utils::cumsum(const std::valarray<T>&
 
     return returnMe;
 }
+
+
 
 template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<T>& left,
             const std::valarray<T>& right)
@@ -98,6 +139,28 @@ template <class T> std::valarray<T> mmpbsa_utils::zip(const std::vector<T>& left
         returnMe[returnMeIndex++] = left[i];
         returnMe[returnMeIndex++] = right[i];
     }
+    return returnMe;
+}
+
+template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<std::valarray<T> >& toBeZipped)
+{
+    size_t newSize = toBeZipped[0].size();//elements in each array
+    for(size_t i = 1;i<toBeZipped.size();i++)
+        if(toBeZipped[i].size() != newSize)
+        {
+            char * error;
+            sprintf(error,"When using mmpbsa_utils::zip, all arrays "
+                    "must have the same length. Here the expected length was %d,"
+                    " but one array had a length of %d",newSize,toBeZipped[i].size());
+            throw MMPBSAException(error,INVALID_ARRAY_SIZE);
+        }
+    
+    std::valarray<T> returnMe(newSize*toBeZipped.size());
+    size_t returnMeIndex = 0;
+    for(size_t i = 0;i<newSize;i++)
+        for(size_t j = 0;j<toBeZipped.size();j++)
+            returnMe[returnMeIndex++] = toBeZipped[j][i];
+
     return returnMe;
 }
 

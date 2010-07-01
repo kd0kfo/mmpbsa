@@ -17,10 +17,22 @@
 #include "mmpbsa_utils.cpp"
 
 
-
+#define DEFAULT_SCNB 2.0
+#define DEFAULT_SCEE 1.2
+#define DEFAULT_DIELC 1.0
 
 class EmpEnerFun{
 public:
+    /**
+     * Default constructor. Uses default values of scnb, scee and dielc.
+     * Initializes the valarrays (of size 0).
+     * parminfo and resnames are set to null.
+     * 
+     * @param newparminfo
+     */
+    EmpEnerFun();
+
+
     /**
      * Creates an Energy Function class with the following defaults:
      * scnb=2.0
@@ -34,7 +46,7 @@ public:
     /**
      * Main Energy Constructor
      */
-    EmpEnerFun(sanderio::SanderParm * newparminfo, const mmpbsa_t& scn,
+    EmpEnerFun(sanderio::SanderParm * newparminfo, const mmpbsa_t& scnb,
             const mmpbsa_t& scee, const mmpbsa_t& dielc);
 
     /**
@@ -47,7 +59,21 @@ public:
     ~EmpEnerFun(){//do not delete parminfo. It is externally made and should be deleted outside of EmpEnerInfo
     }
 
+    EmpEnerFun stripEnerFun(const std::valarray<bool>& keepers,
+        const bool& dangleWarn) const;
+
+    template <class M, class N>
+    static void internalConvert(std::valarray<std::valarray<M> >& newIndices,std::valarray<std::valarray<N> >& newTerms,
+        const std::valarray<M>& oldIndices,const std::valarray<std::slice>& slices,
+        const std::valarray<const std::valarray<N>* >& oldTerms,
+        const std::valarray<size_t>& newidx,
+        const std::valarray<bool> keepers, const bool& dangleWarn = false);
+
     sanderio::SanderParm * parminfo;//do not delete via EmpEnerFun
+    const std::valarray<std::string> * resnames;//do not delete. Can you?
+
+    int end_solute_atoms;
+    int begin_solvent_atoms;
     mmpbsa_t inv_scnb;
     mmpbsa_t inv_scee;
     mmpbsa_t dielc;
@@ -76,9 +102,41 @@ public:
     std::slice phi_h_l;
     std::slice phi_h_m;
 
+    std::vector<std::vector<size_t> > exclst;
 
+    std::valarray<size_t> res_ranges;
+    std::valarray<size_t> mol_ranges;
 
-    static void visitor(std::valarray<int>& markers,const size_t& i){markers[i]++;}
+    std::valarray<mmpbsa_t> bond_h_const;
+    std::valarray<mmpbsa_t> bond_h_eq;
+    std::valarray<mmpbsa_t> bond_const;
+    std::valarray<mmpbsa_t> bond_eq;
+    std::valarray<mmpbsa_t> angle_const;
+    std::valarray<mmpbsa_t> angle_eq;
+    std::valarray<mmpbsa_t> angle_h_const;
+    std::valarray<mmpbsa_t> angle_h_eq;
+    std::valarray<mmpbsa_t> phi_const;
+    std::valarray<mmpbsa_t> phi_periodicity;
+    std::valarray<mmpbsa_t> phi_phase;
+    std::valarray<mmpbsa_t> phi_cos_phase;
+    std::valarray<mmpbsa_t> phi_sin_phase;
+    std::valarray<mmpbsa_t> phi_h_const;
+    std::valarray<mmpbsa_t> phi_h_periodicity;
+    std::valarray<mmpbsa_t> phi_h_phase;
+    //really want these?
+    std::valarray<mmpbsa_t> phi_h_cos_phase;
+    std::valarray<mmpbsa_t> phi_h_sin_phase;
+
+    std::valarray<bool> phi_prd_mask;
+    std::valarray<bool> phi_ignend_mask;
+    std::valarray<bool> phi_imp_mask;
+    std::valarray<bool> phi_mask;
+    std::valarray<bool> phi_h_prd_mask;
+    std::valarray<bool> phi_h_ignend_mask;
+    std::valarray<bool> phi_h_imp_mask;
+    std::valarray<bool> phi_h_mask;
+
+    
     
 private:
     /**
@@ -93,7 +151,7 @@ private:
 
     static std::valarray<size_t> get_mol_ranges(const std::valarray<size_t>& molptrs);
 
-
+    static void visitor(std::valarray<int>& markers,const size_t& i){markers[i]++;}
     
 };
 

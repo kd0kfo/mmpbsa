@@ -326,8 +326,8 @@ bool sanderio::SanderParm::sanityCheck() throw (SanderIOException)
     bool thereIsAProblem = false;
 
     char* error;
-    size_t minAtomType = 1;
-    if(!rangeCheck(atom_type_indices,minAtomType,ntypes))
+    size_t minAtomType = 0;//sander prmtop file uses 1-index. 0-index is used here and implemented when parsing data file
+    if(!rangeCheck(atom_type_indices,minAtomType,ntypes-1))
     {
         sprintf(error,"Incorrect number of atom types. There should be %d types but "
                 "the data ranges from %d to %d .",ntypes,atom_type_indices.min(),atom_type_indices.max());
@@ -484,7 +484,7 @@ void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::
     else if(flag == "MASS")
         loadPrmtopData(prmtopFile,masses,natom,format);
     else if(flag == "ATOM_TYPE_INDEX")
-        loadPrmtopData(prmtopFile,atom_type_indices,natom,format);
+        loadPrmtopData(prmtopFile,atom_type_indices,natom,format,size_t(1),-1);
     else if(flag == "NUMBER_EXCLUDED_ATOMS")
         loadPrmtopData(prmtopFile,number_excluded_atoms,natom,format);
     else if(flag == "NONBONDED_PARM_INDEX")
@@ -535,43 +535,43 @@ void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::
       {
         loadPrmtopData(prmtopFile,angles_inc_hydrogen,4*ntheth,format);
 	valarray<size_t> one(1,ntheth);
-	angles_inc_hydrogen[slice(3,ntheth,3)] -= one;
+	angles_inc_hydrogen[slice(3,ntheth,4)] -= one;
 	one *= 3;
-	angles_inc_hydrogen[slice(0,ntheth,3)] /= one;
-	angles_inc_hydrogen[slice(1,ntheth,3)] /= one;
-	angles_inc_hydrogen[slice(2,ntheth,3)] /= one;
+	angles_inc_hydrogen[slice(0,ntheth,4)] /= one;
+	angles_inc_hydrogen[slice(1,ntheth,4)] /= one;
+	angles_inc_hydrogen[slice(2,ntheth,4)] /= one;
       }	
     else if(flag == "ANGLES_WITHOUT_HYDROGEN")
       {
         loadPrmtopData(prmtopFile,angles_without_hydrogen,4*ntheta,format);
 	valarray<size_t> one(1,ntheta);
-	angles_without_hydrogen[slice(3,ntheta,3)] -= one;
+	angles_without_hydrogen[slice(3,ntheta,4)] -= one;
 	one *= 3;
-	angles_without_hydrogen[slice(0,ntheta,3)] /= one;
-	angles_without_hydrogen[slice(1,ntheta,3)] /= one;
-	angles_without_hydrogen[slice(2,ntheta,3)] /= one;
+	angles_without_hydrogen[slice(0,ntheta,4)] /= one;
+	angles_without_hydrogen[slice(1,ntheta,4)] /= one;
+	angles_without_hydrogen[slice(2,ntheta,4)] /= one;
       }
     else if(flag == "DIHEDRALS_INC_HYDROGEN")
       {
         loadPrmtopMaskedData(prmtopFile,dihedrals_inc_hydrogen,dihedral_h_mask,5*nphih,format);
 	valarray<size_t> one(1,nphih);
-	dihedrals_inc_hydrogen[slice(4,nphih,3)] -= one;
+	dihedrals_inc_hydrogen[slice(4,nphih,5)] -= one;
 	one *= 3;
-	dihedrals_inc_hydrogen[slice(0,nphih,3)] /= one;
-	dihedrals_inc_hydrogen[slice(1,nphih,3)] /= one;
-	dihedrals_inc_hydrogen[slice(2,nphih,3)] /= one;
-	dihedrals_inc_hydrogen[slice(3,nphih,3)] /= one;
+	dihedrals_inc_hydrogen[slice(0,nphih,5)] /= one;
+	dihedrals_inc_hydrogen[slice(1,nphih,5)] /= one;
+	dihedrals_inc_hydrogen[slice(2,nphih,5)] /= one;
+	dihedrals_inc_hydrogen[slice(3,nphih,5)] /= one;
       }
     else if(flag == "DIHEDRALS_WITHOUT_HYDROGEN")
       {
 	loadPrmtopMaskedData(prmtopFile,dihedrals_without_hydrogen,dihedral_mask,5*nphia,format);
 	valarray<size_t> one(1,nphia);
-	dihedrals_without_hydrogen[slice(4,nphia,3)] -= one;
+	dihedrals_without_hydrogen[slice(4,nphia,5)] -= one;
 	one *= 3;
-	dihedrals_without_hydrogen[slice(0,nphia,3)] /= one;
-	dihedrals_without_hydrogen[slice(1,nphia,3)] /= one;
-	dihedrals_without_hydrogen[slice(2,nphia,3)] /= one;
-	dihedrals_without_hydrogen[slice(3,nphia,3)] /= one;
+	dihedrals_without_hydrogen[slice(0,nphia,5)] /= one;
+	dihedrals_without_hydrogen[slice(1,nphia,5)] /= one;
+	dihedrals_without_hydrogen[slice(2,nphia,5)] /= one;
+	dihedrals_without_hydrogen[slice(3,nphia,5)] /= one;
       }
     else if(flag == "EXCLUDED_ATOMS_LIST")
         loadPrmtopData(prmtopFile,excluded_atoms_list,nnb,format,size_t(1),-1);
@@ -712,22 +712,18 @@ template <class T> bool sanderio::SanderParm::bondCheck(const std::valarray<T>& 
     {
         for(size_t j = i;j<i+atomsPerBond;j++)
         {
-            int absbnd = abs(array[j]);
+            size_t absbnd = abs(array[j]);
             if(absbnd > maxi)
             {
-                std::string message("Bond code exceed max of ");
-                sprintf(error,"%d",maxi);
-                message.append(error);
-                throw SanderIOException(message,INVALID_PRMTOP_DATA);
+                sprintf(error,"Bond code %d exceeded max of %d. (i = %d, j = %d)",absbnd,maxi,i,j);
+                throw SanderIOException(error,INVALID_PRMTOP_DATA);
             }
         }
 
         if(array[i+atomsPerBond] > ntypes)
         {
-            std::string message("Bond code exceed max of ");
-            sprintf(error,"%d",ntypes);
-            message.append(error);
-            throw SanderIOException(message,INVALID_PRMTOP_DATA);
+            sprintf(error,"Bond code of %d exceeded number of types (%d). (i = %d)",array[i+atomsPerBond],ntypes,i);
+            throw SanderIOException(error,INVALID_PRMTOP_DATA);
         }
     }
 
@@ -811,16 +807,9 @@ template <class T> void sanderio::SanderParm::loadPrmtopMaskedData(std::fstream&
     if(array.size() != size)
         array.resize(size);
 
-    size_t half_size = size_t(array.size()/2);
-    for(size_t i = 0;i<half_size;i++)
-    {
-        array[i] = size_t(tmpArray[i]);
-        array[i+half_size] = size_t(tmpArray[i]);
-    }
-    if(array[size-1] != tmpArray[size-1])//in case of an odd sized array.
-        array[size-1] = size_t(tmpArray[size-1]);
+    for(size_t i = 0;i<size;i++)
+        array[i] = tmpArray[i];
 
-    return;
 }
 
 

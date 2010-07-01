@@ -15,7 +15,7 @@ static const int BROKEN_PRMTOP_FILE = 3;///<prmtop file is improperly formatted 
 static const int BROKEN_TRAJECTORY_FILE = 4;///<trajectory file is improperly formatted or missing data.
 static const int INVALID_PRMTOP_DATA = 5;///<Data which was loaded into an array is incorrect based on what is expected.
 static const int DATA_FORMAT_ERROR = 6;///<Use this error, when data *within* the program no long matches what it should due to formatting problems.
-
+static const int INVALID_ARRAY_SIZE = 7;///<A supplied array has an incorrect size.
 
 class MMPBSAException : public std::runtime_error
 {

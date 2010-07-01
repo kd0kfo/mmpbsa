@@ -10,7 +10,7 @@ test-clean: clean test
 clean-test: test-clean
 
 clean:
-	@if [ -e mmpbsa${SUFFIX} ] ; then rm mmpbsa${SUFFIX} ;echo "linal4.exe removed"; fi
+	@if [ -e mmpbsa${SUFFIX} ] ; then rm mmpbsa${SUFFIX} ;echo mmpbsa${SUFFIX} removed; fi
 	@if rm -f *.o ; then echo "Object files removed"; fi
 
 test: build
