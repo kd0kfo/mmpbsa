@@ -11,7 +11,7 @@ clean-test: test-clean
 
 clean:
 	@if [ -e mmpbsa${SUFFIX} ] ; then rm mmpbsa${SUFFIX} ;echo mmpbsa${SUFFIX} removed; fi
-	@if rm -f *.o ; then echo "Object files removed"; fi
+	@if rm -f *.o mmpbsa.a ; then echo "Object files removed"; fi
 
 test: build
 	./mmpbsa

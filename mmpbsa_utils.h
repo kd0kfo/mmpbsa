@@ -9,7 +9,9 @@
 #ifndef MMPBSA_UTILS_H
 #define	MMPBSA_UTILS_H
 
-typedef double mmpbsa_t;
+#define MMPBSA_PI 3.14159265
+
+typedef float mmpbsa_t;
 
 #include <cmath>
 #include <vector>
@@ -19,6 +21,11 @@ typedef double mmpbsa_t;
 
 namespace mmpbsa_utils {
 
+
+    template <class T>
+    bool contains(const std::vector<T>& array, const T& test);
+
+    
     /**
      * Returns a new vector containing elements of oldVector which are
      * greater than or equal to the given conditional. 
@@ -64,7 +71,7 @@ namespace mmpbsa_utils {
      * @return
      */
     template <class T> std::vector<T> take(const std::valarray<T>& largerArray,
-        const std::mask_array<T>& subsetIndices);
+        const std::valarray<size_t>& subsetIndices,const std::valarray<bool>& mask);
 
     /**
      * Returns an array whose elements correspond to the sum of all preceeding
@@ -116,6 +123,8 @@ namespace mmpbsa_utils {
      */
     template <class T> size_t find_first(const std::valarray<T>& array,
             const T& reference);
+
+    template<class T> T* cross_product(const T* A, const T* B,const size_t& dim);
 
     
 }//end mmpbsa_utils namespace

@@ -206,8 +206,7 @@ private:
      * @param offset If this value is non-zero, this offset will be added to the data.
      */
     template <class T> static void loadPrmtopData(std::fstream& prmtopFile,
-        std::valarray<T>& array, size_t size,const std::string& format,
-        const T& offset = T(0),const int& offsetSign = 1);
+        std::valarray<T>& array, size_t size,const std::string& format);
 
     static void loadPrmtopData(std::fstream& prmtopFile,std::valarray<std::string>& array,
     size_t size,const std::string& format);
@@ -249,6 +248,8 @@ private:
     template <class T> static bool bondCheck(const std::valarray<T>& array,
         const size_t& natoms, const size_t& nbonds, const size_t& ntype,
         const size_t& atomsPerBond);
+
+    void initializeArrays();
 
 };
 

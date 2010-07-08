@@ -43,45 +43,7 @@ sanderio::SanderParm::SanderParm() {
     //between difference classes. These arrays are LARGE; the goal here is to
     //save memory/time if that happens.
     titles = "";
-    atom_names;
-    charges;
-    masses;
-    atom_type_indices;
-    number_excluded_atoms;
-    nonbonded_parm_indices;
-    residue_labels;
-    residue_pointers;//pointer means location in the array
-       //not c++ pointer. This is an amber name from the prmtop file
-       //(cf %FLAG RESIDUE_POINTER)
-    bond_force_constants;
-    bond_equil_values;
-    angle_force_constants;
-    dihedral_force_constants;
-    angle_equil_values;
-    dihedral_periodicities;
-    dihedral_phases;
-    soltys;//solubility?
-    lennard_jones_acoefs;
-    lennard_jones_bcoefs;
-    bonds_inc_hydrogen;
-    bonds_without_hydrogen;
-    angles_inc_hydrogen;
-    angles_without_hydrogen;
-    dihedrals_inc_hydrogen;
-    dihedrals_without_hydrogen;
-    dihedral_h_mask;
-    dihedral_mask;
-    excluded_atoms_list;
-    hbond_acoefs;
-    hbond_bcoefs;
-    hbcuts;
-    amber_atom_types;
-    tree_chain_classifications;
-    join_array;
-    irotats;
-    radius_sets;
-    radii;
-    screen;/**/
+    initializeArrays();
 }
 
 sanderio::SanderParm::SanderParm(const SanderParm& orig) {
@@ -126,46 +88,88 @@ sanderio::SanderParm::SanderParm(const SanderParm& orig) {
     //between difference classes. These arrays are LARGE; the goal here is to
     //save memory/time if that happens.
     titles = orig.titles;
+    atom_names.resize(orig.atom_names.size());//gnu's c++ compiler does not copy elements if valarrays' sizes differ :-(
     atom_names = orig.atom_names;
+    charges.resize(orig.charges.size());
     charges = orig.charges;
+    masses.resize(orig.masses.size());
     masses = orig.masses;
+    atom_type_indices.resize(orig.atom_type_indices.size());
     atom_type_indices = orig.atom_type_indices;
+    number_excluded_atoms.resize(orig.number_excluded_atoms.size());
     number_excluded_atoms = orig.number_excluded_atoms;
+    nonbonded_parm_indices.resize(orig.nonbonded_parm_indices.size());
     nonbonded_parm_indices = orig.nonbonded_parm_indices;
+    nonbonded_parm_mask.resize(orig.nonbonded_parm_mask.size());
+    nonbonded_parm_mask = orig.nonbonded_parm_mask;
+    residue_labels.resize(orig.residue_labels.size());
     residue_labels = orig.residue_labels;
+    residue_pointers.resize(orig.residue_pointers.size());
     residue_pointers = orig.residue_pointers;//pointer means location in the array
        //not c++ pointer. This is an amber name from the prmtop file
        //(cf %FLAG RESIDUE_POINTER)
+    bond_force_constants.resize(orig.bond_force_constants.size());
     bond_force_constants = orig.bond_force_constants;
+    bond_equil_values.resize(orig.bond_equil_values.size());
     bond_equil_values = orig.bond_equil_values;
+    angle_force_constants.resize(orig.angle_force_constants.size());
     angle_force_constants = orig.angle_force_constants;
+    angle_equil_values.resize(orig.angle_equil_values.size());
     angle_equil_values = orig.angle_equil_values;
+    dihedral_force_constants.resize(orig.dihedral_force_constants.size());
     dihedral_force_constants = orig.dihedral_force_constants;
+    dihedral_periodicities.resize(orig.dihedral_periodicities.size());
     dihedral_periodicities = orig.dihedral_periodicities;
+    dihedral_phases.resize(orig.dihedral_phases.size());
     dihedral_phases = orig.dihedral_phases;
+    soltys.resize(orig.soltys.size());
     soltys = orig.soltys;//solubility?
+    lennard_jones_acoefs.resize(orig.lennard_jones_acoefs.size());
     lennard_jones_acoefs = orig.lennard_jones_acoefs;
+    lennard_jones_bcoefs.resize(orig.lennard_jones_bcoefs.size());
     lennard_jones_bcoefs = orig.lennard_jones_bcoefs;
+    bonds_inc_hydrogen.resize(orig.bonds_inc_hydrogen.size());
     bonds_inc_hydrogen = orig.bonds_inc_hydrogen;
+    bonds_without_hydrogen.resize(orig.bonds_without_hydrogen.size());
     bonds_without_hydrogen = orig.bonds_without_hydrogen;
+    angles_inc_hydrogen.resize(orig.angles_inc_hydrogen.size());
     angles_inc_hydrogen = orig.angles_inc_hydrogen;
+    angles_without_hydrogen.resize(orig.angles_without_hydrogen.size());
     angles_without_hydrogen = orig.angles_without_hydrogen;
+    dihedrals_inc_hydrogen.resize(orig.dihedrals_inc_hydrogen.size());
     dihedrals_inc_hydrogen = orig.dihedrals_inc_hydrogen;
+    dihedrals_without_hydrogen.resize(orig.dihedrals_without_hydrogen.size());
     dihedrals_without_hydrogen = orig.dihedrals_without_hydrogen;
+    dihedral_h_mask.resize(orig.dihedral_h_mask.size());
     dihedral_h_mask = orig.dihedral_h_mask;
+    dihedral_mask.resize(orig.dihedral_mask.size());
     dihedral_mask = orig.dihedral_mask;
+    excluded_atoms_list.resize(orig.excluded_atoms_list.size());
     excluded_atoms_list = orig.excluded_atoms_list;
+    hbond_acoefs.resize(orig.hbond_acoefs.size());
     hbond_acoefs = orig.hbond_acoefs;
+    hbond_bcoefs.resize(orig.hbond_bcoefs.size());
     hbond_bcoefs = orig.hbond_bcoefs;
+    hbcuts.resize(orig.hbcuts.size());
     hbcuts = orig.hbcuts;
+    amber_atom_types.resize(orig.amber_atom_types.size());
     amber_atom_types = orig.amber_atom_types;
+    tree_chain_classifications.resize(orig.tree_chain_classifications.size());
     tree_chain_classifications = orig.tree_chain_classifications;
+    join_array.resize(orig.join_array.size());
     join_array = orig.join_array;
+    irotats.resize(orig.irotats.size());
     irotats = orig.irotats;
+    radius_sets.resize(orig.radius_sets.size());
     radius_sets = orig.radius_sets;
+    radii.resize(orig.radii.size());
     radii = orig.radii;
+    screen.resize(orig.screen.size());
     screen = orig.screen;
-    
+    atoms_per_molecule.resize(orig.atoms_per_molecule.size());
+    atoms_per_molecule = orig.atoms_per_molecule;
+    box_dimensions.resize(orig.box_dimensions.size());
+    box_dimensions = orig.box_dimensions;
 
 }
 
@@ -215,48 +219,136 @@ sanderio::SanderParm& sanderio::SanderParm::operator=(const sanderio::SanderParm
     //between difference classes. These arrays are LARGE; the goal here is to
     //save memory/time if that happens.
     titles = orig.titles;
+    atom_names.resize(orig.atom_names.size());//gnu's c++ compiler does not copy elements if valarrays' sizes differ :-(
     atom_names = orig.atom_names;
+    charges.resize(orig.charges.size());
     charges = orig.charges;
+    masses.resize(orig.masses.size());
     masses = orig.masses;
+    atom_type_indices.resize(orig.atom_type_indices.size());
     atom_type_indices = orig.atom_type_indices;
+    number_excluded_atoms.resize(orig.number_excluded_atoms.size());
     number_excluded_atoms = orig.number_excluded_atoms;
+    nonbonded_parm_indices.resize(orig.nonbonded_parm_indices.size());
     nonbonded_parm_indices = orig.nonbonded_parm_indices;
+    nonbonded_parm_mask.resize(orig.nonbonded_parm_mask.size());
+    nonbonded_parm_mask = orig.nonbonded_parm_mask;
+    residue_labels.resize(orig.residue_labels.size());
     residue_labels = orig.residue_labels;
+    residue_pointers.resize(orig.residue_pointers.size());
     residue_pointers = orig.residue_pointers;//pointer means location in the array
        //not c++ pointer. This is an amber name from the prmtop file
        //(cf %FLAG RESIDUE_POINTER)
+    bond_force_constants.resize(orig.bond_force_constants.size());
     bond_force_constants = orig.bond_force_constants;
+    bond_equil_values.resize(orig.bond_equil_values.size());
     bond_equil_values = orig.bond_equil_values;
+    angle_force_constants.resize(orig.angle_force_constants.size());
     angle_force_constants = orig.angle_force_constants;
+    angle_equil_values.resize(orig.angle_equil_values.size());
     angle_equil_values = orig.angle_equil_values;
+    dihedral_force_constants.resize(orig.dihedral_force_constants.size());
     dihedral_force_constants = orig.dihedral_force_constants;
+    dihedral_periodicities.resize(orig.dihedral_periodicities.size());
     dihedral_periodicities = orig.dihedral_periodicities;
+    dihedral_phases.resize(orig.dihedral_phases.size());
     dihedral_phases = orig.dihedral_phases;
+    soltys.resize(orig.soltys.size());
     soltys = orig.soltys;//solubility?
+    lennard_jones_acoefs.resize(orig.lennard_jones_acoefs.size());
     lennard_jones_acoefs = orig.lennard_jones_acoefs;
+    lennard_jones_bcoefs.resize(orig.lennard_jones_bcoefs.size());
     lennard_jones_bcoefs = orig.lennard_jones_bcoefs;
+    bonds_inc_hydrogen.resize(orig.bonds_inc_hydrogen.size());
     bonds_inc_hydrogen = orig.bonds_inc_hydrogen;
+    bonds_without_hydrogen.resize(orig.bonds_without_hydrogen.size());
     bonds_without_hydrogen = orig.bonds_without_hydrogen;
+    angles_inc_hydrogen.resize(orig.angles_inc_hydrogen.size());
     angles_inc_hydrogen = orig.angles_inc_hydrogen;
+    angles_without_hydrogen.resize(orig.angles_without_hydrogen.size());
     angles_without_hydrogen = orig.angles_without_hydrogen;
+    dihedrals_inc_hydrogen.resize(orig.dihedrals_inc_hydrogen.size());
     dihedrals_inc_hydrogen = orig.dihedrals_inc_hydrogen;
+    dihedrals_without_hydrogen.resize(orig.dihedrals_without_hydrogen.size());
     dihedrals_without_hydrogen = orig.dihedrals_without_hydrogen;
+    dihedral_h_mask.resize(orig.dihedral_h_mask.size());
     dihedral_h_mask = orig.dihedral_h_mask;
+    dihedral_mask.resize(orig.dihedral_mask.size());
     dihedral_mask = orig.dihedral_mask;
+    excluded_atoms_list.resize(orig.excluded_atoms_list.size());
     excluded_atoms_list = orig.excluded_atoms_list;
+    hbond_acoefs.resize(orig.hbond_acoefs.size());
     hbond_acoefs = orig.hbond_acoefs;
+    hbond_bcoefs.resize(orig.hbond_bcoefs.size());
     hbond_bcoefs = orig.hbond_bcoefs;
+    hbcuts.resize(orig.hbcuts.size());
     hbcuts = orig.hbcuts;
+    amber_atom_types.resize(orig.amber_atom_types.size());
     amber_atom_types = orig.amber_atom_types;
+    tree_chain_classifications.resize(orig.tree_chain_classifications.size());
     tree_chain_classifications = orig.tree_chain_classifications;
+    join_array.resize(orig.join_array.size());
     join_array = orig.join_array;
+    irotats.resize(orig.irotats.size());
     irotats = orig.irotats;
+    radius_sets.resize(orig.radius_sets.size());
     radius_sets = orig.radius_sets;
+    radii.resize(orig.radii.size());
     radii = orig.radii;
+    screen.resize(orig.screen.size());
     screen = orig.screen;
+    atoms_per_molecule.resize(orig.atoms_per_molecule.size());
+    atoms_per_molecule = orig.atoms_per_molecule;
+    box_dimensions.resize(orig.box_dimensions.size());
+    box_dimensions = orig.box_dimensions;
 
     return *this;
 }
+
+void sanderio::SanderParm::initializeArrays()
+{
+    atom_names;
+    charges;
+    masses;
+    atom_type_indices;
+    number_excluded_atoms;
+    nonbonded_parm_indices;
+    residue_labels;
+    residue_pointers;//pointer means location in the array
+       //not c++ pointer. This is an amber name from the prmtop file
+       //(cf %FLAG RESIDUE_POINTER)
+    bond_force_constants;
+    bond_equil_values;
+    angle_force_constants;
+    dihedral_force_constants;
+    angle_equil_values;
+    dihedral_periodicities;
+    dihedral_phases;
+    soltys;//solubility?
+    lennard_jones_acoefs;
+    lennard_jones_bcoefs;
+    bonds_inc_hydrogen;
+    bonds_without_hydrogen;
+    angles_inc_hydrogen;
+    angles_without_hydrogen;
+    dihedrals_inc_hydrogen;
+    dihedrals_without_hydrogen;
+    dihedral_h_mask;
+    dihedral_mask;
+    excluded_atoms_list;
+    hbond_acoefs;
+    hbond_bcoefs;
+    hbcuts;
+    amber_atom_types;
+    tree_chain_classifications;
+    join_array;
+    irotats;
+    radius_sets;
+    radii;
+    screen;/**/
+    atoms_per_molecule;
+    box_dimensions;
+    }
 
 void sanderio::SanderParm::raw_read_amber_parm(std::string file)
 {
@@ -315,7 +407,7 @@ void sanderio::SanderParm::raw_read_amber_parm(std::string file)
         parseParmtopFile(prmtopFile,flag,format);
     }
 
-
+    prmtopFile.close();
 
 }
 
@@ -326,8 +418,7 @@ bool sanderio::SanderParm::sanityCheck() throw (SanderIOException)
     bool thereIsAProblem = false;
 
     char* error;
-    size_t minAtomType = 0;//sander prmtop file uses 1-index. 0-index is used here and implemented when parsing data file
-    if(!rangeCheck(atom_type_indices,minAtomType,ntypes-1))
+    if(!rangeCheck(atom_type_indices,size_t(1),ntypes))
     {
         sprintf(error,"Incorrect number of atom types. There should be %d types but "
                 "the data ranges from %d to %d .",ntypes,atom_type_indices.min(),atom_type_indices.max());
@@ -409,9 +500,9 @@ bool sanderio::SanderParm::sanityCheck() throw (SanderIOException)
         }
         for(size_t j = exclusionIndex;j<exclusionIndex+number_excluded_atoms[i];j++)
         {
-            size_t currentExcludedAtom = excluded_atoms_list[j];//excluded_atoms_list is 0-indexed in c++ code, but 1-indexed in sander prmtop files.
-            if(currentExcludedAtom != -1 &&
-                    !(currentExcludedAtom > i && currentExcludedAtom <= natom))//0 in sander file indicates empty list. With c++ 0-indices this becomes a -1.
+            size_t currentExcludedAtom = excluded_atoms_list[j];
+            if(currentExcludedAtom != 0 &&
+                    !(currentExcludedAtom > i && currentExcludedAtom <= natom))
             {
                 sprintf(error,"For atom %d, excluded_atom_list element %d is "
                         "not in the range %d to %d",i+1,currentExcludedAtom,i+2,natom);
@@ -430,8 +521,8 @@ bool sanderio::SanderParm::sanityCheck() throw (SanderIOException)
                     ,BROKEN_PRMTOP_FILE);
         if(atoms_per_molecule.size() == 0 || atoms_per_molecule.sum() != natom)
         {
-            sprintf(error,"A solvent is being used. Therefore, one must"
-                    "provide the number of atoms per molecule and it cannot exceed"
+            sprintf(error,"A solvent is being used. Therefore, one must "
+                    "provide the number of atoms per molecule and it cannot exceed "
                     "the total number of atoms (%d)",natom);
             throw SanderIOException(error,INVALID_PRMTOP_DATA);
         }
@@ -484,7 +575,7 @@ void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::
     else if(flag == "MASS")
         loadPrmtopData(prmtopFile,masses,natom,format);
     else if(flag == "ATOM_TYPE_INDEX")
-        loadPrmtopData(prmtopFile,atom_type_indices,natom,format,size_t(1),-1);
+        loadPrmtopData(prmtopFile,atom_type_indices,natom,format);
     else if(flag == "NUMBER_EXCLUDED_ATOMS")
         loadPrmtopData(prmtopFile,number_excluded_atoms,natom,format);
     else if(flag == "NONBONDED_PARM_INDEX")
@@ -521,6 +612,7 @@ void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::
 	one *= 3;
 	bonds_inc_hydrogen[slice(0,nbonh,3)] /= one;
 	bonds_inc_hydrogen[slice(1,nbonh,3)] /= one;
+        
       }
     else if(flag == "BONDS_WITHOUT_HYDROGEN")
       {
@@ -574,7 +666,7 @@ void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::
 	dihedrals_without_hydrogen[slice(3,nphia,5)] /= one;
       }
     else if(flag == "EXCLUDED_ATOMS_LIST")
-        loadPrmtopData(prmtopFile,excluded_atoms_list,nnb,format,size_t(1),-1);
+        loadPrmtopData(prmtopFile,excluded_atoms_list,nnb,format);
     else if(flag == "HBOND_ACOEF")
         loadPrmtopData(prmtopFile,hbond_acoefs,nphb,format);
     else if(flag == "HBOND_BCOEF")
@@ -751,7 +843,7 @@ void sanderio::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
 }
 
 template <class T> void sanderio::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
-        std::valarray<T>& array,size_t size,const std::string& format,const T& offset,const int& offsetSign)
+        std::valarray<T>& array,size_t size,const std::string& format)
 {
     using std::valarray;
     using std::string;
@@ -767,14 +859,6 @@ template <class T> void sanderio::SanderParm::loadPrmtopData(std::fstream& prmto
 
     if(!loadValarray(prmtopFile,array,size,columnWidth,numberOfColumns))
         throw SanderIOException("Could not load Parameter Data",BROKEN_PRMTOP_FILE);
-
-    if(offset != T(0))
-    {
-        if(offsetSign > 0)
-            array += offset;
-        if(offsetSign < 0)
-            array -= offset;
-    }
 
 }
 
@@ -923,13 +1007,13 @@ template <class T> bool sanderio::loadValarray(std::fstream& dataFile,
         return false;
 
     if(dataArray.size() != arrayLength)
-        dataArray.resize(arrayLength,0);
+        dataArray.resize(arrayLength);
 
     size_t lineIndex = 0;
     float fltCurrentData = 0;
     size_t dataIndex = 0;
 
-     for(size_t i = 0;i<arrayLength;i++)
+     for(dataIndex;dataIndex<arrayLength;)
     {
         if(dataFile.eof())
             throw SanderIOException("Data file ended in the middle of the "
@@ -946,21 +1030,16 @@ template <class T> bool sanderio::loadValarray(std::fstream& dataFile,
         }
 
         //tokenize line into data. put data into valarray.
-        size_t currentColumn = 0;
-        while(currentLine.size() > 0 && currentColumn < numberOfColumns)
+        while(currentLine.size() >= width)
         {
             string currentData = currentLine.substr(0,width);
             sscanf(currentData.c_str(),"%f",&fltCurrentData);
             dataArray[dataIndex++] = T(fltCurrentData);
             currentLine.erase(0,width);
-            currentColumn++;
         }
 
         lineIndex++;
-        if(dataIndex == arrayLength)
-            return true;//in case the file has too much data, ie periodic box
     }
-
 
     return true;
 
@@ -981,7 +1060,7 @@ template <> bool sanderio::loadValarray<std::string>(std::fstream& dataFile,
     size_t lineIndex = 0;
     size_t dataIndex = 0;
 
-    for(size_t i = 0;i<arrayLength;i++)
+    for(dataIndex;dataIndex<arrayLength;)
     {
         if(dataFile.eof())
             throw SanderIOException("Data file ended in the middle of the "
@@ -998,17 +1077,13 @@ template <> bool sanderio::loadValarray<std::string>(std::fstream& dataFile,
         }
 
         //tokenize line into data. put data into valarray.
-        size_t currentColumn = 0;
-        while(currentLine.size() > 0 && currentColumn < numberOfColumns)
+        while(currentLine.size() > 0)
         {
             dataArray[dataIndex++] = currentLine.substr(0,width);
             currentLine.erase(0,width);
-            currentColumn++;
         }
 
         lineIndex++;
-        if(dataIndex == arrayLength)
-            return true;//in case the file has too much data, ie periodic box
     }
 
 

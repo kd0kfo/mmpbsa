@@ -1,5 +1,14 @@
 #include "mmpbsa_utils.h"
 
+template <class T> bool mmpbsa_utils::contains(const std::vector<T>& array, const T& test)
+{
+    for(size_t i = 0;i<array.size();i++)
+        if(array[i] == test)
+            return true;
+
+    return false;
+}
+
 template <class T> std::vector<T> mmpbsa_utils::compress_ge(const std::vector<T>& oldVector,
     const T& conditional)
 {
@@ -37,14 +46,22 @@ template <class T> std::vector<T> mmpbsa_utils::compress_ge(const std::valarray<
 }
 
 template <class T> std::vector<T> mmpbsa_utils::take(const std::valarray<T>& largerArray,
-    const std::mask_array<T>& subsetIndices)
+    const std::valarray<size_t>& subsetIndices,const std::valarray<bool>& mask)
 {
-    std::valarray<T> subset = largerArray[subsetIndices];
     std::vector<T> returnMe;
-    for(size_t i = 0;i<subset.size();i++)
-    {
-        returnMe.push_back(subset[i]);
-    }
+    for(size_t i = 0;i<mask.size();i++)
+        if(mask[i])
+        {
+            if(subsetIndices[i] > largerArray.size())
+            {
+                char * error;
+                sprintf(error,"An index (%d) to be used in taking from the larger array exceeds "
+                        "the size (%d) of the larger array.",subsetIndices[i],largerArray.size());
+                throw MMPBSAException(error,INVALID_ARRAY_SIZE);
+            }
+            returnMe.push_back(largerArray[subsetIndices[i]]);
+        }
+
     return returnMe;
 }
 
@@ -60,10 +77,7 @@ template <class T> std::valarray<size_t> mmpbsa_utils::cumBoolSum(const std::val
 
     for(int i = 1;i<size;i++)
     {
-        valarray<bool> curr = orig[slice(0,i+1,1)];
-        valarray<size_t> ones(1,curr.size());
-        valarray<size_t> maskedValues = ones[curr];
-        returnMe[i] = maskedValues.sum();
+        returnMe[i] = returnMe[i-1]+orig[i];
     }
 
     return returnMe;
@@ -204,3 +218,25 @@ template <class T> size_t mmpbsa_utils::find_first(const std::valarray<T>& array
         return array.size();//reference not found.
 
 }
+
+template<class T> T* mmpbsa_utils::cross_product(const T* A, const T* B,const size_t& dim)
+{
+
+    if(dim != 3)
+    {
+        char* error;
+        sprintf(error,"mmpbsa_utils::cross_product only works on 3 dimensional vectors."
+                "Here, a %d-dimensional vector was given.",dim);
+        throw MMPBSAException(error,DATA_FORMAT_ERROR);
+    }
+
+    T * cross = new T[dim];
+
+    cross[0] = A[1]*B[2]-A[2]*B[1];
+    cross[1] = -A[0]*B[2]+A[2]*B[0];
+    cross[2] = A[0]*B[1]-A[1]*B[0];
+
+    return cross;//
+}
+
+
