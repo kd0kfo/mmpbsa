@@ -60,6 +60,8 @@ void EnergyInfo::operator/=(const EnergyInfo& rhs)
 void EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
 {
     using std::string;
+    using mmpbsa_io::getNextLine;
+    using mmpbsa_utils::trimString;
     
     if(!mdoutFile.good())
         throw SanderIOException("Cannot open mdout file.",FILE_READ_ERROR);
@@ -71,7 +73,7 @@ void EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
     string token;
     while(currentLine.substr(1,5) != "-----")
     {
-        sanderio::trimString(currentLine);
+        currentLine = trimString(currentLine);
         mmpbsa_utils::StringTokenizer tokens(currentLine);
         while(tokens.hasMoreTokens())
         {
@@ -254,7 +256,8 @@ void AveRmsEnerInfo::get_first_energyinfo(const char* fileName)
 void AveRmsEnerInfo::get_next_energyinfo(std::fstream& mdoutFile)
 {
     using std::string;
-
+    using mmpbsa_io::getNextLine;
+    
     string currentLine = getNextLine(mdoutFile);
     while(currentLine.find("A V E R A G E",0) == currentLine.npos)// "A V E R A G E" begins a block of energy info
         currentLine = getNextLine(mdoutFile);
@@ -285,6 +288,7 @@ void mdout2enerinfos(std::fstream& mdout, std::valarray<EnergyInfo>& energyinfos
      */
 
     using std::string;
+    using mmpbsa_io::getNextLine;
 
     //For valarray, the size needs to be known. This section scans the file to
     //calculate the number of EnergyInfo's and AveRmsEnerInfo's that will be needed.
@@ -345,6 +349,7 @@ void mdout2enerinfos(std::fstream& mdout, std::valarray<EnergyInfo>& energyinfos
 float get_minimized_energy(std::fstream& mdout) throw (SanderIOException)
 {
     using std::string;
+    using mmpbsa_io::getNextLine;
     
     if(!mdout.is_open())
         throw SanderIOException("Cannot read mdout file to obtain final energy",FILE_READ_ERROR);

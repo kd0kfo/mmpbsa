@@ -1,6 +1,6 @@
-#include "SanderIO.h"
+#include "mmpbsa_io.h"
 
-sanderio::SanderParm::SanderParm() {
+mmpbsa_io::SanderParm::SanderParm() {
     natom = 0;// total number of atoms
     ntypes = 0;//< total number of distinct atom types
     nbonh = 0;// number of bonds containing hydrogen
@@ -46,7 +46,7 @@ sanderio::SanderParm::SanderParm() {
     initializeArrays();
 }
 
-sanderio::SanderParm::SanderParm(const SanderParm& orig) {
+mmpbsa_io::SanderParm::SanderParm(const SanderParm& orig) {
     natom = orig.natom;// total number of atoms
     ntypes = orig.ntypes;// total number of distinct atom types
     nbonh = orig.nbonh;// number of bonds containing hydrogen
@@ -173,7 +173,7 @@ sanderio::SanderParm::SanderParm(const SanderParm& orig) {
 
 }
 
-sanderio::SanderParm& sanderio::SanderParm::operator=(const sanderio::SanderParm& orig)
+mmpbsa_io::SanderParm& mmpbsa_io::SanderParm::operator=(const mmpbsa_io::SanderParm& orig)
 {
     if(this == &orig)
         return *this;
@@ -305,7 +305,7 @@ sanderio::SanderParm& sanderio::SanderParm::operator=(const sanderio::SanderParm
     return *this;
 }
 
-void sanderio::SanderParm::initializeArrays()
+void mmpbsa_io::SanderParm::initializeArrays()
 {
     atom_names;
     charges;
@@ -350,11 +350,12 @@ void sanderio::SanderParm::initializeArrays()
     box_dimensions;
     }
 
-void sanderio::SanderParm::raw_read_amber_parm(std::string file)
+void mmpbsa_io::SanderParm::raw_read_amber_parm(std::string file)
 {
 
     using std::fstream;
     using std::string;
+    using namespace mmpbsa_utils;
 
     fstream prmtopFile(file.c_str(),fstream::in);
 
@@ -387,7 +388,7 @@ void sanderio::SanderParm::raw_read_amber_parm(std::string file)
         else
         {
             flag = currentLine.substr(5);
-            trimString(flag);
+            flag = trimString(flag);
         }
 
         currentLine = getNextLine(prmtopFile);//should be FORMAT
@@ -400,8 +401,7 @@ void sanderio::SanderParm::raw_read_amber_parm(std::string file)
         }
         else
         {
-            format = currentLine.substr(7);
-            trimString(format);
+            format = trimString(currentLine.substr(7));
         }
 
         parseParmtopFile(prmtopFile,flag,format);
@@ -411,7 +411,7 @@ void sanderio::SanderParm::raw_read_amber_parm(std::string file)
 
 }
 
-bool sanderio::SanderParm::sanityCheck() throw (SanderIOException)
+bool mmpbsa_io::SanderParm::sanityCheck() throw (SanderIOException)
 {
     using std::string;
 
@@ -553,11 +553,13 @@ bool sanderio::SanderParm::sanityCheck() throw (SanderIOException)
 
 }//end sanitycheck
 
-void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::string& flag,
+void mmpbsa_io::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::string& flag,
             const std::string& format)
 {
   using std::slice;
   using std::valarray;
+  using namespace mmpbsa_utils;
+  
     //is the file still able to be read?
     if(!prmtopFile.good())
         throw SanderIOException("Cannot read from file.");
@@ -684,7 +686,7 @@ void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::
     else if(flag == "RADIUS_SET")
     {
         radius_sets = getNextLine(prmtopFile);
-        trimString(radius_sets);
+        radius_sets = trimString(radius_sets);
     }
     else if(flag == "RADII")
         loadPrmtopData(prmtopFile,radii,natom,format);
@@ -693,7 +695,7 @@ void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::
     else if(flag == "TITLE")
     {
         titles = getNextLine(prmtopFile);
-        trimString(titles);
+        titles = trimString(titles);
     }
     else if(flag == "SOLVENT_POINTERS")
         loadSolventPointers(prmtopFile,flag,format);
@@ -707,7 +709,7 @@ void sanderio::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::
 
 }
 
-void sanderio::SanderParm::loadPointers(std::fstream& prmtopFile,const std::string& flag,
+void mmpbsa_io::SanderParm::loadPointers(std::fstream& prmtopFile,const std::string& flag,
             const std::string& format)
 {
     using std::string;
@@ -756,7 +758,7 @@ void sanderio::SanderParm::loadPointers(std::fstream& prmtopFile,const std::stri
 
 }
 
-void sanderio::SanderParm::loadSolventPointers(std::fstream& prmtopFile,const std::string& flag,
+void mmpbsa_io::SanderParm::loadSolventPointers(std::fstream& prmtopFile,const std::string& flag,
             const std::string& format)
 {
     using std::string;
@@ -773,7 +775,7 @@ void sanderio::SanderParm::loadSolventPointers(std::fstream& prmtopFile,const st
     nspsol = pointers[i++];
 }
 
-template <class T> bool sanderio::SanderParm::rangeCheck(const std::valarray<T>& array,
+template <class T> bool mmpbsa_io::SanderParm::rangeCheck(const std::valarray<T>& array,
     const T& min, const T& max)
 {
     if(array.max() > max)
@@ -785,7 +787,7 @@ template <class T> bool sanderio::SanderParm::rangeCheck(const std::valarray<T>&
     return true;
 }
 
-template <class T> bool sanderio::SanderParm::bondCheck(const std::valarray<T>& array,
+template <class T> bool mmpbsa_io::SanderParm::bondCheck(const std::valarray<T>& array,
         const size_t& natoms, const size_t& nbonds, const size_t& ntypes,
         const size_t& atomsPerBond)
 {
@@ -822,7 +824,7 @@ template <class T> bool sanderio::SanderParm::bondCheck(const std::valarray<T>& 
     return true;
 }
 
-void sanderio::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
+void mmpbsa_io::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
         std::valarray<std::string>& array,size_t size,const std::string& format)
 {
     using std::valarray;
@@ -842,7 +844,7 @@ void sanderio::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
 
 }
 
-template <class T> void sanderio::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
+template <class T> void mmpbsa_io::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
         std::valarray<T>& array,size_t size,const std::string& format)
 {
     using std::valarray;
@@ -864,7 +866,7 @@ template <class T> void sanderio::SanderParm::loadPrmtopData(std::fstream& prmto
 
 
 
-template <class T> void sanderio::SanderParm::loadPrmtopMaskedData(std::fstream& prmtopFile,
+template <class T> void mmpbsa_io::SanderParm::loadPrmtopMaskedData(std::fstream& prmtopFile,
         std::valarray<T>& array,std::valarray<bool>& maskArray,size_t size,const std::string& format)
 {
     using std::valarray;
@@ -897,16 +899,17 @@ template <class T> void sanderio::SanderParm::loadPrmtopMaskedData(std::fstream&
 }
 
 
-std::string sanderio::read_crds(std::fstream& crdFile, std::valarray<mmpbsa_t>& crds)
+std::string mmpbsa_io::read_crds(std::fstream& crdFile, std::valarray<mmpbsa_t>& crds)
 {
     using std::string;
-
+    using namespace mmpbsa_utils;
+    
     if(!crdFile.good())
         throw SanderIOException("Cannot open coordinate file",FILE_READ_ERROR);
 
     string title = getNextLine(crdFile);
     string strNatoms = getNextLine(crdFile);
-    trimString(strNatoms);
+    strNatoms =trimString(strNatoms);
     size_t natoms = 0;
     sscanf(strNatoms.c_str(),"%d",&natoms);
 
@@ -916,7 +919,7 @@ std::string sanderio::read_crds(std::fstream& crdFile, std::valarray<mmpbsa_t>& 
     return title;
 }
 
-void sanderio::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& crds,
+void mmpbsa_io::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& crds,
     const char* title)
 {
     using std::valarray;
@@ -972,13 +975,23 @@ void sanderio::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& cr
     outFile.close();
 }
 
-std::string sanderio::get_traj_title(std::fstream& trajFile)
+std::string mmpbsa_io::get_traj_title(std::fstream& trajFile)
 {
     trajFile.seekg(0,std::ios::beg);
     return getNextLine(trajFile);
 }
 
-bool sanderio::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
+std::string mmpbsa_io::getNextLine(std::fstream& file) throw (MMPBSAException)
+{
+    if(!file.good())
+        throw MMPBSAException("Could not read from file");
+
+    std::string returnMe;
+    getline(file,returnMe);
+    return returnMe;
+}
+
+bool mmpbsa_io::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
     const size_t& natoms,bool isPeriodic)
 {
     bool returnMe = loadValarray(trajFile,snapshot,natoms*3,8,10);
@@ -987,7 +1000,7 @@ bool sanderio::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& sn
     return returnMe;
 }
 
-void sanderio::skip_next_snap(std::fstream& trajFile, const size_t& natoms, bool isPeriodic)
+void mmpbsa_io::skip_next_snap(std::fstream& trajFile, const size_t& natoms, bool isPeriodic)
 {
     size_t numlines = size_t(natoms*3/10);
     if(natoms*3 % 10)
@@ -997,7 +1010,7 @@ void sanderio::skip_next_snap(std::fstream& trajFile, const size_t& natoms, bool
     trajFile.seekg(numlines,trajFile.cur);
 }
 
-template <class T> bool sanderio::loadValarray(std::fstream& dataFile,
+template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
         std::valarray<T>& dataArray, const size_t& arrayLength, const size_t& width,
         const size_t& numberOfColumns)
 {
@@ -1045,7 +1058,7 @@ template <class T> bool sanderio::loadValarray(std::fstream& dataFile,
 
 }
 
-template <> bool sanderio::loadValarray<std::string>(std::fstream& dataFile,
+template <> bool mmpbsa_io::loadValarray<std::string>(std::fstream& dataFile,
         std::valarray<std::string>& dataArray, const size_t& arrayLength, const size_t& width,
         const size_t& numberOfColumns)
 {
@@ -1090,25 +1103,50 @@ template <> bool sanderio::loadValarray<std::string>(std::fstream& dataFile,
     return true;
 }
 
-std::string getNextLine(std::fstream& file)
+void mmpbsa_io::read_siz_file(std::fstream& theFile,
+        std::map<std::string,mmpbsa_t>& radii, std::map<std::string,std::string>& residues)
 {
-    if(!file.good())
-        throw SanderIOException("Could not read from file");
-
-    std::string returnMe;
-    getline(file,returnMe);
-    return returnMe;
-}
-
-void sanderio::trimString(std::string& bean)
-{
+    using mmpbsa_utils::trimString;
+    using mmpbsa_utils::toUpperCase;
     
-    size_t lastpos = bean.find_last_not_of(" \t");
-    size_t firstpos = bean.find_first_not_of(" \t");
-    if(firstpos == bean.npos || lastpos == bean.npos)
+    if(!theFile.good())
+        throw MMPBSAException("Could not open SIZ file.",FILE_READ_ERROR);
+
+    std::string currLine;
+    std::string atomName;
+    std::string residue;
+    std::string data;
+    float fData;
+    size_t lineNumber = 0;
+    while(theFile.good())
     {
-        bean = "";
+        currLine = getNextLine(theFile);
+        if(trimString(currLine) == "")//there may be a blank line at the end. Ignore blank lines
+            continue;
+        lineNumber++;
+        if(currLine[0] == '!')//comments begin with "!"
+            continue;
+        if(currLine.substr(0,5) == "atom_")//the format line in the file will begin with "atom_". Perhaps later dynamically read format??
+            continue;
+        if(currLine.size() < 9)//data begins after atomname(6chars) and residue name (3chars)
+        {
+            char error[128];
+            sprintf(error,"Improperly formatted SIZ file: Short line at %d ",lineNumber);
+            throw MMPBSAException(error,FILE_READ_ERROR);
+        }
+
+        atomName = toUpperCase(trimString(currLine.substr(0,6)));
+        residue = toUpperCase(trimString(currLine.substr(6,3)));
+        data = trimString(currLine.substr(9));
+        sscanf(data.c_str(),"%f",&fData);
+
+        radii[atomName] = mmpbsa_t(fData);
+        residues[atomName] = residue;
     }
-    else
-        bean = bean.substr(firstpos,lastpos - firstpos + 1);
+
 }
+
+
+
+
+

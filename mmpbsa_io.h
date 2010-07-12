@@ -24,7 +24,7 @@
 #include "mmpbsa_utils.h"
 #include "mmpbsa_exceptions.h"
 
-namespace sanderio{
+namespace mmpbsa_io{
 
 class SanderParm {
 public:
@@ -300,10 +300,28 @@ bool get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
 void skip_next_snap(std::fstream& trajFile, const size_t& natoms,bool isPeriodic = false);
 
 /**
- * Removes white space at the beginning and end of a string.
- * @param str
+ * Reads the next line of a file and returns it as a string.
+ * MMPBSAException is thrown if the file cannot be read.
+ * 
+ * @param file
+ * @return 
  */
-void trimString(std::string& bean);//why doesn't stl have this??
+std::string getNextLine(std::fstream& file) throw (MMPBSAException);
+
+
+/**
+ * Reads radii data from a DelPhi file and loads it into the provided maps.
+ * If data previously exists in the map that corresponds to a key in the DelPhi
+ * file, the data will be overwritten by the DelPhi data.
+ * 
+ * @param theFile
+ * @param radii
+ * @param residues
+ */
+void read_siz_file(std::fstream& theFile,
+        std::map<std::string,mmpbsa_t>& radii, std::map<std::string,std::string>& residues);
+
+
 
 /**
  * Takes a given file and loads data into the given valarray, overwriting data
@@ -332,9 +350,9 @@ template <> bool loadValarray<std::string>(std::fstream& dataFile,
      * @return
      */
 
-}//end namespace sanderio
+}//end namespace mmpbsa_io
 
-std::string getNextLine(std::fstream& file);
+
 
 #endif	//SANDERIO_H
 

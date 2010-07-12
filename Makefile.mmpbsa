@@ -1,7 +1,8 @@
 comp = g++
 comp_options = -Wno-deprecated -static -g -D__DEBUG__
-SUFFIX =  
-MYLIBS = #../libmygl/libmygl.a ../libdnstd/libdnstd.a
+SUFFIX =
+MEAD_DIR = /ibis/users_linux/dcoss/repos/mead/libmead  
+MYLIBS = ${MEAD_DIR}/libmead.a
 
 all: build
 	
@@ -19,9 +20,9 @@ test: build
 .cpp.o:
 	${comp} ${comp_options} -c $< -o $@
 
-mmpbsa.a: Energy.o EnergyInfo.o mmpbsa_exceptions.o mmpbsa_utils.o SanderIO.o StringTokenizer.o
+mmpbsa.a: Energy.o EnergyInfo.o MeadInterface.o mmpbsa_exceptions.o mmpbsa_utils.o mmpbsa_io.o StringTokenizer.o
 	ar rcs $@ $^
 
-build: mmpbsa.a
+build: mmpbsa.a ${MY_LIBS}
 	${comp} ${comp_options} main.cpp mmpbsa.a ${MYLIBS} -o mmpbsa${SUFFIX}
 

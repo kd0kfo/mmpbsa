@@ -1,242 +1,161 @@
 #include "mmpbsa_utils.h"
 
-template <class T> bool mmpbsa_utils::contains(const std::vector<T>& array, const T& test)
+std::string mmpbsa_utils::toUpperCase(const std::string& bean)
 {
-    for(size_t i = 0;i<array.size();i++)
-        if(array[i] == test)
-            return true;
-
-    return false;
-}
-
-template <class T> std::vector<T> mmpbsa_utils::compress_ge(const std::vector<T>& oldVector,
-    const T& conditional)
-{
-    std::vector<T> returnMe;
-
-    for(size_t i = 0;i<oldVector.size();i++)
-        if(oldVector[i] >= conditional)
-            returnMe.push_back(oldVector[i]);
-
+    std::string returnMe = bean;
+    for(size_t i = 0;i<bean.size();i++)
+        returnMe[i] = std::toupper(bean[i]);
     return returnMe;
 }
 
-template <class T> std::vector<T> mmpbsa_utils::compress_ge(const std::valarray<T>& oldVector,
-    const std::slice& currSlice, const T& conditional)
+std::string mmpbsa_utils::trimString(const std::string& theString)
 {
-    std::vector<T> returnMe;
-
-    for(size_t i = currSlice.start();i<oldVector.size();i += currSlice.stride())
-        if(oldVector[i] >= conditional)
-            returnMe.push_back(oldVector[i]);
-
-    return returnMe;
-}
-
-template <class T> std::vector<T> mmpbsa_utils::compress_ge(const std::valarray<T>& oldVector,
-    const T& conditional)
-{
-    std::vector<T> returnMe;
-
-    for(size_t i = 0;i<oldVector.size();i++)
-        if(oldVector[i] >= conditional)
-            returnMe.push_back(oldVector[i]);
-
-    return returnMe;
-}
-
-template <class T> std::vector<T> mmpbsa_utils::take(const std::valarray<T>& largerArray,
-    const std::valarray<size_t>& subsetIndices,const std::valarray<bool>& mask)
-{
-    std::vector<T> returnMe;
-    for(size_t i = 0;i<mask.size();i++)
-        if(mask[i])
-        {
-            if(subsetIndices[i] > largerArray.size())
-            {
-                char * error;
-                sprintf(error,"An index (%d) to be used in taking from the larger array exceeds "
-                        "the size (%d) of the larger array.",subsetIndices[i],largerArray.size());
-                throw MMPBSAException(error,INVALID_ARRAY_SIZE);
-            }
-            returnMe.push_back(largerArray[subsetIndices[i]]);
-        }
-
-    return returnMe;
-}
-
-template <class T> std::valarray<size_t> mmpbsa_utils::cumBoolSum(const std::valarray<bool>& orig)
-{
-    using std::slice;
-    using std::valarray;
-
-    int size = orig.size();
-    valarray<size_t> returnMe(1,size);
-
-    returnMe[0] = orig[0];
-
-    for(int i = 1;i<size;i++)
+    std::string bean = theString;
+    size_t lastpos = bean.find_last_not_of(" \t");
+    size_t firstpos = bean.find_first_not_of(" \t");
+    if(firstpos == bean.npos || lastpos == bean.npos)
     {
-        returnMe[i] = returnMe[i-1]+orig[i];
+        bean = "";
     }
-
-    return returnMe;
-}
-
-
-template <class T> std::valarray<T> mmpbsa_utils::cumsum(const std::valarray<T>& orig)
-{
-    using std::slice;
-
-    int size = orig.size();
-    std::valarray<T> returnMe(size);
-
-    returnMe[0] = orig[0];
-
-    for(int i = 1;i<size;i++)
-    {
-        std::valarray<T> curr = orig[slice(0,i+1,1)];
-        returnMe[i] = curr.sum();
-    }
-
-    return returnMe;
-}
-
-
-
-template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<T>& left,
-            const std::valarray<T>& right)
-{
-    if(left.size() != right.size())
-        throw MMPBSAException("When using zip, the two arrays must have the same size.",DATA_FORMAT_ERROR);
-
-    int oldsize = left.size();
-    std::valarray<T> returnMe(2*oldsize);
-    size_t returnMeIndex = 0;
-    for(size_t i = 0;i<oldsize;i++)
-    {
-        returnMe[returnMeIndex++] = left[i];
-        returnMe[returnMeIndex++] = right[i];
-    }
-    return returnMe;
-}
-
-template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<T>& left, const std::slice& leftSlice,
-         const std::valarray<T>& right, const std::slice& rightSlice)
-{
-    int oldsize = leftSlice.size();
-    if(oldsize != rightSlice.size())
-        throw MMPBSAException("Cannot zip two slices of difference sizes.",DATA_FORMAT_ERROR);
-    
-    std::valarray<T> returnMe(2*oldsize);
-    size_t returnMeIndex = 0;
-    for(size_t i = 0;i<oldsize;i++)
-    {
-        returnMe[returnMeIndex++] = left[leftSlice.start()+i*leftSlice.stride()];
-        returnMe[returnMeIndex++] = right[rightSlice.start()+i*rightSlice.stride()];
-    }
-    return returnMe;
-
-}
-
-template <class T> std::valarray<T> mmpbsa_utils::zip(const std::vector<T>& left,
-            const std::valarray<T>& right)
-{
-    if(left.size() != right.size())
-        throw MMPBSAException("When using zip, the two arrays must have the same size.",DATA_FORMAT_ERROR);
-
-    int oldsize = left.size();
-    std::valarray<T> returnMe(2*oldsize);
-    size_t returnMeIndex = 0;
-    for(size_t i = 0;i<oldsize;i++)
-    {
-        returnMe[returnMeIndex++] = left[i];
-        returnMe[returnMeIndex++] = right[i];
-    }
-    return returnMe;
-}
-
-template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<std::valarray<T> >& toBeZipped)
-{
-    size_t newSize = toBeZipped[0].size();//elements in each array
-    for(size_t i = 1;i<toBeZipped.size();i++)
-        if(toBeZipped[i].size() != newSize)
-        {
-            char * error;
-            sprintf(error,"When using mmpbsa_utils::zip, all arrays "
-                    "must have the same length. Here the expected length was %d,"
-                    " but one array had a length of %d",newSize,toBeZipped[i].size());
-            throw MMPBSAException(error,INVALID_ARRAY_SIZE);
-        }
-    
-    std::valarray<T> returnMe(newSize*toBeZipped.size());
-    size_t returnMeIndex = 0;
-    for(size_t i = 0;i<newSize;i++)
-        for(size_t j = 0;j<toBeZipped.size();j++)
-            returnMe[returnMeIndex++] = toBeZipped[j][i];
-
-    return returnMe;
-}
-
-template <class T> std::valarray<T> mmpbsa_utils::cshift(const std::vector<T>& orig,
-            const int& n)
-{
-    int size = orig.size();
-    if(abs(n) > size)
-        throw MMPBSAException("cshift amount must be between 0 and the array "
-                "size",DATA_FORMAT_ERROR);
-    
-    std::valarray<T> returnMe(size);
-    int returnMeIndex = 0;
-    int shift = n;
-    if(n < 0)
-        shift = size+n;
-    for (int i = shift; i < size; i++)
-        returnMe[returnMeIndex++] = orig[i];
-    for (int i = 0; i < shift; i++)
-        returnMe[returnMeIndex++] = orig[i];
-
-    return returnMe;
-
-
-}
-
-template <class T> size_t mmpbsa_utils::find_first(const std::valarray<T>& array,
-            const T& reference)
-{
-    size_t half_size = size_t(array.size()/2);
-    for(size_t i = 0;i<half_size;i++)
-    {
-        if(array[i] == reference)
-            return i;
-        if(array[i+half_size] == reference)
-            return i+half_size;
-    }
-    if(array[array.size()-1] == reference)//in case of an odd sized array.
-        return array.size()-1;
     else
-        return array.size();//reference not found.
+        bean = bean.substr(firstpos,lastpos - firstpos + 1);
 
+    return bean;
 }
 
-template<class T> T* mmpbsa_utils::cross_product(const T* A, const T* B,const size_t& dim)
+Coord * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
+        const std::valarray<mmpbsa_t>& bcrds, const mmpbsa_t& cutoff)
 {
+    using std::valarray;
+    using std::slice;
+    using std::max;
+    using std::min;
+    
+    if(acrds.size() % 3 != 0 || bcrds.size() % 3 != 0)
+        throw MMPBSAException("interaction_minmax was supply coordinates "
+                "that were not 3-D.",DATA_FORMAT_ERROR);
 
-    if(dim != 3)
+    mmpbsa_t cutsqrd = cutoff*cutoff;
+    valarray<bool> aflags(false,size_t(acrds.size()/3));
+    valarray<bool> bflags(false,size_t(bcrds.size()/3));
+
+    mmpbsa_t rsqrd = 0;//valarray<mmpbsa_t> rsqrd(0.0,numCoords);
+    for(size_t i = 0;i<bflags.size();i++)
     {
-        char* error;
-        sprintf(error,"mmpbsa_utils::cross_product only works on 3 dimensional vectors."
-                "Here, a %d-dimensional vector was given.",dim);
+        for(size_t j = 0;j<aflags.size();j++)
+        {
+            rsqrd = pow(bcrds[3*i]-acrds[3*j],2) + pow(bcrds[3*i+1]-acrds[3*j+1],2)
+                    + pow(bcrds[3*i+2]-acrds[3*j+2],2);
+            if(rsqrd < cutsqrd)
+            {
+                bflags[i] = true;
+                aflags[j] = true;
+            }
+        }
+
+    }
+    Coord max_corner,min_corner;
+    bool seenFirstInteractor = false;
+    for(size_t i = 0;i<aflags.size();i++)
+    {
+        if(aflags[i])
+        {
+            if(!seenFirstInteractor)
+            {
+                max_corner.x = acrds[3*i];
+                max_corner.y = acrds[3*i+1];
+                max_corner.z = acrds[3*i+2];
+                min_corner = max_corner;
+                seenFirstInteractor = true;
+            }
+            else
+            {
+                max_corner.x = max(acrds[3*i],max_corner.x);
+                max_corner.y = max(acrds[3*i+1],max_corner.y);
+                max_corner.z = max(acrds[3*i+2],max_corner.z);
+                min_corner.x = min(acrds[3*i],min_corner.x);
+                min_corner.y = min(acrds[3*i+1],min_corner.y);
+                min_corner.z = min(acrds[3*i+2],min_corner.z);
+            }
+        }
+    }
+
+    for(size_t i = 0;i<bflags.size();i+=3)
+    {
+        if(bflags[i])
+        {
+            max_corner.x = max(bcrds[3*i],max_corner.x);
+            max_corner.y = max(bcrds[3*i+1],max_corner.y);
+            max_corner.z = max(bcrds[3*i+2],max_corner.z);
+            min_corner.x = min(bcrds[3*i],min_corner.x);
+            min_corner.y = min(bcrds[3*i+1],min_corner.y);
+            min_corner.z = min(bcrds[3*i+2],min_corner.z);
+        }
+    }
+
+    Coord * returnMe = new Coord[2];
+    returnMe[0] = min_corner;
+    returnMe[1] = max_corner;
+    return returnMe;
+}
+
+mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
+        const std::map<std::string,mmpbsa_t>& radiusMap)
+            throw (MMPBSAException)
+{
+    using std::string;
+    using std::map;
+    using mmpbsa_utils::trimString;
+    
+    //A direct name match is preferred. Otherwise test for untrimmed keys and/or ambiguities.
+    if(radiusMap.find(atomName) != radiusMap.end())
+        return radiusMap.at(atomName);
+    
+    //Not found by atomName. Check atom name only entries
+    std::vector<mmpbsa_t> possibleMatches;
+    string theAtom = "";
+    for(map<std::string,mmpbsa_t>::const_iterator it = radiusMap.begin();it != radiusMap.end();it++)
+    {
+        theAtom = trimString(atomName);
+        if(theAtom.size() == 0)//how did a null string get in there?
+            continue;
+        fprintf(stderr,"Key: %s , Atom: %s\n",it->first.c_str(),theAtom.c_str());
+        if(it->first.find(theAtom) != string::npos)//see if atom is actually there with spaces
+        {
+            possibleMatches.push_back(it->second);
+            continue;
+        }
+
+        //test for "backwards" formatting between DelPhi atom names and Sander Parmtop atom names
+        switch(atomName[0])
+        {
+            case '1': case '2': case '3': case '4': case '5': case '-': case '+':
+            {
+                fprintf(stderr,"Key: %s , Atom: %s\n",it->first.c_str(),theAtom.c_str());
+                if(it->first.find(theAtom.substr(1).append(theAtom.substr(0,1))) != string::npos)//move number to end of the atom name. then check again.
+                    possibleMatches.push_back(it->second);
+                break;
+            }
+            default://only the above are allowed as a suffix/prefix.
+                break;
+        }
+    }
+
+    //see what we found.
+    if(possibleMatches.size() == 0)
+    {
+        char error[256];
+        sprintf(error,"No radius found for '%s' in Radii Map",atomName.c_str());
         throw MMPBSAException(error,DATA_FORMAT_ERROR);
     }
-
-    T * cross = new T[dim];
-
-    cross[0] = A[1]*B[2]-A[2]*B[1];
-    cross[1] = -A[0]*B[2]+A[2]*B[0];
-    cross[2] = A[0]*B[1]-A[1]*B[0];
-
-    return cross;//
+    if(possibleMatches.size() > 1)
+    {
+        char error[256];
+        sprintf(error,"%d matches for '%s' in Radii Map",possibleMatches.size(), atomName.c_str());
+        throw MMPBSAException(error,DATA_FORMAT_ERROR);
+    }
+    
+    //iff there is one match.
+    return possibleMatches[0];
 }
-
 

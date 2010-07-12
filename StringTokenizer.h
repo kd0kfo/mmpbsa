@@ -127,7 +127,7 @@ class TokenizerException : public MMPBSAException
 public:
     TokenizerException(const std::string& error) : MMPBSAException( error){}
 
-    TokenizerException(const std::string& error, const int& errorType)
+    TokenizerException(const std::string& error, const MMPBSAErrorTypes& errorType)
         : MMPBSAException(error,errorType){}
 
     const char* identifier(){return "String Tokenizer Error";}

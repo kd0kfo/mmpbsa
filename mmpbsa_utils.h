@@ -9,19 +9,61 @@
 #ifndef MMPBSA_UTILS_H
 #define	MMPBSA_UTILS_H
 
-#define MMPBSA_PI 3.14159265
+#define MMPBSA_PI 3.14159265358979323846
+#define MMPBSA_TWOPI 6.28318530717958647692
 
-typedef float mmpbsa_t;
-
+#include <fstream>
 #include <cmath>
+#include <cctype>
 #include <vector>
 #include <valarray>
+#include <map>
+#include <algorithm>
 
 #include "mmpbsa_exceptions.h"
 
+//MEAD
+#include "MEAD/Coord.h"
+
+typedef float mmpbsa_t;
+extern std::fstream myOutput;
+
+
 namespace mmpbsa_utils {
 
+    /**
+     * Return center of interaction beetween two atom coordinate sets.
+     * It is defined as the center of the union of the atoms of A that
+     * are within CUTOFF of any atoms of B with the atoms of B within
+     * CUTOFF of A's atoms.
+     * 
+     * @param acrds
+     * @param bcrds
+     * @param cutoff
+     * @return
+     */
+    Coord * interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
+            const std::valarray<mmpbsa_t>& bcrds, const mmpbsa_t& cutoff = 4.0);
 
+    mmpbsa_t lookup_radius(const std::string& atomName,
+            const std::map<std::string,mmpbsa_t>& radiusMap)
+            throw (MMPBSAException);
+
+    std::string toUpperCase(const std::string& bean);
+
+    /**
+     * Removes white space at the beginning and end of a string.
+     * @param str
+     */
+    std::string trimString(const std::string& bean);
+
+    /**
+     * Determines if the given test value is contained in the array.
+     * 
+     * @param array
+     * @param test
+     * @return
+     */
     template <class T>
     bool contains(const std::vector<T>& array, const T& test);
 
@@ -124,8 +166,10 @@ namespace mmpbsa_utils {
     template <class T> size_t find_first(const std::valarray<T>& array,
             const T& reference);
 
-    template<class T> T* cross_product(const T* A, const T* B,const size_t& dim);
+    template<class T> T* cross_product(const T* A, const T* B, const size_t& ndim = 3);
 
+    template<class T> T dot_product(const T* A, const T* B, const size_t& ndim = 3);
+    
     
 }//end mmpbsa_utils namespace
 

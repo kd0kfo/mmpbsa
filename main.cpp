@@ -11,9 +11,12 @@
 #include <fstream>
 
 #include "mmpbsa_exceptions.h"
-#include "SanderIO.h"
+#include "mmpbsa_io.h"
 #include "EnergyInfo.h"
 #include "Energy.h"
+#include "MeadInterface.h"
+
+#include "MEAD/FinDiffMethod.h"
 
 int testsubmain(int argc, char** argv);
 int testenergy(int argc, char** argv);
@@ -42,13 +45,14 @@ int main(int argc, char** argv)
 int testenergy(int argc, char** argv)
 {
     using namespace std;
-    using namespace sanderio;
+    using namespace mmpbsa_io;
     string dir = "/ibis/users_linux/dcoss/working_dir/mmpbsa-test/";
     string testdir = dir;
     string prmTopFilename = dir + "mm668036_022W.top";
     //string crdFilename = "";
     string trajFilename = dir + "NPTMDprod.mdcrd"; //dir + "polyAT_vac_md1_12Acut.mdcrd";
     string mdoutFilename = dir + "polyAT_vac_md1_12Acut.out";
+    string radiiFilename = dir + "my_parse_delphi.siz";
 
     SanderParm * sp = new SanderParm;
     sp->raw_read_amber_parm(prmTopFilename);
@@ -74,7 +78,6 @@ int testenergy(int argc, char** argv)
     valarray<bool> keepers(false, sp->natom);
     keepers[slice(0, 1415, 1)] = valarray<bool>(true,1415);
     EmpEnerFun stripped = efun.stripEnerFun(keepers, true);
-    cout << stripped.ereport(snapshot) << endl;
 
     valarray<mmpbsa_t> reccrds(1348*3);
     reccrds = (snapshot[slice(0,1348*3,1)]);
@@ -82,7 +85,6 @@ int testenergy(int argc, char** argv)
     for(size_t i = 0;i<1348;i++)
         reckeepers[i] = true;
     EmpEnerFun recstripped = stripped.stripEnerFun(reckeepers,true);
-    cout << recstripped.ereport(reccrds) << endl;
 
     valarray<bool> ligkeepers(false,1415);
     for(size_t i = 1348;i<1415;i++)
@@ -90,7 +92,36 @@ int testenergy(int argc, char** argv)
     valarray<mmpbsa_t> ligcrds(67*3);
     ligcrds = (snapshot[slice(1348*3,67*3,1)]);
     EmpEnerFun ligstripped = stripped.stripEnerFun(ligkeepers,true);
-    cout << ligstripped.ereport(ligcrds) << endl;
+
+    EMap complexMap(&stripped,snapshot);
+    EMap receptorMap(&recstripped,reccrds);
+    EMap ligandMap(&ligstripped,ligcrds);
+//    myOutput << "COMPLEX" << endl;
+//    myOutput << complexMap << endl;
+//    myOutput << "RECEPTOR" << endl;
+//    myOutput << receptorMap << endl;
+//    myOutput << "LIGAND" << endl;
+//    myOutput << ligandMap << endl;
+
+    fstream radiiFile(radiiFilename.c_str(),ios::in);
+    map<string,mmpbsa_t> radii;
+    map<string,string> radiiResidues;
+    mmpbsa_io::read_siz_file(radiiFile,radii,radiiResidues);
+
+    FinDiffMethod fdm = MeadInterface::createFDM(snapshot[slice(0,1415*3,1)],reccrds,ligcrds);
+
+    //#PB params
+    mmpbsa_t interactionStrength = 0.0;
+
+    //#SA params
+    mmpbsa_t surf_tension = 0.00542; //# kcal/mol/Ang^2
+    mmpbsa_t surf_offset = 0.92; //# kcal/mol
+
+    
+    EMap com_emap = MeadInterface::full_EMap(stripped,snapshot[slice(0,1415*3,1)],
+            fdm,&radii,radiiResidues,interactionStrength,surf_tension,surf_offset);
+    
+    std::cout << com_emap << std::endl;
 
     cout.flush();
     cerr.flush();
@@ -103,7 +134,7 @@ int testenergy(int argc, char** argv)
 int testsubmain(int argc, char** argv)
 {
     using namespace std;
-    using namespace sanderio;
+    using namespace mmpbsa_io;
     string dir = "/ibis/users_linux/dcoss/working_dir/mmpbsa-test/";
     string testdir = dir;
     string prmTopFilename = dir + "mm668036_022W.top";

@@ -15,7 +15,7 @@
 #include <fstream>
 
 #include "StringTokenizer.h"
-#include "SanderIO.h"
+#include "mmpbsa_io.h"
 
 
 class EnergyInfo {
@@ -147,7 +147,7 @@ private:
 };
 
 //Since this file provides the classes to handle Energy Info, the definitions and
-//declarations are provided here as well, though placed in the expected sanderio
+//declarations are provided here as well, though placed in the expected mmpbsa_io
 //namespace.
 void mdout2enerinfos(std::fstream& mdout, std::valarray<EnergyInfo>& energyinfos,
         std::valarray<AveRmsEnerInfo>& avginfos);
