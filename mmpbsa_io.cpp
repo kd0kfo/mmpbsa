@@ -1136,6 +1136,15 @@ void mmpbsa_io::read_siz_file(std::fstream& theFile,
         }
 
         atomName = toUpperCase(trimString(currLine.substr(0,6)));
+        switch(*(atomName.begin()))
+        {
+            //Atom numbering in DelPhi and Parmtop files are reversed.
+            case '1': case '2': case '3': case '4': case '5':
+                atomName = atomName.substr(1).append(atomName.substr(0,1));
+                break;
+            default:
+                break;
+        }
         residue = toUpperCase(trimString(currLine.substr(6,3)));
         data = trimString(currLine.substr(9));
         sscanf(data.c_str(),"%f",&fData);

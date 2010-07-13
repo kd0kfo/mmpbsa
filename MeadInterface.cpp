@@ -81,17 +81,8 @@ FinDiffMethod MeadInterface::createFDM(const std::valarray<mmpbsa_t>& complexCrd
         fine_grid_dim++;
 
     fdm.add_level(fine_grid_dim,fine_grid_spacing,ON_CENT_OF_INTR);
-
-//    /*unused in pyamber*/
-//    Coord gCenter;
-//    for(size_t i = 0;i<ligandCrds.size();i+=3)
-//    {
-//        gCenter.x += ligandCrds[i];
-//        gCenter.y += ligandCrds[i+1];
-//        gCenter.z += ligandCrds[i+2];
-//    }
-
     fdm.resolve(Coord(geoCenter[0],geoCenter[1],geoCenter[2]),intCenter);
+    for(size_t blah = 0;blah<3;blah++)
     return fdm;
 }
 
@@ -102,9 +93,8 @@ EMap MeadInterface::full_EMap(const EmpEnerFun& efun, const std::valarray<mmpbsa
 {
     EMap returnMe(&efun,crds);
     mmpbsa_t * pbsa_values = pbsa_solvation(efun,crds,fdm,radii,residueMap,interactionStrength);
-    returnMe.set_elstat_solv(pbsa_values[0] * surfTension + surfOffset);
+    returnMe.set_elstat_solv(pbsa_values[0]);
     returnMe.set_area(pbsa_values[1]);
-
     delete [] pbsa_values;
     return returnMe;
 }
@@ -131,7 +121,6 @@ mmpbsa_t* MeadInterface::pbsa_solvation(const EmpEnerFun& efun, const std::valar
         currAtom.coord = Coord(crds[3*i],crds[3*i+1],crds[3*i+2]);
         currAtom.charge = parminfo->charges[i];
         if(radii)
-
             currAtom.rad = mmpbsa_utils::lookup_radius(currAtom.atname,(*radii));
         else
             currAtom.rad = bondi_lookup(currAtom.atname);
@@ -140,21 +129,24 @@ mmpbsa_t* MeadInterface::pbsa_solvation(const EmpEnerFun& efun, const std::valar
             fprintf(stderr,"WARNING: strange radius, %f, for atom %s (index = %d)", currAtom.rad, currAtom.atname.c_str(),i);
         atmSet.insert(currAtom);
     }
-    AtomChargeSet rho(atmSet);
-    TwoValueDielectricByAtoms eps(atmSet,1.0,80.0,1.4);
-    ElectrolyteByAtoms ely(atmSet,interactionStrength,exclusionRadius);
-    FinDiffElstatPot phi_solv(fdm, &eps, &rho, &ely);
+    //Solvent energy
+    ChargeDist rho(new AtomChargeSet(atmSet));
+    DielectricEnvironment eps(new TwoValueDielectricByAtoms(atmSet,1.0,80.0,1.4));
+    ElectrolyteEnvironment ely( new ElectrolyteByAtoms(atmSet,interactionStrength,exclusionRadius));
+    ElstatPot phi_solv(fdm, eps, rho, ely);
     phi_solv.solve();
-    mmpbsa_t prod_sol = mmpbsa_t(rho * phi_solv);
-    UniformElectrolyte ely_ref(0.0);
-    UniformDielectric eps_ref(1.0);
-    FinDiffElstatPot phi_ref(fdm, &eps_ref, &rho, &ely_ref);
+    mmpbsa_t prod_sol = mmpbsa_t(phi_solv * rho);
+    
+    //Electrolyte
+    ElectrolyteEnvironment ely_ref( new UniformElectrolyte(0.0));
+    DielectricEnvironment  eps_ref( new UniformDielectric(1.0));
+    ElstatPot phi_ref(fdm, eps_ref, rho, ely_ref);
     phi_ref.solve();
-    mmpbsa_t prod_ref = mmpbsa_t(rho * phi_ref);
+    mmpbsa_t prod_ref = mmpbsa_t(phi_ref * rho);
     //# esol will already be in kcal/mole because of Amber's charge units
     returnMe[esol] = (prod_sol - prod_ref) / 2.0;
 
-    returnMe[area] = MMPBSA_PI;
+    returnMe[area] = MMPBSA_PI;//replace with molsurf stuff
 
     return returnMe;
 }

@@ -26,6 +26,7 @@
 #include "MEAD/AtomSet.h"
 #include "MEAD/Atom.h"
 #include "MEAD/AtomChargeSet.h"
+#include "MEAD/ChargeDist.h"
 #include "MEAD/DielByAtoms.h"
 #include "MEAD/ElectrolyteByAtoms.h"
 #include "MEAD/FinDiffElstatPot.h"

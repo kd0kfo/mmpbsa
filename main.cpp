@@ -96,12 +96,6 @@ int testenergy(int argc, char** argv)
     EMap complexMap(&stripped,snapshot);
     EMap receptorMap(&recstripped,reccrds);
     EMap ligandMap(&ligstripped,ligcrds);
-//    myOutput << "COMPLEX" << endl;
-//    myOutput << complexMap << endl;
-//    myOutput << "RECEPTOR" << endl;
-//    myOutput << receptorMap << endl;
-//    myOutput << "LIGAND" << endl;
-//    myOutput << ligandMap << endl;
 
     fstream radiiFile(radiiFilename.c_str(),ios::in);
     map<string,mmpbsa_t> radii;
@@ -120,8 +114,15 @@ int testenergy(int argc, char** argv)
     
     EMap com_emap = MeadInterface::full_EMap(stripped,snapshot[slice(0,1415*3,1)],
             fdm,&radii,radiiResidues,interactionStrength,surf_tension,surf_offset);
-    
     std::cout << com_emap << std::endl;
+
+    EMap rec_emap = MeadInterface::full_EMap(recstripped,reccrds,fdm,&radii,
+            radiiResidues,interactionStrength,surf_tension,surf_offset);
+    std::cout << rec_emap << std::endl;
+
+    EMap lig_emap = MeadInterface::full_EMap(ligstripped,ligcrds,fdm,&radii,
+            radiiResidues,interactionStrength,surf_tension,surf_offset);
+    std::cout << lig_emap << std::endl;
 
     cout.flush();
     cerr.flush();

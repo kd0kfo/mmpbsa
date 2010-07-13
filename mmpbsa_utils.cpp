@@ -106,47 +106,41 @@ mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
     using std::string;
     using std::map;
     using mmpbsa_utils::trimString;
-    
+
+    //If atomic radii are the same for element variations with common first letters, such
+    //as Carbon-alpha and Carbon-beta, they are stored in the .siz by that
+    //shared abbreviation, i.e. "C". Therefore if a radius is not found by the
+    //whole name, remove one character and search again. A null string indicates
+    //this failed as well.
+    if(atomName.size() == 0)
+        return -1;
+
     //A direct name match is preferred. Otherwise test for untrimmed keys and/or ambiguities.
     if(radiusMap.find(atomName) != radiusMap.end())
         return radiusMap.at(atomName);
     
     //Not found by atomName. Check atom name only entries
     std::vector<mmpbsa_t> possibleMatches;
-    string theAtom = "";
+    string theAtom = trimString(atomName);
     for(map<std::string,mmpbsa_t>::const_iterator it = radiusMap.begin();it != radiusMap.end();it++)
     {
-        theAtom = trimString(atomName);
-        if(theAtom.size() == 0)//how did a null string get in there?
-            continue;
-        fprintf(stderr,"Key: %s , Atom: %s\n",it->first.c_str(),theAtom.c_str());
-        if(it->first.find(theAtom) != string::npos)//see if atom is actually there with spaces
+        if(it->first == theAtom)//direct match
         {
             possibleMatches.push_back(it->second);
-            continue;
-        }
-
-        //test for "backwards" formatting between DelPhi atom names and Sander Parmtop atom names
-        switch(atomName[0])
-        {
-            case '1': case '2': case '3': case '4': case '5': case '-': case '+':
-            {
-                fprintf(stderr,"Key: %s , Atom: %s\n",it->first.c_str(),theAtom.c_str());
-                if(it->first.find(theAtom.substr(1).append(theAtom.substr(0,1))) != string::npos)//move number to end of the atom name. then check again.
-                    possibleMatches.push_back(it->second);
-                break;
-            }
-            default://only the above are allowed as a suffix/prefix.
-                break;
         }
     }
 
     //see what we found.
-    if(possibleMatches.size() == 0)
+    if(possibleMatches.size() == 0)//see above note on shared radii
     {
-        char error[256];
-        sprintf(error,"No radius found for '%s' in Radii Map",atomName.c_str());
-        throw MMPBSAException(error,DATA_FORMAT_ERROR);
+        mmpbsa_t deeperSearch = lookup_radius(theAtom.erase(theAtom.size()-1),radiusMap);
+        if(deeperSearch == -1)
+        {
+            char error[256];
+            sprintf(error,"No radius found for '%s' in Radii Map",atomName.c_str());
+            throw MMPBSAException(error,DATA_FORMAT_ERROR);
+        }
+        return deeperSearch;
     }
     if(possibleMatches.size() > 1)
     {
