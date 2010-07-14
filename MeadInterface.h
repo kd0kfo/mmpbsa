@@ -18,6 +18,7 @@
 #include "mmpbsa_exceptions.h"
 #include "Energy.h"
 #include "mmpbsa_io.h"
+#include "molsurf.h"
 
 //MEAD
 #include "MEAD/Coord.h"
@@ -54,9 +55,10 @@ public:
         const std::map<std::string,std::string>& residueMap,
         const mmpbsa_t& interactionStrength = 0.0, const mmpbsa_t& exclusionRadius = 2.0) throw (MMPBSAException);
 
-    static mmpbsa_t bondi_lookup(const std::string& atomName);
+    mmpbsa_t bondi_lookup(const std::string& atomName)const;
 private:
-
+    std::map<std::string,mmpbsa_t> brad;
+    
 };
 
 class MeadException : public MMPBSAException {

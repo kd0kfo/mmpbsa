@@ -317,6 +317,7 @@ public:
 
     const mmpbsa_t& set_elstat_solv(const mmpbsa_t& val){return elstat_solv = val;}
     const mmpbsa_t& set_area(const mmpbsa_t& val){return area = val;}
+    const mmpbsa_t& set_sasol(const mmpbsa_t& val){return sasol = val;}
     /**
      * ostream output for convienent writing of energy data.
      *
@@ -352,6 +353,7 @@ private:
     mmpbsa_t vacele;
     mmpbsa_t elstat_solv;
     mmpbsa_t area;
+    mmpbsa_t sasol;
     
 };
 

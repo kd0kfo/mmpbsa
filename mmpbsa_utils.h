@@ -25,7 +25,7 @@
 //MEAD
 #include "MEAD/Coord.h"
 
-typedef float mmpbsa_t;
+typedef double mmpbsa_t;
 extern std::fstream myOutput;
 
 

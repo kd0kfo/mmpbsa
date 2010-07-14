@@ -70,12 +70,12 @@ Coord * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
             }
             else
             {
-                max_corner.x = max(acrds[3*i],max_corner.x);
-                max_corner.y = max(acrds[3*i+1],max_corner.y);
-                max_corner.z = max(acrds[3*i+2],max_corner.z);
-                min_corner.x = min(acrds[3*i],min_corner.x);
-                min_corner.y = min(acrds[3*i+1],min_corner.y);
-                min_corner.z = min(acrds[3*i+2],min_corner.z);
+                max_corner.x = max(acrds[3*i],mmpbsa_t(max_corner.x));
+                max_corner.y = max(acrds[3*i+1],mmpbsa_t(max_corner.y));
+                max_corner.z = max(acrds[3*i+2],mmpbsa_t(max_corner.z));
+                min_corner.x = min(acrds[3*i],mmpbsa_t(min_corner.x));
+                min_corner.y = min(acrds[3*i+1],mmpbsa_t(min_corner.y));
+                min_corner.z = min(acrds[3*i+2],mmpbsa_t(min_corner.z));
             }
         }
     }
@@ -84,12 +84,12 @@ Coord * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
     {
         if(bflags[i])
         {
-            max_corner.x = max(bcrds[3*i],max_corner.x);
-            max_corner.y = max(bcrds[3*i+1],max_corner.y);
-            max_corner.z = max(bcrds[3*i+2],max_corner.z);
-            min_corner.x = min(bcrds[3*i],min_corner.x);
-            min_corner.y = min(bcrds[3*i+1],min_corner.y);
-            min_corner.z = min(bcrds[3*i+2],min_corner.z);
+            max_corner.x = max(bcrds[3*i],mmpbsa_t(max_corner.x));
+            max_corner.y = max(bcrds[3*i+1],mmpbsa_t(max_corner.y));
+            max_corner.z = max(bcrds[3*i+2],mmpbsa_t(max_corner.z));
+            min_corner.x = min(bcrds[3*i],mmpbsa_t(min_corner.x));
+            min_corner.y = min(bcrds[3*i+1],mmpbsa_t(min_corner.y));
+            min_corner.z = min(bcrds[3*i+2],mmpbsa_t(min_corner.z));
         }
     }
 

@@ -1116,6 +1116,7 @@ EMap::EMap()
     vacele = 0;
     elstat_solv = 0;
     area = 0;
+    sasol = 0;
 }
 
 
@@ -1130,6 +1131,7 @@ EMap::EMap(const EMap& orig)
     vacele = orig.vacele;
     elstat_solv = orig.elstat_solv;
     area = orig.area;
+    sasol = orig.sasol;
 }
 
 EMap::EMap(const EmpEnerFun* efun, const std::valarray<mmpbsa_t>& crds)
@@ -1147,7 +1149,7 @@ EMap::EMap(const EmpEnerFun* efun, const std::valarray<mmpbsa_t>& crds)
     vacele = efun->total_elstat_energy(crds);
     elstat_solv = 0;
     area = 0;
-    
+    sasol = 0;
 }
 
 std::ostream& operator<<(std::ostream& theStream, const EMap& toWrite)
@@ -1157,10 +1159,11 @@ std::ostream& operator<<(std::ostream& theStream, const EMap& toWrite)
     theStream << "DIHED " << toWrite.dihed << std::endl;
     theStream << "VDW14 " << toWrite.vdw14 << std::endl;
     theStream << "ELE14 " << toWrite.ele14 << std::endl;
-    theStream << "VDWAALS " << toWrite.vdwaals << std::endl;
     theStream << "VACELE " << toWrite.vacele << std::endl;
+    theStream << "VDWAALS " << toWrite.vdwaals << std::endl;
     theStream << "PBSOL " << toWrite.elstat_solv << std::endl;
-    theStream << "SASOL " << toWrite.area;
+    theStream << "SASOL " << toWrite.sasol << std::endl;
+    theStream << "area " << toWrite.area;
     return theStream;
 }
 
@@ -1178,7 +1181,7 @@ EMap& EMap::operator=(const EMap& rhs)
     vacele = rhs.vacele;
     elstat_solv = rhs.elstat_solv;
     area = rhs.area;
-    
+    sasol = rhs.sasol;
     return *this;
 }
 
@@ -1192,8 +1195,9 @@ EMap EMap::operator+(const EMap& rhs)
     returnMe.ele14 = rhs.ele14+ele14;
     returnMe.vdwaals = rhs.vdwaals+vdwaals;
     returnMe.vacele = rhs.vacele+vacele;
-    elstat_solv = rhs.elstat_solv+elstat_solv;
-    area = rhs.area+area;
+    returnMe.elstat_solv = rhs.elstat_solv+elstat_solv;
+    returnMe.area = rhs.area+area;
+    returnMe.sasol = rhs.sasol+sasol;
     return returnMe;
 }
 
@@ -1208,6 +1212,7 @@ EMap& EMap::operator+=(const EMap& rhs)
     vacele += rhs.vacele;
     elstat_solv += rhs.elstat_solv;
     area += rhs.area;
+    sasol += rhs.sasol;
     return *this;
 }
 
@@ -1223,7 +1228,7 @@ EMap EMap::operator-(const EMap& rhs)
     returnMe.vacele = vacele-rhs.vacele;
     elstat_solv = elstat_solv-rhs.elstat_solv;
     area = area-rhs.area;
-
+    sasol = sasol-rhs.sasol;
     return returnMe;
 }
 
@@ -1239,7 +1244,8 @@ EMap& EMap::operator-=(const EMap& rhs)
     vacele -= rhs.vacele;
     elstat_solv -= rhs.elstat_solv;
     area -= rhs.area;
-
+    sasol -= rhs.sasol;
+    
     return *this;
 }
 
