@@ -37,6 +37,11 @@ int main(int argc, char** argv)
     }    
     catch (MMPBSAException e)
     {
+      if(e.getErrType() == UNEXPECTED_EOF)
+	{
+	  std::cerr << "EOF Reached" << std::endl;
+	  return 0;
+	}
         std::cerr << e.identifier() << ": " << e.what() << std::endl;
         return e.getErrType();
     }

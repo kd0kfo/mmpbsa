@@ -12,10 +12,12 @@
 enum MMPBSAErrorTypes {UNKNOWN_ERROR, /*<Avoid, as this is vague.*/
     FILE_READ_ERROR,/*<IO problem reading prmtop file.*/
     BROKEN_PRMTOP_FILE,/*<prmtop file is improperly formatted or missing data.*/
-    BROKEN_TRAJECTORY_FILE = 4,/*<trajectory file is improperly formatted or missing data.*/
-    INVALID_PRMTOP_DATA = 5,/*<Data which was loaded into an array is incorrect based on what is expected.*/
-    DATA_FORMAT_ERROR = 6,/*<Use this error, when data *within* the program no long matches what it should due to formatting problems.*/
-    INVALID_ARRAY_SIZE = 7};/*<A supplied array has an incorrect size.*/
+    BROKEN_TRAJECTORY_FILE,/*<trajectory file is improperly formatted or missing data.*/
+    INVALID_PRMTOP_DATA,/*<Data which was loaded into an array is incorrect based on what is expected.*/
+    DATA_FORMAT_ERROR,/*<Use this error, when data *within* the program no long matches what it should due to formatting problems.*/
+    INVALID_ARRAY_SIZE,
+    UNEXPECTED_EOF
+};/*<A supplied array has an incorrect size.*/
 
 class MMPBSAException : public std::runtime_error
 {

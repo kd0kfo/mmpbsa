@@ -18,7 +18,7 @@
 #include "mmpbsa_exceptions.h"
 #include "Energy.h"
 #include "mmpbsa_io.h"
-#include "molsurf.h"
+#include "molsurf/molsurf.h"
 
 //MEAD
 #include "MEAD/Coord.h"

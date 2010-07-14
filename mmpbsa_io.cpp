@@ -1030,7 +1030,7 @@ template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
     {
         if(dataFile.eof())
             throw SanderIOException("Data file ended in the middle of the "
-                    "data.",BROKEN_TRAJECTORY_FILE);
+                    "data.",UNEXPECTED_EOF);
 
         string currentLine = getNextLine(dataFile);//do not trim string. Spaces are part of formatted size.
         if(currentLine.size() % width )
