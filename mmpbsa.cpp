@@ -91,8 +91,8 @@ int realDeal(int argc, char** argv)
     for(size_t i = 0;i<receptorStartPos.size();i++)
     {
         size_t currPos = receptorStartPos[i];
-        bottom = (*entireEFun.mol_ranges)[2*currPos];
-        top = (*entireEFun.mol_ranges)[2*currPos+1];
+        bottom = entireEFun.mol_ranges[2*currPos];
+        top = entireEFun.mol_ranges[2*currPos+1];
         valarray<bool> currReceptor(true,top-bottom);
         complexKeepers[slice(bottom,top-bottom,1)] = currReceptor;
         receptorKeepers[slice(bottom,top-bottom,1)] = currReceptor;
@@ -101,8 +101,8 @@ int realDeal(int argc, char** argv)
     for(size_t i = 0;i<ligandStartPos.size();i++)
     {
         size_t currPos = ligandStartPos[i];
-        bottom = (*entireEFun.mol_ranges)[2*currPos];
-        top = (*entireEFun.mol_ranges)[2*currPos+1];
+        bottom = entireEFun.mol_ranges[2*currPos];
+        top = entireEFun.mol_ranges[2*currPos+1];
         valarray<bool> currLigand(true,top-bottom);
         complexKeepers[slice(bottom,top-bottom,1)] = currLigand;
         ligandKeepers[slice(bottom,top-bottom,1)] = currLigand;

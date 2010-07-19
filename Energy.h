@@ -264,13 +264,13 @@ public:
     std::slice phi_h_l;
     std::slice phi_h_m;
 
-    std::vector<std::vector<size_t> > * exclst;
+    std::vector<std::vector<size_t> > exclst;
 
-    std::valarray<mmpbsa_t> * LJA;
-    std::valarray<mmpbsa_t> * LJB;
+    std::valarray<mmpbsa_t> LJA;
+    std::valarray<mmpbsa_t> LJB;
 
-    std::valarray<size_t> * res_ranges;
-    std::valarray<size_t> * mol_ranges;
+    std::valarray<size_t> res_ranges;
+    std::valarray<size_t> mol_ranges;
 
 
     

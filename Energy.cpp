@@ -9,39 +9,7 @@ EmpEnerFun::EmpEnerFun()
     inv_scnb = 1.0/DEFAULT_SCNB;
     inv_scee =  1.0/DEFAULT_SCEE;
     dielc =  DEFAULT_DIELC;
-    bond_i;
-    bond_j;
-    bond_k;
-    bond_h_i;
-    bond_h_j;
-    bond_h_k;
-    angle_i;
-    angle_j;
-    angle_k;
-    angle_l;
-    angle_h_i;
-    angle_h_j;
-    angle_h_k;
-    angle_h_l;
-    phi_i;
-    phi_j;
-    phi_k;
-    phi_l;
-    phi_m;
-    phi_h_i;
-    phi_h_j;
-    phi_h_k;
-    phi_h_l;
-    phi_h_m;
-
-    exclst = 0;
-
-    res_ranges = 0;
-    mol_ranges = 0;
-
-    LJA = 0;
-    LJB = 0;
-
+    
 }
 
 EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb,
@@ -60,7 +28,8 @@ EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb
     const int& ntypes = parminfo->ntypes;
     const int& natom = parminfo->natom;
     valarray<size_t> resptr = parminfo->residue_pointers - size_t(1); //sander file pointers are 1-indexed
-    res_ranges = new valarray<size_t>(get_res_ranges(resptr,natom)); //ranges is of the type (min,max),(min,max),...
+    res_ranges.resize(2*resptr.size());
+    res_ranges = get_res_ranges(resptr,natom); //ranges is of the type (min,max),(min,max),...
 
 
     //Non-bonded stuff
@@ -69,8 +38,8 @@ EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb
     const valarray<mmpbsa_t>& CB = parminfo->lennard_jones_bcoefs;
     //const valarray<mmpbsa_t>& CHA = parminfo->hbond_acoefs;
     //const valarray<mmpbsa_t>& CHB = parminfo->hbond_bcoefs;
-    LJA = new valarray<mmpbsa_t>(ntypes * ntypes);
-    LJB = new valarray<mmpbsa_t>(ntypes * ntypes);
+    LJA.resize(ntypes * ntypes);
+    LJB.resize(ntypes * ntypes);
     //valarray<mmpbsa_t> LJHA(ntypes * ntypes);//according to grep in pyamber, unused.
     //valarray<mmpbsa_t> LJHB(ntypes, ntypes);
 
@@ -79,8 +48,8 @@ EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb
             size_t ico = nb_parm_idx[j+i*ntypes];
             bool isTenTwelvePair = parminfo->nonbonded_parm_mask[i+j*ntypes];
             if (!isTenTwelvePair) {
-                (*LJA)[j+i*ntypes] = CA[ico - 1];
-                (*LJB)[j+i*ntypes] = CB[ico - 1];
+                LJA[j+i*ntypes] = CA[ico - 1];
+                LJB[j+i*ntypes] = CB[ico - 1];
             } /*/else {
                 LJHA[j+i*ntypes] = CHA[ico - 1];
                 LJHB[j+i*ntypes] = CHB[ico - 1];
@@ -91,8 +60,8 @@ EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb
     //# Fill in the other triangle
     for (size_t i = 0; i < ntypes; i++) {
         for (size_t j = i + 1; j < ntypes; j++) {
-            (*LJA)[i+j*ntypes] = (*LJA)[j+i*ntypes];
-            (*LJB)[i+j*ntypes] = (*LJB)[j+i*ntypes];
+            LJA[i+j*ntypes] = LJA[j+i*ntypes];
+            LJB[i+j*ntypes] = LJB[j+i*ntypes];
             //LJHA[i+j*ntypes] = LJHA[j+i*ntypes];/* see above note about LJHA */
             //LJHB[i+j*ntypes] = LJHB[j+i*ntypes];
         }
@@ -100,10 +69,10 @@ EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb
 
     //# excluded atom stuff
     //const valarray<size_t>& numex = parminfo->number_excluded_atoms;
-    exclst = new vector<vector<size_t> >(natom);
+    exclst.resize(natom);
     size_t num = 0;
     for (size_t i = 0; i < natom; i++) {
-        exclst->at(i).clear();
+        exclst.at(i).clear();
         size_t currentExclCount = parminfo->number_excluded_atoms[i];
         //# This compress is because a single zero element seems to
         //# be the parmtop way of indicating an empty list
@@ -113,14 +82,14 @@ EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb
             if(parminfo->excluded_atoms_list[num+j] > 0)
             {
                 size_t curr = parminfo->excluded_atoms_list[num+j] - size_t(1);//Re: offset, see Amber8 Manual Appendix C
-                exclst->at(i).push_back(curr);
+                exclst.at(i).push_back(curr);
             }
         }
         
 
         //# shift indices to refer to list of atoms AFTER i:
-        for (size_t j = 0; j < exclst->at(i).size(); j++) {
-            exclst->at(i).at(j) -= i+1;//excluded_atoms_list is 0-indexed once read into SanderParm
+        for (size_t j = 0; j < exclst.at(i).size(); j++) {
+            exclst.at(i).at(j) -= i+1;//excluded_atoms_list is 0-indexed once read into SanderParm
         }
         num += currentExclCount;
     }
@@ -174,7 +143,6 @@ EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb
     phi_h_l = slice(3, bondcodes->size() / columnWidth, columnWidth);
     phi_h_m = slice(4, bondcodes->size() / columnWidth, columnWidth);
 
-    mol_ranges = 0;
     if (parminfo->ifbox) //# We have solvent pointer info
     {
         valarray<size_t> molptrs = cumsum(parminfo->atoms_per_molecule);
@@ -187,12 +155,13 @@ EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb
             throw MMPBSAException(error,DATA_FORMAT_ERROR);
         }
 
-        mol_ranges = new valarray<size_t>(get_mol_ranges(molptrs)); //getranges should be of the type (min,max),(min,max),...
-        if (mol_ranges->size()/2 != parminfo->nspm)
+        mol_ranges.resize(2*molptrs.size());
+        mol_ranges = get_mol_ranges(molptrs); //getranges should be of the type (min,max),(min,max),...
+        if (mol_ranges.size()/2 != parminfo->nspm)
             throw "The number of ranges must match the total number of molecules";
 
-        end_solute_atoms = (*res_ranges)[1+2*(parminfo->iptres - 1)];
-        begin_solvent_atoms = (*mol_ranges)[2*(parminfo->nspsol - 1)];
+        end_solute_atoms = res_ranges[1+2*(parminfo->iptres - 1)];
+        begin_solvent_atoms = mol_ranges[2*(parminfo->nspsol - 1)];
         //# TODO Make sure stripEnerFun fixes the above begin and end ptrs!
     }
     else//# Darn, no ATOMS_PER_MOLECULE INFO!  Walk the bond list
@@ -211,12 +180,12 @@ EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb
             bw.walk(first_unmarked,valarray<int>(0),markers,visitor);
         }
         beg_ptrs.push_back(parminfo->natom);
-        mol_ranges = new valarray<size_t>(2*beg_ptrs.size()-2);
+        mol_ranges.resize(size_t(2*beg_ptrs.size()-2));
         size_t mol_ranges_index = 0;
         for(vector<size_t>::iterator it = beg_ptrs.begin();it != beg_ptrs.end()-1;it++)
         {
-            (*mol_ranges)[mol_ranges_index++] = *it;
-            (*mol_ranges)[mol_ranges_index++] = *(it+1);
+            mol_ranges[mol_ranges_index++] = *it;
+            mol_ranges[mol_ranges_index++] = *(it+1);
         }
     }
 
@@ -259,31 +228,26 @@ EmpEnerFun::EmpEnerFun(const EmpEnerFun& orig)
     phi_h_l = orig.phi_h_l;
     phi_h_m = orig.phi_h_m;
 
-    exclst = new vector<vector<size_t> >(*orig.exclst);
+    exclst.resize(orig.exclst.size());
+    exclst = orig.exclst;
 
-    res_ranges = new valarray<size_t>(*orig.res_ranges);
-    mol_ranges = new valarray<size_t>(*orig.mol_ranges);
+    res_ranges.resize(orig.res_ranges.size());
+    res_ranges = orig.res_ranges;
 
-    LJA = new valarray<mmpbsa_t>(*orig.LJA);
-    LJB = new valarray<mmpbsa_t>(*orig.LJB);
+    mol_ranges.resize(orig.mol_ranges.size());
+    mol_ranges = orig.mol_ranges;
+
+    LJA.resize(orig.LJA.size());
+    LJA = orig.LJA;
+    LJB.resize(orig.LJB.size());
+    LJB = orig.LJB;
    
 }
 
 //do not delete parminfo. It is externally made and should be deleted outside of EmpEnerInfo
 EmpEnerFun::~EmpEnerFun()
 {
-    freeMemory();
-}
-
-void EmpEnerFun::freeMemory()
-{
-    delete exclst;
-
-    delete res_ranges;
-    delete mol_ranges;
-
-    delete LJA;
-    delete LJB;
+    
 }
 
 EmpEnerFun& EmpEnerFun::operator=(const EmpEnerFun& orig)
@@ -326,14 +290,19 @@ EmpEnerFun& EmpEnerFun::operator=(const EmpEnerFun& orig)
     phi_h_l = orig.phi_h_l;
     phi_h_m = orig.phi_h_m;
 
-    freeMemory();
-    exclst = new vector<vector<size_t> >(*orig.exclst);
+    exclst.resize(orig.exclst.size());
+    exclst = orig.exclst;
 
-    res_ranges = new valarray<size_t>(*orig.res_ranges);
-    mol_ranges = new valarray<size_t>(*orig.mol_ranges);
+    res_ranges.resize(orig.res_ranges.size());
+    res_ranges = orig.res_ranges;
 
-    LJA = new valarray<mmpbsa_t>(*orig.LJA);
-    LJB = new valarray<mmpbsa_t>(*orig.LJB);
+    mol_ranges.resize(orig.mol_ranges.size());
+    mol_ranges = orig.mol_ranges;
+
+    LJA.resize(orig.LJA.size());
+    LJA = orig.LJA;
+    LJB.resize(orig.LJB.size());
+    LJB = orig.LJB;
 
     return *this;
 }
@@ -456,10 +425,10 @@ EmpEnerFun EmpEnerFun::stripEnerFun(const std::valarray<bool>& keepers,
     size_t apos = 0;
     vector<size_t> new_res_ranges;
     size_t residue_lable_index = 0;
-    for(size_t i = 0;i<res_ranges->size();i+=2)
+    for(size_t i = 0;i<res_ranges.size();i+=2)
     {
-        size_t rbegin = (*res_ranges)[i];
-        size_t rend = (*res_ranges)[i+1];
+        size_t rbegin = res_ranges[i];
+        size_t rend = res_ranges[i+1];
         size_t rnats = 0;
         for(size_t j = rbegin;j<rend;j++)
             if(keepers[j])
@@ -476,24 +445,24 @@ EmpEnerFun EmpEnerFun::stripEnerFun(const std::valarray<bool>& keepers,
     }
 
     size_t rangeLength = size_t(new_res_ranges.size()*2/3);
-    returnMe.res_ranges = new valarray<size_t>(rangeLength);
+    returnMe.res_ranges.resize(rangeLength);
     sp->residue_labels.resize(size_t(new_res_ranges.size()/3));
     residue_lable_index = 0;
     size_t residue_range_index = 0;
     for(size_t i = 0;i<new_res_ranges.size();i+=3)
     {
-        (*returnMe.res_ranges)[residue_range_index++] = new_res_ranges[i];
-        (*returnMe.res_ranges)[residue_range_index++] = new_res_ranges[i+1];
+        returnMe.res_ranges[residue_range_index++] = new_res_ranges[i];
+        returnMe.res_ranges[residue_range_index++] = new_res_ranges[i+1];
         sp->residue_labels[residue_lable_index++] = parminfo->residue_labels[new_res_ranges[i+2]];
     }
     
     //update mol ranges
     size_t molpos = 0;
     vector<size_t> new_mol_ranges;
-    for(size_t i = 0;i<mol_ranges->size();i+=2)
+    for(size_t i = 0;i<mol_ranges.size();i+=2)
     {
-        size_t molbegin = (*mol_ranges)[i];
-        size_t molend = (*mol_ranges)[i+1];
+        size_t molbegin = mol_ranges[i];
+        size_t molend = mol_ranges[i+1];
         size_t molnats = 0;
         for(size_t j = molbegin;j<molend;j++)
             if(keepers[j])
@@ -506,9 +475,9 @@ EmpEnerFun EmpEnerFun::stripEnerFun(const std::valarray<bool>& keepers,
             new_mol_ranges.push_back(molpos);
         }
     }
-    returnMe.mol_ranges = new valarray<size_t>(new_mol_ranges.size());
+    returnMe.mol_ranges.resize(new_mol_ranges.size());
     for(size_t i = 0;i<new_mol_ranges.size();i++)
-        (*returnMe.mol_ranges)[i] = new_mol_ranges[i];
+        returnMe.mol_ranges[i] = new_mol_ranges[i];
 
 
     //check to see if there are solvent pointers to be kept. If so, clean them.
@@ -528,16 +497,15 @@ EmpEnerFun EmpEnerFun::stripEnerFun(const std::valarray<bool>& keepers,
 
     //rebuild excluded atoms list
     //sp->excluded_atoms_list.resize();
-    returnMe.exclst = new vector<vector<size_t> >;
     for(size_t i = 0;i<parminfo->natom;i++)
         if(keepers[i])
         {
-            valarray<size_t> oldirow(exclst->at(i).size());
+            valarray<size_t> oldirow(exclst.at(i).size());
             valarray<bool> keepo(oldirow.size());
             bool haveDangler = false;
             for(size_t j = 0;j<oldirow.size();j++)
             {
-                oldirow[j] = exclst->at(i).at(j) + i + 1;
+                oldirow[j] = exclst.at(i).at(j) + i + 1;
                 keepo[j] = keepers[oldirow[j]];
                 haveDangler |= !(keepo[j]);
             }
@@ -546,10 +514,10 @@ EmpEnerFun EmpEnerFun::stripEnerFun(const std::valarray<bool>& keepers,
                 std::cerr << "some danglers in excl list of old atom whose id = " << i << std::endl;
             
             vector<size_t> irow = mmpbsa_utils::take(newidx,oldirow,keepo);
-            size_t shiftNewValues = returnMe.exclst->size()+1;
+            size_t shiftNewValues = returnMe.exclst.size()+1;
             for(size_t j = 0;j<irow.size();j++)
                 irow[j] -= shiftNewValues;
-            returnMe.exclst->push_back(irow);
+            returnMe.exclst.push_back(irow);
         }
 
         
@@ -624,8 +592,10 @@ EmpEnerFun EmpEnerFun::stripEnerFun(const std::valarray<bool>& keepers,
         parminfo->dihedrals_inc_hydrogen, bond_slices,
             keepers, false);
 
-    returnMe.LJA = new valarray<mmpbsa_t>(*LJA);
-    returnMe.LJB = new valarray<mmpbsa_t>(*LJB);
+    returnMe.LJA.resize(LJA.size());
+    returnMe.LJA = LJA;
+    returnMe.LJB.resize(LJB.size());
+    returnMe.LJB = LJB;
 
     returnMe.parminfo = sp;//thus, don't delete sp.
 
@@ -848,8 +818,8 @@ mmpbsa_t EmpEnerFun::vdw14_energy_calc(const std::valarray<mmpbsa_t>& crds,
             type_i = parminfo->atom_type_indices[d_i] - 1;//There is an offset. See Amber 8 manual appendix C
             type_l = parminfo->atom_type_indices[d_l] - 1;
             flindex = type_i*ntypes + type_l; 
-            a = (*LJA)[flindex];
-            b = (*LJB)[flindex];
+            a = LJA[flindex];
+            b = LJB[flindex];
             inv_r6 = 1/pow(rsqrd, 3);
             inv_r12 = inv_r6*inv_r6;
             totalEnergy += a*inv_r12 - b*inv_r6;
@@ -923,10 +893,10 @@ mmpbsa_t EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>& crds)co
         atomEnergy = 0;
         for(size_t j = i+1;j<natom;j++)//sum over all other atoms after the i-th atom
         {
-            if(!mmpbsa_utils::contains(exclst->at(i),j-i-1))
+            if(!mmpbsa_utils::contains(exclst.at(i),j-i-1))
             {
                 type_2 = parminfo->atom_type_indices[j]-1;
-                a = (*LJA)[type*ntypes+type_2];b = (*LJB)[type*ntypes+type_2];
+                a = LJA[type*ntypes+type_2];b = LJB[type*ntypes+type_2];
                 rsqrd = pow(x-crds[3*j],2) + pow(y-crds[3*j+1],2) + pow(z-crds[3*j+2],2);
                 atomEnergy += a/pow(rsqrd,6) - b/pow(rsqrd,3);
             }
@@ -955,7 +925,7 @@ mmpbsa_t EmpEnerFun::total_elstat_energy(const std::valarray<mmpbsa_t>& crds)con
 
         for(size_t j = i+1;j<natom;j++)//sum over all other atoms after the i-th atom
         {
-            if(!mmpbsa_utils::contains(exclst->at(i),j-i-1))
+            if(!mmpbsa_utils::contains(exclst.at(i),j-i-1))
             {
                 q_j = parminfo->charges[j];
                 r = sqrt( pow(x-crds[3*j],2) + pow(y-crds[3*j+1],2) + pow(z-crds[3*j+2],2) );
