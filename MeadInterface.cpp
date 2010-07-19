@@ -15,6 +15,10 @@ MeadInterface::MeadInterface() {
 }
 
 MeadInterface::MeadInterface(const MeadInterface& orig) {
+    brad = orig.brad;
+    istrength = orig.istrength;
+    surf_offset = orig.surf_offset;
+    surf_tension = orig.surf_tension;
 }
 
 MeadInterface::~MeadInterface() {

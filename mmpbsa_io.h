@@ -45,11 +45,19 @@ public:
     ~SanderParm(){}
 
     /**
-     * Reads the AMBER Topology Parameter files (prmtop) and
+     * Reads the AMBER Topology Parameter files (prmtop)
+     *
      * @param file
      * @return
      */
     void raw_read_amber_parm(std::string file);
+
+    /**
+     * Reads the AMBER Topology Parameter files (prmtop)
+     * 
+     * @param prmtopFile
+     */
+    void raw_read_amber_parm(std::fstream& prmtopFile);
 
     /**
      * Determines if the data loaded by loadSolventPointers makes sense.

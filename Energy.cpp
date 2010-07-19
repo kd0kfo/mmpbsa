@@ -203,13 +203,21 @@ EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb
         while(markers.min() == 0)
         {
             size_t first_unmarked = find_first(markers,0);
-            throw "add assert";
+            for(size_t i = first_unmarked;i<markers.size();i++)
+                if(markers[i])
+                    throw MMPBSAException("Atoms of a particular molecule must be stored "
+                            "together",DATA_FORMAT_ERROR);
             beg_ptrs.push_back(first_unmarked);
-            bw.walk(first_unmarked,valarray<int>(),markers,visitor);
+            bw.walk(first_unmarked,valarray<int>(0),markers,visitor);
         }
-        valarray<size_t> mol_max = mmpbsa_utils::cshift(beg_ptrs,1);
-        mol_max[mol_max.size()-1] = natom;
-        mol_ranges = new valarray<size_t>(zip(beg_ptrs,mol_max));
+        beg_ptrs.push_back(parminfo->natom);
+        mol_ranges = new valarray<size_t>(2*beg_ptrs.size()-2);
+        size_t mol_ranges_index = 0;
+        for(vector<size_t>::iterator it = beg_ptrs.begin();it != beg_ptrs.end()-1;it++)
+        {
+            (*mol_ranges)[mol_ranges_index++] = *it;
+            (*mol_ranges)[mol_ranges_index++] = *(it+1);
+        }
     }
 
 }/*end of constructor*/
@@ -1272,14 +1280,26 @@ void BondWalker::init()
     //multiply by 2 because this contains pairs of atoms in each bond.
     //This array will have the form (bond, bond, ...) or ((i,j), (i,j), ...)
     valarray<size_t> bondPairs(2*numBondPairs);
-    bondPairs[slice(0,numBondPairs,1)] = mmpbsa_utils::zip<size_t>(parminfo->bonds_inc_hydrogen,enerfun->bond_i,
-            parminfo->bonds_inc_hydrogen,enerfun->bond_j);
-    bondPairs[slice(numBondPairs,2*numBondPairs,1)] = mmpbsa_utils::zip(parminfo->bonds_without_hydrogen,enerfun->bond_h_i,
-            parminfo->bonds_without_hydrogen,enerfun->bond_h_j);
-
+    size_t withHydrogenOffset = size_t( parminfo->bonds_inc_hydrogen.size()/3);//first indicates the number bonds.
+    for(size_t i = 0;i<withHydrogenOffset;i++)
+    {
+        bondPairs[2*i] = parminfo->bonds_inc_hydrogen[3*i];
+        bondPairs[2*i+1] = parminfo->bonds_inc_hydrogen[3*i+1];
+    }
+    withHydrogenOffset *= 2;//now it indicates how far to skip to the without hydrogen section.
+    for(size_t i = 0;i<size_t( parminfo->bonds_without_hydrogen.size()/3);i++)
+    {
+        bondPairs[2*i+withHydrogenOffset] = parminfo->bonds_without_hydrogen[3*i];
+        bondPairs[2*i+1+withHydrogenOffset] = parminfo->bonds_without_hydrogen[3*i+1];
+    }
     if(bondPairs.max() > parminfo->natom)
-        throw MMPBSAException("An atom index in the bonds pairs exceed the "
-                "maximum value.",DATA_FORMAT_ERROR);
+    {
+        char error[256];
+        sprintf(error,"An atom index of %d in the bonds pairs exceed the "
+                "maximum value of %d.",bondPairs.max(),parminfo->natom);
+        fprintf(stderr,"Max inc: %d, max without: %d\n",parminfo->bonds_inc_hydrogen.max(),parminfo->bonds_without_hydrogen.max());
+        throw MMPBSAException(error,DATA_FORMAT_ERROR);
+    }
 
     size_t atom_i,atom_j;
     for(size_t i = 0;i<numBondPairs;i++)
@@ -1304,8 +1324,8 @@ std::vector<size_t> BondWalker::walk(const size_t& startAtom,
     else
         init();
 
-    if(stoppers.size() > 0)
-        stoppers = 1;
+    for(size_t i = 0;i<stoppers.size();i++)
+        visited[stoppers[i]] = 1;
 
     std::vector<size_t> returnMe;
     recwalk(returnMe,startAtom,enerfunMarkers,func);
@@ -1317,7 +1337,8 @@ void BondWalker::recwalk(std::vector<size_t>& list, const size_t& atom,
         std::valarray<int>& enerfunMarkers,
         void func(std::valarray<int>& markers, const size_t& funcAtom))
 {
-    visited[atom] = true;
+    func(enerfunMarkers,atom);
+    visited[atom] = 1;
     for(size_t i = 0;i<atom_bond_list[atom].size();i++)
     {
         size_t bondedAtom = atom_bond_list[atom][i];

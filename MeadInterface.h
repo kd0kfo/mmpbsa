@@ -56,8 +56,14 @@ public:
         const mmpbsa_t& interactionStrength = 0.0, const mmpbsa_t& exclusionRadius = 2.0) throw (MMPBSAException);
 
     mmpbsa_t bondi_lookup(const std::string& atomName)const;
+
+    mmpbsa_t istrength;
+    mmpbsa_t surf_tension;// kcal/mol/Ang^2
+    mmpbsa_t surf_offset;// kcal/mol
+
 private:
     std::map<std::string,mmpbsa_t> brad;
+
     
 };
 

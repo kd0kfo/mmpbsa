@@ -16,7 +16,8 @@ enum MMPBSAErrorTypes {UNKNOWN_ERROR, /*<Avoid, as this is vague.*/
     INVALID_PRMTOP_DATA,/*<Data which was loaded into an array is incorrect based on what is expected.*/
     DATA_FORMAT_ERROR,/*<Use this error, when data *within* the program no long matches what it should due to formatting problems.*/
     INVALID_ARRAY_SIZE,
-    UNEXPECTED_EOF
+    UNEXPECTED_EOF,
+    COMMAND_LINE_ERROR/*<Program supplied an invalide argument in the command line.*/
 };/*<A supplied array has an incorrect size.*/
 
 class MMPBSAException : public std::runtime_error

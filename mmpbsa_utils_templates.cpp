@@ -129,12 +129,13 @@ template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<T>& le
     if(oldsize != rightSlice.size())
         throw MMPBSAException("Cannot zip two slices of difference sizes.",DATA_FORMAT_ERROR);
 
+    using std::slice;
+
     std::valarray<T> returnMe(2*oldsize);
-    size_t returnMeIndex = 0;
     for(size_t i = 0;i<oldsize;i++)
     {
-        returnMe[returnMeIndex++] = left[leftSlice.start()+i*leftSlice.stride()];
-        returnMe[returnMeIndex++] = right[rightSlice.start()+i*rightSlice.stride()];
+        returnMe[2*i] = left[leftSlice.start()+i*leftSlice.stride()];
+        returnMe[2*i+1] = right[rightSlice.start()+i*rightSlice.stride()];
     }
     return returnMe;
 

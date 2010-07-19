@@ -207,6 +207,26 @@ public:
     std::string ereport(const std::valarray<mmpbsa_t>& crds);
 
 
+    /**
+     * Returns a valarray containing the residue ranges. The array is of the form:
+     * [(min,max),(min,max),(min,max),...]
+     *
+     * @param resptr List of pointers to residues.
+     * @return list of ranges for residue pointers.
+     */
+    static std::valarray<size_t> get_res_ranges(const std::valarray<size_t>& resptr,
+            const size_t& natoms);
+
+    /**
+     * Returns a valarray containing the molecule ranges. The array is of the form:
+     * [(min,max),(min,max),(min,max),...]
+     *
+     * @param molptrs
+     * @return
+     */
+    static std::valarray<size_t> get_mol_ranges(const std::valarray<size_t>& molptrs);
+
+
     //operators
     EmpEnerFun& operator=(const EmpEnerFun& orig);
     
@@ -256,25 +276,6 @@ public:
     
     
 private:
-    /**
-     * Returns a valarray containing the residue ranges. The array is of the form:
-     * [(min,max),(min,max),(min,max),...]
-     * 
-     * @param resptr List of pointers to residues.
-     * @return list of ranges for residue pointers.
-     */
-    static std::valarray<size_t> get_res_ranges(const std::valarray<size_t>& resptr,
-            const size_t& natoms);
-
-    /**
-     * Returns a valarray containing the molecule ranges. The array is of the form:
-     * [(min,max),(min,max),(min,max),...]
-     *
-     * @param molptrs
-     * @return
-     */
-    static std::valarray<size_t> get_mol_ranges(const std::valarray<size_t>& molptrs);
-
     /**
      * Function used in bond walking that increments markers.
      *

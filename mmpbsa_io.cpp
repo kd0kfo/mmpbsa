@@ -345,26 +345,34 @@ void mmpbsa_io::SanderParm::initializeArrays()
     irotats;
     radius_sets;
     radii;
-    screen;/**/
+    screen;
     atoms_per_molecule;
     box_dimensions;
     }
 
 void mmpbsa_io::SanderParm::raw_read_amber_parm(std::string file)
 {
-
     using std::fstream;
     using std::string;
     using namespace mmpbsa_utils;
 
     fstream prmtopFile(file.c_str(),fstream::in);
 
+    raw_read_amber_parm(prmtopFile);
+}
+
+void mmpbsa_io::SanderParm::raw_read_amber_parm(std::fstream& prmtopFile)
+{
+    using std::fstream;
+    using std::string;
+    using namespace mmpbsa_utils;
+    
     if(!prmtopFile.is_open())
-        throw SanderIOException(strcat("Could not open: ",file.c_str()));
+        throw SanderIOException("Could not open parmtop file.",BROKEN_PRMTOP_FILE);
 
     string currentLine = getNextLine(prmtopFile);
     if(!strcmp(currentLine.substr(0,9).c_str(),"%VERSION"))
-        throw SanderIOException(file.append(" is malformed. %VERSION is missing.").c_str());
+        throw SanderIOException("Parmtop file is malformed. %VERSION is missing.",BROKEN_PRMTOP_FILE);
 
     string flag;
     string format;
@@ -380,10 +388,10 @@ void mmpbsa_io::SanderParm::raw_read_amber_parm(std::string file)
             if(prmtopFile.eof())//there was whitespace before EOF
                 return;
 
-            char* flagLocation;
-            sprintf(flagLocation,"%i",flagCounter);
-            throw SanderIOException(file.append(" is malformed. %FLAG is "
-                    "missing. Flag #").append(flagLocation).c_str(),BROKEN_PRMTOP_FILE);
+            char flagLocation[256];
+            sprintf(flagLocation,"Parmtop file is malformed. %FLAG is "
+                    "missing. Flag #%i",flagCounter);
+            throw SanderIOException(flagLocation,BROKEN_PRMTOP_FILE);
         }
         else
         {
@@ -394,10 +402,10 @@ void mmpbsa_io::SanderParm::raw_read_amber_parm(std::string file)
         currentLine = getNextLine(prmtopFile);//should be FORMAT
         if(currentLine.substr(0,7) != "%FORMAT")
         {
-            char* flagLocation;
-            sprintf(flagLocation,"%i",flagCounter);
-            throw SanderIOException(file.append(" is malformed. %FORMAT is "
-                    "missing.").append(flagLocation).c_str());
+            char flagLocation[256];
+            sprintf(flagLocation,"Parmtop file is malformed. %FORMAT is "
+                    "missing. Format #%i",flagCounter);
+            throw SanderIOException(flagLocation,BROKEN_PRMTOP_FILE);
         }
         else
         {
@@ -417,7 +425,17 @@ bool mmpbsa_io::SanderParm::sanityCheck() throw (SanderIOException)
 
     bool thereIsAProblem = false;
 
-    char* error;
+    char error[1024];
+
+    if(natom == 0)
+    {
+        fprintf(stderr,"WARNING: SanderParm had natom = 0, i.e. trivial "
+                "SanderParm. Check to see if this was intentional, as the "
+                "program is continuing, albeit with the SanderParm object failing"
+                "the sanity check.\n");
+        return false;
+    }
+
     if(!rangeCheck(atom_type_indices,size_t(1),ntypes))
     {
         sprintf(error,"Incorrect number of atom types. There should be %d types but "
@@ -778,6 +796,9 @@ void mmpbsa_io::SanderParm::loadSolventPointers(std::fstream& prmtopFile,const s
 template <class T> bool mmpbsa_io::SanderParm::rangeCheck(const std::valarray<T>& array,
     const T& min, const T& max)
 {
+    if(array.size() == 0)
+        return false;
+    
     if(array.max() > max)
         return false;
 
@@ -1016,6 +1037,14 @@ template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
 {
     using std::string;
 
+    //If the length is zero, there is no data, which will correspond to a blank
+    //line in the parmtop file. Pop that line and return (true);
+    if(arrayLength == 0)
+    {
+        getNextLine(dataFile);
+        return true;
+    }
+
     if(dataFile.eof())
         return false;
 
@@ -1066,6 +1095,14 @@ template <> bool mmpbsa_io::loadValarray<std::string>(std::fstream& dataFile,
 
     if(dataFile.eof())
         return false;
+
+    //If the length is zero, there is no data, which will correspond to a blank
+    //line in the parmtop file. Pop that line and return (true);
+    if(arrayLength == 0)
+    {
+        getNextLine(dataFile);
+        return true;
+    }
 
     if(dataArray.size() != arrayLength)
         dataArray.resize(arrayLength,"");
