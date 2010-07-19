@@ -50,11 +50,6 @@ int main(int argc, char** argv)
     }    
     catch (MMPBSAException e)
     {
-      if(e.getErrType() == UNEXPECTED_EOF)
-	{
-	  std::cerr << "EOF Reached" << std::endl;
-	  return 0;
-	}
         std::cerr << e.identifier() << ": " << e.what() << std::endl;
         return e.getErrType();
     }
@@ -137,12 +132,20 @@ int realDeal(int argc, char** argv)
     valarray<mmpbsa_t> ligandSnap(ligandSize*3);
     while(!trajFile.eof())
     {
-        
-        if(get_next_snap(trajFile, snapshot, sp->natom,true))
-            printf("Snapshot #%d has been loaded.\n",++snapcounter);
-        else
-            throw MMPBSAException("Error in loading snapshot",BROKEN_TRAJECTORY_FILE);
-
+        try{
+            if(get_next_snap(trajFile, snapshot, sp->natom,true))
+                printf("Snapshot #%d has been loaded.\n",++snapcounter);
+            else
+                throw MMPBSAException("Error in loading snapshot",BROKEN_TRAJECTORY_FILE);
+        }
+        catch(MMPBSAException e)
+        {
+            if(e.getErrType() == UNEXPECTED_EOF)
+            {
+              std::cerr << "End of Snapshots Reached" << std::endl;
+              return 0;
+            }
+        }
         //process snapshot.
         size_t complexCoordIndex = 0;
         size_t receptorCoordIndex = 0;
