@@ -30,6 +30,9 @@ class SanderParm {
 public:
     /**
      * Default Constructor.
+     * SanderParm stores all of the parameter data from the Sander Parmtop file.
+     * This object may be passed along within the mmpbsa program to centralize
+     * the storage of data, preventing redundancy.
      *
      */
     SanderParm();

@@ -531,7 +531,7 @@ bool mmpbsa_io::SanderParm::sanityCheck() throw (SanderIOException)
     }
 
 
-    //Check solvant parameters
+    //Check solvent parameters
     if(ifbox > 0)
     {
         if(iptres == 0 || nspm ==0 || nspsol == 0)
@@ -909,7 +909,6 @@ template <class T> void mmpbsa_io::SanderParm::loadPrmtopMaskedData(std::fstream
     if(maskArray.size() != size)
         maskArray.resize(size);
     maskArray = tmpArray < 0;//the mask indicates whether or not the value is negative, which is a flag used in BondWalker.walk(...)
-    std::cerr << maskArray.max() << ", " << maskArray.min() << std::endl;
     tmpArray = abs(tmpArray);
     if(array.size() != size)
         array.resize(size);

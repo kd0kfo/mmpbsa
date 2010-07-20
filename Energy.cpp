@@ -766,6 +766,7 @@ mmpbsa_t EmpEnerFun::dihedral_energy_calc(const std::valarray<mmpbsa_t>& crds,
         phase = parminfo->dihedral_phases[d_id];
         totalEnergy += dihedral_constant * (1+cos(nphi)*cos(phase)+sin(nphi)*sin(phase));
 
+        delete [] s;
         delete [] d;
         delete [] g;
     }

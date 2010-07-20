@@ -12,6 +12,9 @@ MeadInterface::MeadInterface() {
     brad["Na+"] = 1.200;
     brad["Cl-"] = 1.700;
     brad["MG"] = 1.180;
+    istrength = 0;
+    surf_tension =  0.00542;// kcal/mol/Ang^2
+    surf_offset = 0.92;// kcal/mol
 }
 
 MeadInterface::MeadInterface(const MeadInterface& orig) {
@@ -98,12 +101,13 @@ FinDiffMethod MeadInterface::createFDM(const std::valarray<mmpbsa_t>& complexCrd
 
     fdm.add_level(fine_grid_dim,fine_grid_spacing,ON_CENT_OF_INTR);
     fdm.resolve(Coord(geoCenter[0],geoCenter[1],geoCenter[2]),intCenter);
-    for(size_t blah = 0;blah<3;blah++)
+
+    delete [] int_minmax;
     return fdm;
 }
 
 EMap MeadInterface::full_EMap(const EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
-        const FinDiffMethod& fdm, const std::map<std::string,mmpbsa_t>* radii,
+        const FinDiffMethod& fdm, const std::map<std::string,mmpbsa_t>& radii,
         const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
         const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (MMPBSAException)
 {
@@ -117,7 +121,7 @@ EMap MeadInterface::full_EMap(const EmpEnerFun& efun, const std::valarray<mmpbsa
 }
 
 mmpbsa_t* MeadInterface::pbsa_solvation(const EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
-        const FinDiffMethod& fdm, const std::map<std::string,mmpbsa_t>* radii,
+        const FinDiffMethod& fdm, const std::map<std::string,mmpbsa_t>& radii,
         const std::map<std::string,std::string>& residueMap,
         const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius) throw (MMPBSAException)
 {
@@ -135,14 +139,11 @@ mmpbsa_t* MeadInterface::pbsa_solvation(const EmpEnerFun& efun, const std::valar
     {
         Atom currAtom;
         currAtom.atname = parminfo->atom_names[i];
-        currAtom.resname = "DRC";//FIX ME???
+        currAtom.resname = "FOO";//FIX ME???
         currAtom.resnum = i+1;//FIX ME???
         currAtom.coord = Coord(crds[3*i],crds[3*i+1],crds[3*i+2]);
         currAtom.charge = parminfo->charges[i];
-        if(radii)
-            currAtom.rad = mmpbsa_utils::lookup_radius(currAtom.atname,(*radii));
-        else
-            currAtom.rad = MI.bondi_lookup(currAtom.atname);
+        currAtom.rad = mmpbsa_utils::lookup_radius(currAtom.atname,radii);
 
         if(currAtom.rad < 0.1 || currAtom.rad > 3.0)
             fprintf(stderr,"WARNING: strange radius, %f, for atom %s (index = %d)", currAtom.rad, currAtom.atname.c_str(),i);
@@ -174,9 +175,8 @@ mmpbsa_t* MeadInterface::pbsa_solvation(const EmpEnerFun& efun, const std::valar
         xs[i] = crds[3*i];
         ys[i] = crds[3*i+1];
         zs[i] = crds[3*i+2];
-        rads[i] = MI.bondi_lookup(efun.parminfo->atom_names[i]) + 1.4;
+        rads[i] = mmpbsa_utils::lookup_radius(efun.parminfo->atom_names[i],MI.brad) + 1.4;//SA radii are not necessarily the same as PB radii
     }
-
     
     //Surface Area
     returnMe[area] = molsurf(xs,ys,zs,rads,numCoords,0);//replace with molsurf stuff
@@ -184,20 +184,5 @@ mmpbsa_t* MeadInterface::pbsa_solvation(const EmpEnerFun& efun, const std::valar
     return returnMe;
 }
 
-mmpbsa_t MeadInterface::bondi_lookup(const std::string& atomName) const
-{
-    //map used for clarity in reading the code.
-    
-
-    if(brad.find(mmpbsa_utils::trimString(atomName)) != brad.end())
-        return brad.find(mmpbsa_utils::trimString(atomName))->second;
-    if(brad.find(atomName.substr(0,1)) != brad.end())
-        return brad.find(atomName.substr(0,1))->second;
-
-    fprintf(stderr,"WARNING: Could not find a bondi radius for \"%s\". "
-            "Using zero instead.",atomName.c_str());
-
-    return 0;
-}
 
 
