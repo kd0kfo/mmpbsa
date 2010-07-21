@@ -3,6 +3,7 @@ comp_options = -Wno-deprecated -static -g -D__DEBUG__
 SUFFIX =
 MEAD_DIR = /usr/local/lib
 MYLIBS = ${MEAD_DIR}/libmead.a ./molsurf/molsurf.a
+MYINCLUDES = -I ${MEAD_DIR}/include/
 
 all: build
 	
@@ -18,11 +19,10 @@ test: build
 	./mmpbsa
 
 .cpp.o:
-	${comp} ${comp_options} -c $< -o $@
+	${comp} ${comp_options} -c $< -o $@ ${MYINCLUDES}
 
 mmpbsa.a: Energy.o EnergyInfo.o MeadInterface.o mmpbsa_exceptions.o mmpbsa_utils_templates.o mmpbsa_utils.o mmpbsa_io.o StringTokenizer.o
 	ar rcs $@ $^
 
 build: mmpbsa.a ${MY_LIBS}
-	${comp} ${comp_options} mmpbsa.cpp mmpbsa.a ${MYLIBS} -o mmpbsa${SUFFIX}
-
+	${comp} ${comp_options} mmpbsa.cpp mmpbsa.a ${MYLIBS} -o mmpbsa${SUFFIX} ${MYINCLUDES}

@@ -97,11 +97,23 @@ int realDeal(int argc, char** argv)
     valarray<mmpbsa_t> receptorSnap(receptorSize*3);
     valarray<mmpbsa_t> ligandSnap(ligandSize*3);
 
+    bool isPeriodic = sp->ifbox > 0;
     while(!trajFile.eof())
     {
         try{
-            if(get_next_snap(trajFile, snapshot, sp->natom,true))
-                printf("Snapshot #%d has been loaded.\n",++snapcounter);
+            //if a list of snaps to be run is provided, check to see if this snapshot
+            //should be used. Remember: snapcounter is 1-indexed.
+            snapcounter++;
+            if(::snapList.size())
+                if(!mmpbsa_utils::contains(snapList,snapcounter))
+                {
+                    mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
+                    printf("Skipping Snapshot #%d\n",snapcounter);
+                    continue;
+                }
+        
+            if(get_next_snap(trajFile, snapshot, sp->natom,isPeriodic))
+                printf("Running Snapshot #%d\n",snapcounter);
             else
             {
                 char error[256];
@@ -118,15 +130,7 @@ int realDeal(int argc, char** argv)
             }
         }
 
-        //if a list of snaps to be run is provided, check to see if this snapshot
-        //should be used. Remember: snapcounter is 1-indexed.
-        if(::snapList.size())
-            if(!mmpbsa_utils::contains(snapList,snapcounter))
-            {
-                printf("Skipping Snapshot #%d",snapcounter);
-                continue;
-            }
-
+        
         //process snapshot.
         size_t complexCoordIndex = 0;
         size_t receptorCoordIndex = 0;
@@ -147,14 +151,17 @@ int realDeal(int argc, char** argv)
         if(radii.size())//if the radius map is empty, use MeadInterface's lookup table.
             pradii = &radii;
 
+        //output-ing is broken up by section, in case the program needs to be
+        //monitored or paused.
         EMap complexEMap = MeadInterface::full_EMap(complexEFun,complexSnap,fdm,
                 *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
+        ::outputFile << "COMPLEX" << endl << complexEMap << endl;
         EMap receptorEMap = MeadInterface::full_EMap(receptorEFun,receptorSnap,fdm,
                 *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
+        ::outputFile << "RECEPTOR" << endl << receptorEMap << endl;
         EMap ligandEMap = MeadInterface::full_EMap(ligandEFun,ligandSnap,fdm,
                 *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
-
-        printSnapshot(complexEMap,receptorEMap,ligandEMap,::outputFile);
+        ::outputFile << "LIGAND" << endl << ligandEMap << endl << endl;
     }
 
 
@@ -168,16 +175,6 @@ int realDeal(int argc, char** argv)
     return 0;
 }
 
-void printSnapshot(const EMap& complexEMap, const EMap& receptorEMap, const EMap& ligandEMap, std::fstream& outFile)
-{
-    outFile << "COMPLEX" << std::endl;
-    outFile << complexEMap  << std::endl;
-    outFile << "RECEPTOR" << std::endl;
-    outFile << receptorEMap  << std::endl;
-    outFile << "LIGAND" << std::endl;
-    outFile << ligandEMap  << std::endl << std::endl;
-}
-
 void parseArgs(int argc, char** argv, MeadInterface& mi)
 {
     using std::string;
@@ -186,7 +183,7 @@ void parseArgs(int argc, char** argv, MeadInterface& mi)
         string currArg = argv[i];
         
         if(currArg.substr(0,2) == "--")
-            currArg.erase(currArg.begin(),currArg.begin()+1);
+            currArg.erase(currArg.begin(),currArg.begin()+2);
 
         if(currArg.find("=") != string::npos)
             parseParameter(currArg,mi);

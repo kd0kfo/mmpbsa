@@ -1022,12 +1022,37 @@ bool mmpbsa_io::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& s
 
 void mmpbsa_io::skip_next_snap(std::fstream& trajFile, const size_t& natoms, bool isPeriodic)
 {
-    size_t numlines = size_t(natoms*3/10);
-    if(natoms*3 % 10)
-        numlines++;
+    //This might seem excessive just to skip, but I want to verify a snapshot is
+    //actually there.
+    size_t lineIndex = 0;
+    size_t width = 8;//character width of data
+    for(size_t dataIndex = 0;dataIndex<natoms*3;)
+    {
+        if(trajFile.eof())
+            throw SanderIOException("Trajectory file ended in the middle of the "
+                    "trajectory.",UNEXPECTED_EOF);
+
+        std::string currentLine = getNextLine(trajFile);//do not trim string. Spaces are part of formatted size.
+        if(currentLine.size() % width )
+        {
+            char* error;
+            sprintf(error,"Data file contains a short line. "
+                    "Lines must be at least 36 characters, but line #%d is only"
+                    "%d characters long.",lineIndex+1,currentLine.size());
+            std::cerr << error << std::endl;
+        }
+
+        //tokenize line into data. put data into valarray.
+        while(currentLine.size() >= width)
+        {
+            dataIndex++;
+            currentLine.erase(0,width);
+        }
+
+        lineIndex++;
+    }
     if(isPeriodic)
-        numlines++;
-    trajFile.seekg(numlines,trajFile.cur);
+        getNextLine(trajFile);
 }
 
 template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
@@ -1054,7 +1079,7 @@ template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
     float fltCurrentData = 0;
     size_t dataIndex = 0;
 
-     for(dataIndex;dataIndex<arrayLength;)
+    for(dataIndex;dataIndex<arrayLength;)
     {
         if(dataFile.eof())
             throw SanderIOException("Data file ended in the middle of the "
