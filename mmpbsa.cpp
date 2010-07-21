@@ -123,7 +123,7 @@ int realDeal(int argc, char** argv)
         if(::snapList.size())
             if(!mmpbsa_utils::contains(snapList,snapcounter))
             {
-                sprintf("Skipping Snapshot #%",snapcounter);
+                printf("Skipping Snapshot #%d",snapcounter);
                 continue;
             }
 
