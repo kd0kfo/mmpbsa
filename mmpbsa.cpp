@@ -4,15 +4,17 @@ int main(int argc, char** argv)
 {
     try 
     {
-        myOutput;
-        myOutput.open("/ibis/users_linux/dcoss/working_dir/tut1/polyAT-mmpbsa/myoutput.txt",std::ios::out);
+        trustPrmtop = false;
         int returnMe = realDeal(argc, argv);
-        myOutput.close();
         return returnMe;
     }    
     catch (MMPBSAException e)
     {
         std::cerr << e.identifier() << ": " << e.what() << std::endl;
+        if(trustPrmtop)
+        {
+            std::cerr << "The trust_prmtop flag was set. Perhaps that is a problem." << std::endl;
+        }
         return e.getErrType();
     }
 }
@@ -40,8 +42,10 @@ int realDeal(int argc, char** argv)
     //load and check the parmtop file.
     mmpbsa_io::SanderParm * sp = new mmpbsa_io::SanderParm;
     sp->raw_read_amber_parm(::prmtopFile);
-    if(!sp->sanityCheck())
-        throw MMPBSAException("Parmtop file is insane.",INVALID_PRMTOP_DATA);
+    if(!trustPrmtop)
+        if(!sp->sanityCheck())
+            throw MMPBSAException("Parmtop file is insane.",INVALID_PRMTOP_DATA);
+    ::prmtopFile.close();
 
     //Create energy function with the parmtop data. This energy function will
     //have everything in it. Receptor and ligand will be stripped out.
@@ -84,7 +88,10 @@ int realDeal(int argc, char** argv)
     map<std::string,mmpbsa_t> radii;//later, check to see if radii.size() > 0 before calling full_EMap(...)
     map<std::string,std::string> residues;
     if(radiiFile.is_open())
+    {
         mmpbsa_io::read_siz_file(radiiFile,radii, residues);
+        radiiFile.close();
+    }
 
     if(!trajFile.good())
         throw MMPBSAException("Unable to read from trajectory file",BROKEN_TRAJECTORY_FILE);
@@ -167,10 +174,14 @@ int realDeal(int argc, char** argv)
 
     delete sp;
 
-    ::outputFile.close();
-    ::prmtopFile.close();
-    ::radiiFile.close();
-    ::trajFile.close();
+    if(outputFile.is_open())
+        outputFile.close();
+    if(prmtopFile.is_open())
+        prmtopFile.close();
+    if(radiiFile.is_open())
+        radiiFile.close();
+    if(trajFile.is_open())
+        trajFile.close();
 
     return 0;
 }
@@ -205,24 +216,25 @@ void parseParameter(std::string arg, MeadInterface& mi)
     }
     
     using std::string;
+    using mmpbsa_io::fileopen;
     string name = arg.substr(0,arg.find("="));
     string value = arg.substr(arg.find("=")+1);
 
     if(name == "prmtop" || name == "parmtop")
     {
-        ::prmtopFile.open(value.c_str(),std::ios::in);
+        fileopen(value.c_str(),std::ios::in,::prmtopFile);
     }
-    else if(name == "coordinates" || name == "traj" || name == "mdcrd")
+    else if(name == "coordinates" || name == "traj" || name == "mdcrd" || name == "mdcrds")
     {
-        ::trajFile.open(value.c_str(),std::ios::in);
+        fileopen(value.c_str(),std::ios::in,::trajFile);
     }
     else if(name == "out" || name == "output")
     {
-        ::outputFile.open(value.c_str(),std::ios::out);
+        fileopen(value.c_str(),std::ios::out,::outputFile);
     }
     else if(name == "radii")
     {
-        ::radiiFile.open(value.c_str(),std::ios::in);
+        fileopen(value.c_str(),std::ios::in,::radiiFile);
     }
     else if(name == "istrength")
     {
@@ -276,6 +288,10 @@ void parseFlag(std::string flag, MeadInterface& mi)
 	std::cout << helpString() << std::endl;
 	return;
       }
+    else if(flag == "trust_prmtop")
+    {
+        ::trustPrmtop = true;
+    }
 
     fprintf(stderr,"I don't know what to do with the flag \"%s\"\n",flag.c_str());
 }
@@ -306,6 +322,10 @@ std::string helpString()
     "rec_list=<comma separated list>      (example rec_list=0,13,25)  List of beginning atoms of residues,\n"
     "         where the length is deduced from the parmtop file. Note this is a zero indexed list.\n"
     "lig_list=<comma separated list>      List of beginning atoms of ligand. See also, rec_list.\n"
-    "snap_list=<comma separated list>     1-indexed list of snapshots to be include. If this option is not used, all snapshots are calculated.";
+    "snap_list=<comma separated list>     1-indexed list of snapshots to be include. If this option is not used, all snapshots are calculated."
+    "trust_prmtop                         Override the Parmtop sanity check. Use with caution!";
 }
+
+
+
 

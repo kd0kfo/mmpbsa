@@ -308,7 +308,15 @@ std::string get_traj_title(std::fstream& trajFile);
 bool get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
     const size_t& natoms,bool isPeriodic = false);
 
-void skip_next_snap(std::fstream& trajFile, const size_t& natoms,bool isPeriodic = false);
+/**
+ * Skips the next snapshot, but ensures that it had proper data.
+ * 
+ * @param trajFile
+ * @param natoms
+ * @param isPeriodic
+ */
+void skip_next_snap(std::fstream& trajFile, const size_t& natoms,
+        bool isPeriodic = false);
 
 /**
  * Reads the next line of a file and returns it as a string.
@@ -332,6 +340,21 @@ std::string getNextLine(std::fstream& file) throw (MMPBSAException);
 void read_siz_file(std::fstream& theFile,
         std::map<std::string,mmpbsa_t>& radii, std::map<std::string,std::string>& residues);
 
+/**
+ * Opens a file using the provided fstream.
+ *
+ * If the program is compiled with the BOINC API, the return value of boinc_resolve_filename
+ * is returned. Otherwise, the return values are 0 for success and 1 for failure.
+ *
+ * @param dataFile
+ * @param dataArray
+ * @param arrayLength
+ * @param width
+ * @param numberOfColumns
+ * @return
+ */
+int fileopen(const char* filename, const std::ios::openmode& mode,
+        std::fstream& file);
 
 
 /**

@@ -96,7 +96,8 @@ void EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
 
 void EnergyInfo::get_first_energyinfo(const char* fileName)
 {
-    std::fstream mdout(fileName,std::ios::in);
+    std::fstream mdout;
+    mmpbsa_io::fileopen(fileName,std::ios::in,mdout);
     get_next_energyinfo(mdout);
     mdout.close();
 }
@@ -382,4 +383,17 @@ float get_minimized_energy(std::fstream& mdout) throw (SanderIOException)
 
 }
 
+void EnergyInfo::setEnergyData(const std::valarray<mmpbsa_t>& newData)
+{
+    if(newData.size() != this->total_parameters)
+    {
+        char error[256];
+        sprintf(error,"EnergyInfo needs %d data values, but %d were provided.",
+                this->total_parameters,newData.size());
+        throw MMPBSAException(error,INVALID_ARRAY_SIZE);
+    }
+    if(energydata.size() != this->total_parameters)
+        energydata.resize(this->total_parameters);
+    energydata = newData;
+}
 

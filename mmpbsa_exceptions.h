@@ -8,8 +8,8 @@
 #ifndef MMPBSA_EXCEPTIONS_H
 #define	MMPBSA_EXCEPTIONS_H
 
-//Error types (don't use 0 )
-enum MMPBSAErrorTypes {UNKNOWN_ERROR, /*<Avoid, as this is vague.*/
+//MMPBSAErrorTypes could be used as return values. Therefore, zero is not used.
+enum MMPBSAErrorTypes {UNKNOWN_ERROR = 1, /*<Avoid, as this is vague.*/
     FILE_READ_ERROR,/*<IO problem reading prmtop file.*/
     BROKEN_PRMTOP_FILE,/*<prmtop file is improperly formatted or missing data.*/
     BROKEN_TRAJECTORY_FILE,/*<trajectory file is improperly formatted or missing data.*/
@@ -18,7 +18,7 @@ enum MMPBSAErrorTypes {UNKNOWN_ERROR, /*<Avoid, as this is vague.*/
     INVALID_ARRAY_SIZE,
     UNEXPECTED_EOF,
     COMMAND_LINE_ERROR/*<Program supplied an invalide argument in the command line.*/
-};/*<A supplied array has an incorrect size.*/
+};
 
 class MMPBSAException : public std::runtime_error
 {

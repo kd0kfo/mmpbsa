@@ -12,7 +12,6 @@
 #include <valarray>
 #include <vector>
 #include <fstream>
-extern std::fstream myOutput;
 
 #include "mmpbsa_utils.h"
 #include "mmpbsa_io.h"
@@ -264,13 +263,13 @@ public:
     std::slice phi_h_l;
     std::slice phi_h_m;
 
-    std::vector<std::vector<size_t> > exclst;
+    std::vector<std::vector<size_t> > exclst;///<List of Excluded atoms
 
-    std::valarray<mmpbsa_t> LJA;
-    std::valarray<mmpbsa_t> LJB;
+    std::valarray<mmpbsa_t> LJA;///<Lennard Jones Coefficients
+    std::valarray<mmpbsa_t> LJB;///<Lennard Jones Coefficients
 
-    std::valarray<size_t> res_ranges;
-    std::valarray<size_t> mol_ranges;
+    std::valarray<size_t> res_ranges;///<Beginning and Ending indices of residues
+    std::valarray<size_t> mol_ranges;///<Beginning and Ending indices of molecules
 
 
     
@@ -361,10 +360,26 @@ private:
 class BondWalker
 {
 public:
+    /**
+     * Bond list creator.
+     * When Bond lists are not provided by the parmtop file, BondWalker produces
+     * the bond list.
+     *
+     * @param efun
+     */
     BondWalker(EmpEnerFun const * efun);
 
     void init();
 
+    /**
+     * Generate bond list for the specified atom.
+     * 
+     * @param startAtom
+     * @param stoppers
+     * @param enerfunMarkers
+     * @param func
+     * @return
+     */
     std::vector<size_t> walk(const size_t& startAtom,
         std::valarray<int> stoppers,std::valarray<int>& enerfunMarkers,
         void func(std::valarray<int>& markers, const size_t& funcAtom));

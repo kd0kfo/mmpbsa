@@ -37,7 +37,6 @@
 class MeadInterface {
 public:
     /**
-     * Default constructor.
      * MeadInteraface stores variable values that are used by Mead
      *
      * Default:

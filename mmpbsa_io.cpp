@@ -356,9 +356,11 @@ void mmpbsa_io::SanderParm::raw_read_amber_parm(std::string file)
     using std::string;
     using namespace mmpbsa_utils;
 
-    fstream prmtopFile(file.c_str(),fstream::in);
+    fstream prmtopFile;
+    mmpbsa_io::fileopen(file.c_str(),fstream::in,prmtopFile);
 
     raw_read_amber_parm(prmtopFile);
+    prmtopFile.close();
 }
 
 void mmpbsa_io::SanderParm::raw_read_amber_parm(std::fstream& prmtopFile)
@@ -414,9 +416,6 @@ void mmpbsa_io::SanderParm::raw_read_amber_parm(std::fstream& prmtopFile)
 
         parseParmtopFile(prmtopFile,flag,format);
     }
-
-    prmtopFile.close();
-
 }
 
 bool mmpbsa_io::SanderParm::sanityCheck() throw (SanderIOException)
@@ -1216,7 +1215,29 @@ void mmpbsa_io::read_siz_file(std::fstream& theFile,
 
 }
 
+int mmpbsa_io::fileopen(const char* filename, const std::ios::openmode& mode, std::fstream& file)
+{
 
+#ifndef __BOINC__
+    if(file.is_open())
+        file.close();
+    file.open(filename,mode);
+    if(file.is_open())
+        return 0;
+    else
+        return 1;
+#else
+    string resolved_name;
+    int retval = boinc_resolve_filename_s("my_file", resolved_name);
+    if(retval)
+        return retval;
+
+    if(file.is_open())
+        file.close();
+    file.open(filename,mode);
+    return retval;
+#endif
+}
 
 
 

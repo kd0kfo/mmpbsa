@@ -10,7 +10,6 @@
 #define	MMPBSA_UTILS_H
 
 #define MMPBSA_PI 3.14159265358979323846
-#define MMPBSA_TWOPI 6.28318530717958647692
 
 #include <fstream>
 #include <cmath>
@@ -26,7 +25,6 @@
 #include "MEAD/Coord.h"
 
 typedef double mmpbsa_t;
-extern std::fstream myOutput;
 
 
 namespace mmpbsa_utils {
@@ -45,6 +43,16 @@ namespace mmpbsa_utils {
     Coord * interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
             const std::valarray<mmpbsa_t>& bcrds, const mmpbsa_t& cutoff = 4.0);
 
+    /**
+     * Performs a lookup of a radius of the given atom. The lookup is not as
+     * simple as using the atom name as the key for the provided map, because
+     * atom names may contain more than just the symbol for the atom. The method
+     * uses a set of naming rules to find the radius.
+     * 
+     * @param atomName
+     * @param radiusMap
+     * @return
+     */
     mmpbsa_t lookup_radius(const std::string& atomName,
             const std::map<std::string,mmpbsa_t>& radiusMap)
             throw (MMPBSAException);
@@ -95,8 +103,6 @@ namespace mmpbsa_utils {
     {
         return array != T(0);
     }
-
-    //template <class T> std::valrarry<bool> all
 
     /**
      * Returns a vector whose elements are the contents of largerArray,
@@ -166,9 +172,11 @@ namespace mmpbsa_utils {
     template <class T> size_t find_first(const std::valarray<T>& array,
             const T& reference);
 
-    template<class T> T* cross_product(const T* A, const T* B, const size_t& ndim = 3);
+    template<class T> T* cross_product(const T* A, const T* B,
+            const size_t& ndim = 3);
 
-    template<class T> T dot_product(const T* A, const T* B, const size_t& ndim = 3);
+    template<class T> T dot_product(const T* A, const T* B,
+            const size_t& ndim = 3);
     
     
 }//end mmpbsa_utils namespace
