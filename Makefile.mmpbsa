@@ -1,9 +1,9 @@
 comp = g++
-comp_options = -Wno-deprecated -static -g -D__DEBUG__
+comp_options = -Wno-deprecated -static -g -D__DEBUG__ `xml2-config --cflags`
 SUFFIX =
 MEAD_DIR = /usr/local/lib
-MYLIBS = ${MEAD_DIR}/libmead.a ./molsurf/molsurf.a
-MYINCLUDES = -I ${MEAD_DIR}/include/
+MYLIBS =  -lmead -lmolsurf -L ./molsurf -L ${MEAD_DIR} `xml2-config --libs` -lpthread
+MYINCLUDES = -I ${MEAD_DIR}/include/ -I /usr/include/libxml2/
 
 all: build
 	
@@ -21,8 +21,8 @@ test: build
 .cpp.o:
 	${comp} ${comp_options} -c $< -o $@ ${MYINCLUDES}
 
-mmpbsa.a: Energy.o EnergyInfo.o MeadInterface.o mmpbsa_exceptions.o mmpbsa_utils_templates.o mmpbsa_utils.o mmpbsa_io.o StringTokenizer.o
-	ar rcs $@ $^
+mmpbsa.a: Energy.o EnergyInfo.o MeadInterface.o mmpbsa_exceptions.o mmpbsa_utils_templates.o mmpbsa_utils.o mmpbsa_io.o StringTokenizer.o XMLParser.o
+	ar rcs lib$@ $^
 
 build: mmpbsa.a ${MY_LIBS}
-	${comp} ${comp_options} mmpbsa.cpp mmpbsa.a ${MYLIBS} -o mmpbsa${SUFFIX} ${MYINCLUDES}
+	${comp} ${comp_options} mmpbsa.cpp -lmmpbsa -L. ${MYLIBS} -o mmpbsa${SUFFIX} ${MYINCLUDES}
