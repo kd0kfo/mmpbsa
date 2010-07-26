@@ -1133,6 +1133,10 @@ EMap::EMap(const EmpEnerFun* efun, const std::valarray<mmpbsa_t>& crds)
 
 std::ostream& operator<<(std::ostream& theStream, const EMap& toWrite)
 {
+    std::streamsize prevPrecision = theStream.precision();
+    std::ios::fmtflags prevFloatfield = theStream.floatfield;
+    theStream.precision(8);
+    theStream.setf(std::ios::fixed,std::ios::floatfield);
     theStream << "BOND " << toWrite.bond << std::endl;
     theStream << "ANGLE " << toWrite.angle << std::endl;
     theStream << "DIHED " << toWrite.dihed << std::endl;
@@ -1143,6 +1147,8 @@ std::ostream& operator<<(std::ostream& theStream, const EMap& toWrite)
     theStream << "PBSOL " << toWrite.elstat_solv << std::endl;
     theStream << "SASOL " << toWrite.sasol << std::endl;
     theStream << "area " << toWrite.area;
+    theStream.precision(prevPrecision);
+    theStream.setf(prevFloatfield,std::ios::floatfield);
     return theStream;
 }
 

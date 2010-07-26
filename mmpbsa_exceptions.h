@@ -17,7 +17,8 @@ enum MMPBSAErrorTypes {UNKNOWN_ERROR = 1, /*<Avoid, as this is vague.*/
     DATA_FORMAT_ERROR,/*<Use this error, when data *within* the program no long matches what it should due to formatting problems.*/
     INVALID_ARRAY_SIZE,
     UNEXPECTED_EOF,
-    COMMAND_LINE_ERROR/*<Program supplied an invalide argument in the command line.*/
+    COMMAND_LINE_ERROR,/*<Program supplied an invalide argument in the command line.*/
+    BAD_XML_TAG
 };
 
 class MMPBSAException : public std::runtime_error

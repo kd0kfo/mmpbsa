@@ -1,17 +1,23 @@
 #include "mmpbsa.h"
+#include "XMLParser.h"
 
 int main(int argc, char** argv)
 {
     try 
     {
-        trustPrmtop = false;
+#ifdef __BOINC__
+        boinc_init();//must be called before any other BOINC routines.
+#endif
+        currState;
         int returnMe = realDeal(argc, argv);
+        currState.flush();
+        currState.close();
         return returnMe;
     }    
     catch (MMPBSAException e)
     {
         std::cerr << e.identifier() << ": " << e.what() << std::endl;
-        if(trustPrmtop)
+        if(currState.trustPrmtop)
         {
             std::cerr << "The trust_prmtop flag was set. Perhaps that is a problem." << std::endl;
         }
@@ -26,7 +32,6 @@ int realDeal(int argc, char** argv)
     using std::slice;
     using std::map;
 
-
     MeadInterface mi;
 
     if(argc == 1)
@@ -35,17 +40,17 @@ int realDeal(int argc, char** argv)
 	return 0;
       }
 
-    receptorStartPos.push_back(0);//would be better as a command line argument, but I don't know yet what this will look like. To add later.
-    ligandStartPos.push_back(1);//array containing the starting positions of ligands and receiptors
+    currState.receptorStartPos.push_back(0);//would be better as a command line argument, but I don't know yet what this will look like. To add later.
+    currState.ligandStartPos.push_back(1);//array containing the starting positions of ligands and receiptors
     parseArgs(argc,argv,mi);
 
     //load and check the parmtop file.
     mmpbsa_io::SanderParm * sp = new mmpbsa_io::SanderParm;
-    sp->raw_read_amber_parm(::prmtopFile);
-    if(!trustPrmtop)
+    sp->raw_read_amber_parm(currState.prmtopFile);
+    if(!currState.trustPrmtop)
         if(!sp->sanityCheck())
             throw MMPBSAException("Parmtop file is insane.",INVALID_PRMTOP_DATA);
-    ::prmtopFile.close();
+    currState.prmtopFile.close();
 
     //Create energy function with the parmtop data. This energy function will
     //have everything in it. Receptor and ligand will be stripped out.
@@ -58,9 +63,9 @@ int realDeal(int argc, char** argv)
     size_t receptorSize = 0;
     size_t ligandSize = 0;
 
-    for(size_t i = 0;i<receptorStartPos.size();i++)
+    for(size_t i = 0;i<currState.receptorStartPos.size();i++)
     {
-        size_t currPos = receptorStartPos[i];
+        size_t currPos = currState.receptorStartPos[i];
         bottom = entireEFun.mol_ranges[2*currPos];
         top = entireEFun.mol_ranges[2*currPos+1];
         valarray<bool> currReceptor(true,top-bottom);
@@ -68,9 +73,9 @@ int realDeal(int argc, char** argv)
         receptorKeepers[slice(bottom,top-bottom,1)] = currReceptor;
         receptorSize += top-bottom;
     }
-    for(size_t i = 0;i<ligandStartPos.size();i++)
+    for(size_t i = 0;i<currState.ligandStartPos.size();i++)
     {
-        size_t currPos = ligandStartPos[i];
+        size_t currPos = currState.ligandStartPos[i];
         bottom = entireEFun.mol_ranges[2*currPos];
         top = entireEFun.mol_ranges[2*currPos+1];
         valarray<bool> currLigand(true,top-bottom);
@@ -87,39 +92,58 @@ int realDeal(int argc, char** argv)
     //load radii data, if available
     map<std::string,mmpbsa_t> radii;//later, check to see if radii.size() > 0 before calling full_EMap(...)
     map<std::string,std::string> residues;
-    if(radiiFile.is_open())
+    if(currState.radiiFile.is_open())
     {
-        mmpbsa_io::read_siz_file(radiiFile,radii, residues);
-        radiiFile.close();
+        mmpbsa_io::read_siz_file(currState.radiiFile,radii, residues);
+        currState.radiiFile.close();
     }
 
-    if(!trajFile.good())
+    if(!currState.trajFile.good())
         throw MMPBSAException("Unable to read from trajectory file",BROKEN_TRAJECTORY_FILE);
 
     using namespace mmpbsa_io;
-    get_traj_title(trajFile);//Don't need title, but this ensure we are at the top of the file. If the title is needed later, hook this.
-    size_t snapcounter = 0;
+    get_traj_title(currState.trajFile);//Don't need title, but this ensure we are at the top of the file. If the title is needed later, hook this.
     valarray<mmpbsa_t> snapshot(sp->natom*3);
     valarray<mmpbsa_t> complexSnap(complexSize*3);
     valarray<mmpbsa_t> receptorSnap(receptorSize*3);
     valarray<mmpbsa_t> ligandSnap(ligandSize*3);
 
-    bool isPeriodic = sp->ifbox > 0;
-    while(!trajFile.eof())
+    bool isPeriodic = sp->ifbox > 0;//Are periodic boundary conditions used?
+
+    //if the program is resuming a previously started calculation, advance to the
+    //last snapshot.
+    if(currState.currentSnap)//zero = one = start from beginning.
+        for(size_t i = 0;i<currState.currentSnap-1;i++)
+            try
+            {
+                mmpbsa_io::skip_next_snap(currState.trajFile,sp->natom,isPeriodic);
+            }
+            catch(MMPBSAException e)
+            {
+                if(e.getErrType() == UNEXPECTED_EOF)
+                {
+                  std::cerr << "End of Snapshots Reached" << std::endl;
+                  return 0;
+                }
+            }
+    size_t snapcounter = (currState.currentSnap) ? currState.currentSnap - 1 : 0;//snapcounter will be incremented below
+
+    //Walk through the snapshots. This is where MMPBSA is actually done.
+    while(!currState.trajFile.eof())
     {
         try{
             //if a list of snaps to be run is provided, check to see if this snapshot
             //should be used. Remember: snapcounter is 1-indexed.
             snapcounter++;
-            if(::snapList.size())
-                if(!mmpbsa_utils::contains(snapList,snapcounter))
+            if(currState.snapList.size())//check if the current snapshot should be skipped
+                if(!mmpbsa_utils::contains(currState.snapList,snapcounter))
                 {
-                    mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
+                    mmpbsa_io::skip_next_snap(currState.trajFile,sp->natom,isPeriodic);
                     printf("Skipping Snapshot #%d\n",snapcounter);
                     continue;
                 }
         
-            if(get_next_snap(trajFile, snapshot, sp->natom,isPeriodic))
+            if(get_next_snap(currState.trajFile, snapshot, sp->natom,isPeriodic))
                 printf("Running Snapshot #%d\n",snapcounter);
             else
             {
@@ -137,7 +161,6 @@ int realDeal(int argc, char** argv)
             }
         }
 
-        
         //process snapshot.
         size_t complexCoordIndex = 0;
         size_t receptorCoordIndex = 0;
@@ -160,29 +183,46 @@ int realDeal(int argc, char** argv)
 
         //output-ing is broken up by section, in case the program needs to be
         //monitored or paused.
-        EMap complexEMap = MeadInterface::full_EMap(complexEFun,complexSnap,fdm,
-                *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
-        ::outputFile << "COMPLEX" << endl << complexEMap << endl;
-        EMap receptorEMap = MeadInterface::full_EMap(receptorEFun,receptorSnap,fdm,
-                *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
-        ::outputFile << "RECEPTOR" << endl << receptorEMap << endl;
-        EMap ligandEMap = MeadInterface::full_EMap(ligandEFun,ligandSnap,fdm,
-                *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
-        ::outputFile << "LIGAND" << endl << ligandEMap << endl << endl;
-    }
+        if(currState.currentMolecule == MMPBSAState::END_OF_MOLECULES)
+        {
+            currState.currentMolecule = MMPBSAState::COMPLEX;
+            continue;//Restarted program at the end of a snapshot. So, move on.
+        }
+        
+        if(currState.currentMolecule == MMPBSAState::COMPLEX)
+        {
+            EMap complexEMap = MeadInterface::full_EMap(complexEFun,complexSnap,fdm,
+                    *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
+            currState.outputFile << "COMPLEX" << endl << complexEMap << endl;
+            currState.currentMolecule = MMPBSAState::RECEPTOR;
+            currState.currentSnap = snapcounter;
+            currState.checkpoint_out();
+        }
+        
+
+        if(currState.currentMolecule == MMPBSAState::RECEPTOR)
+        {
+            EMap receptorEMap = MeadInterface::full_EMap(receptorEFun,receptorSnap,fdm,
+                    *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
+            currState.outputFile << "RECEPTOR" << endl << receptorEMap << endl;
+            currState.currentMolecule = MMPBSAState::LIGAND;
+            currState.currentSnap = snapcounter;
+            currState.checkpoint_out();
+        }
+
+        if(currState.currentMolecule == MMPBSAState::LIGAND)
+        {
+            EMap ligandEMap = MeadInterface::full_EMap(ligandEFun,ligandSnap,fdm,
+                    *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
+            currState.outputFile << "LIGAND" << endl << ligandEMap << endl << endl;
+            currState.currentMolecule = MMPBSAState::END_OF_MOLECULES;
+        }
+        currState.checkpoint_out();
+        currState.currentMolecule = MMPBSAState::COMPLEX;//Rest current molecule
+    }//end of snapshot loop
 
 
     delete sp;
-
-    if(outputFile.is_open())
-        outputFile.close();
-    if(prmtopFile.is_open())
-        prmtopFile.close();
-    if(radiiFile.is_open())
-        radiiFile.close();
-    if(trajFile.is_open())
-        trajFile.close();
-
     return 0;
 }
 
@@ -222,19 +262,20 @@ void parseParameter(std::string arg, MeadInterface& mi)
 
     if(name == "prmtop" || name == "parmtop")
     {
-        fileopen(value.c_str(),std::ios::in,::prmtopFile);
+        fileopen(value.c_str(),std::ios::in,currState.prmtopFile);
     }
     else if(name == "coordinates" || name == "traj" || name == "mdcrd" || name == "mdcrds")
     {
-        fileopen(value.c_str(),std::ios::in,::trajFile);
+        fileopen(value.c_str(),std::ios::in,currState.trajFile);
     }
     else if(name == "out" || name == "output")
     {
-        fileopen(value.c_str(),std::ios::out,::outputFile);
+        //will append for the sake of restarting in the middle of calculations.
+        fileopen(value.c_str(),std::ios::out | std::ios::app,currState.outputFile);
     }
     else if(name == "radii")
     {
-        fileopen(value.c_str(),std::ios::in,::radiiFile);
+        fileopen(value.c_str(),std::ios::in,currState.radiiFile);
     }
     else if(name == "istrength")
     {
@@ -256,18 +297,23 @@ void parseParameter(std::string arg, MeadInterface& mi)
     }
     else if(name == "rec_list")
     {
-        ::receptorStartPos.clear();
-        loadListArg(value,::receptorStartPos);
+        currState.receptorStartPos.clear();
+        loadListArg(value,currState.receptorStartPos);
     }
     else if(name == "lig_list")
     {
-        ::ligandStartPos.clear();
-        loadListArg(value,::ligandStartPos);
+        currState.ligandStartPos.clear();
+        loadListArg(value,currState.ligandStartPos);
     }
     else if(name == "snap_list")
     {
-        ::snapList.clear();
-        loadListArg(value,::snapList);
+        currState.snapList.clear();
+        loadListArg(value,currState.snapList);
+    }
+    else if(name == "checkpoint")
+    {
+        currState.checkpointFilename = value;
+        currState.checkpoint_in();
     }
     else
     {
@@ -290,7 +336,7 @@ void parseFlag(std::string flag, MeadInterface& mi)
       }
     else if(flag == "trust_prmtop")
     {
-        ::trustPrmtop = true;
+        currState.trustPrmtop = true;
     }
 
     fprintf(stderr,"I don't know what to do with the flag \"%s\"\n",flag.c_str());
@@ -326,6 +372,138 @@ std::string helpString()
     "trust_prmtop                         Override the Parmtop sanity check. Use with caution!";
 }
 
+MMPBSAState::MMPBSAState()
+{
+    trustPrmtop = false;
+    checkpointFilename = "";
+    currentSnap = 0;
+    currentMolecule = MMPBSAState::COMPLEX;
+    checkpointCounter = 0;
+}
+
+bool MMPBSAState::checkpoint_in(const std::string& fileName)
+{
+    XMLParser xmlDoc;
+    std::string theFileName = fileName;
+#ifdef __USE_BOINC__
+    int boinc_resolve_filename_s(fileName.c_str(), theFileName);
+#endif
+    try
+    {
+        xmlDoc.parse(theFileName);
+    }
+    catch(::XMLParserException xpe)
+    {
+        if(this->checkpointCounter == 0)
+            return false;
+        else
+        {
+            char error[40+strlen(xpe.what())+fileName.size()];
+            xpe.what();
+            sprintf(error,"Trouble opening XML file: %s -> %s\n",theFileName.c_str(),xpe.what());
+            throw XMLParserException(error,xpe.getErrType());
+        }
+    }
+    
+    std::map<std::string,std::string> checkMap = xmlDoc.getChildren();
+    
+    bool usedAllParameters = true;
+    std::string tag = "";
+    for(std::map<std::string,std::string>::iterator it = checkMap.begin();
+            it != checkMap.end();it++)
+    {
+        tag = it->first;
+        //chain to load parameters into correct variables.
+        if(tag == "current_molecule")
+        {
+            int currMol = 0;
+            sscanf(it->second.c_str(),"%d",&currMol);
+            switch(currMol)
+            {
+                case COMPLEX:
+                    this->currentMolecule = COMPLEX;
+                    break;
+                case LIGAND:
+                    this->currentMolecule = LIGAND;
+                    break;
+                case RECEPTOR:
+                    this->currentMolecule = RECEPTOR;
+                    break;
+                default:
+                    this->currentMolecule = END_OF_MOLECULES;
+                    usedAllParameters = false;
+                    break;
+            }
+        }//end "current_molecule" case
+        else if(tag == "current_snap")
+        {
+            this->currentSnap = 0;
+            sscanf(it->second.c_str(),"%d",&(this->currentSnap));
+        }//end "current_snap" case
+        else if(tag == "checkpoint_counter")
+        {
+            this->checkpointCounter = 0;
+            sscanf(it->second.c_str(),"%d",&(this->checkpointCounter));
+        }
+        else
+        {
+            usedAllParameters = false;
+        }
+    }
+    return usedAllParameters;
+}
+
+void MMPBSAState::checkpoint_out()
+{
+#ifdef __USE_BOINC__
+    if(!boinc_time_to_checkpoint())
+        return;
+#endif
+    
+    this->checkpointCounter++;
+    if(checkpointFilename == "")
+        return;
+
+    std::map<std::string,std::string> checkMap;
+    char buff[16];
+    sprintf(buff,"%d",this->currentMolecule);
+    checkMap["current_molecule"] = buff;
+    sprintf(buff,"%d",this->currentSnap);
+    checkMap["current_snap"] = buff;
+    sprintf(buff,"%d",this->checkpointCounter);
+    checkMap["checkpoint_counter"] = buff;
+    XMLParser xmlDoc("mmpbsa_state",checkMap);
+    xmlDoc.write(this->checkpointFilename);
+
+#ifdef __USE_BOINC__
+    boinc_checkpoint_completed();
+    if(currState.snapList.size())
+        boinc_fraction_done(currState.currentSnap/currState.snapList.size());
+#endif
+}
 
 
+void MMPBSAState::flush()
+{
+    if(outputFile.is_open())
+        outputFile.flush();
+    if(prmtopFile.is_open())
+        prmtopFile.flush();
+    if(radiiFile.is_open())
+        radiiFile.flush();
+    if(trajFile.is_open())
+        trajFile.flush();
+}
+
+void MMPBSAState::close()
+{
+    if(outputFile.is_open())
+        outputFile.close();
+    if(prmtopFile.is_open())
+        prmtopFile.close();
+    if(radiiFile.is_open())
+        radiiFile.close();
+    if(trajFile.is_open())
+        trajFile.close();
+}
 

@@ -70,18 +70,66 @@ void loadListArg(const std::string& values,std::vector<size_t>& array);
  */
 std::string helpString();
 
-std::vector<size_t> receptorStartPos;///<Starting positions for receptors. End positions are deduced from the parmtop file.
-std::vector<size_t> ligandStartPos;///<Starting positions for ligands. End positions are deduced from the parmtop file.
-std::vector<size_t> snapList;///<List of snapshots to be used in the calculations. If the list is empty, all snapshots are used.
 
 
-std::fstream prmtopFile;
-std::fstream trajFile;
-std::fstream radiiFile;
-std::fstream outputFile;
+class MMPBSAState
+{
+public:
+    std::vector<size_t> receptorStartPos;///<Starting positions for receptors. End positions are deduced from the parmtop file.
+    std::vector<size_t> ligandStartPos;///<Starting positions for ligands. End positions are deduced from the parmtop file.
+    std::vector<size_t> snapList;///<List of snapshots to be used in the calculations. If the list is empty, all snapshots are used.
 
-bool trustPrmtop;///<Flag to indicate if the sanity check of the SanderParm object should be ignored. This is not suggested, but if the sanity check fails and one *does* believe it should work, this is provided as a work around, for whatever reason might arise.
+    std::fstream prmtopFile;
+    std::fstream trajFile;
+    std::fstream radiiFile;
+    std::fstream outputFile;
 
+    std::string checkpointFilename;
+
+    size_t currentSnap;
+    enum MOLECULE{COMPLEX,RECEPTOR,LIGAND,END_OF_MOLECULES};///<List parts of the complex on which to perform MMPBSA. END_OF_MOLECUES signifies the snapshot is finished.
+    MOLECULE currentMolecule;
+
+    bool trustPrmtop;///<Flag to indicate if the sanity check of the SanderParm object should be ignored. This is not suggested, but if the sanity check fails and one *does* believe it should work, this is provided as a work around, for whatever reason might arise.
+    /**
+     * Stores variables needed to restart the program. This is needed for running
+     * on systems where the program may be closed and restarted again, i.e. BOINC Grid
+     */
+    MMPBSAState();
+    MMPBSAState(const MMPBSAState& orig);
+    virtual ~MMPBSAState(){}
+
+    /**
+     * Saves the state of the MMPBSA Program. If BOINC is being used, BOINC checkpointing
+     * is performed.
+     */
+    void checkpoint_out();
+
+    /**
+     * Load the last MMPBSA state. Returns true is all of the parameters in the
+     * checkpoint file were used.
+     * 
+     */
+    bool checkpoint_in(const std::string& fileName);
+    bool checkpoint_in(){return checkpoint_in(this->checkpointFilename);}
+
+    /**
+     * Flushes all of the buffers within the MMPBSA state (if they're open at all;
+     * MMPBSAState tries not to be stingy with files).
+     */
+    void flush();
+
+    /**
+     * Closes all of the buffers within the MMPBSA state.
+     */
+    void close();
+
+    MMPBSAState& operator=(const MMPBSAState& orig);
+private:
+    size_t checkpointCounter;
+};
+
+MMPBSAState currState;
 
 #endif	/* MMPBSA_H */
 
