@@ -1,1 +1,215 @@
+commit 95c7849d522386849fe724138d2d4d8ac3a7a2e1
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jul 27 09:21:14 2010 -0500
 
+    Included setup and updated INSTALL accordingly
+
+commit 7df412842d16366ee1039a292950601a31f942cf
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jul 27 09:18:12 2010 -0500
+
+    Revert "Added install-sh"
+    
+    This reverts commit 3b52400b41a89c9564e8ab953158259e5a2afb78.
+
+commit e1775c0774affa9876564f6e2cd6b68f9a552b18
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jul 27 09:17:29 2010 -0500
+
+    Revert "Added configure and setup. setup can be used to reproduce configure using configure.ac and autotools"
+    
+    This reverts commit a5ace8b2e3feabb9b17ac04497b52f85f74c5d49.
+
+commit 3b52400b41a89c9564e8ab953158259e5a2afb78
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jul 27 09:10:22 2010 -0500
+
+    Added install-sh
+
+commit a5ace8b2e3feabb9b17ac04497b52f85f74c5d49
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jul 27 09:07:42 2010 -0500
+
+    Added configure and setup. setup can be used to reproduce configure using configure.ac and autotools
+
+commit c7c337efbfd87aa45a385a6d20747f2bed2c0956
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jul 27 09:02:48 2010 -0500
+
+    Setup MMPBSA to use autotools. As the project has grown, making a Makefile
+    has likewise become complex. Therefore using autotools is a natural choice.
+    As a result, the directory try has been restructured as well.
+    
+    src: MMPBSA main source
+    |
+    ----libmmpbsa: Classes making up the program library needed for MMPBSA
+    |
+    ----molsurf: Molecular Surface Area calculation library (in C)
+
+commit 96ffb4f566a5c3b9e575ff0cc31b940651e09e01
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Jul 26 11:20:47 2010 -0500
+
+    Updated Makefile for XMLParser
+
+commit 466b3260e7de5498288b344c6e595c9660806ebc
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Jul 26 10:41:26 2010 -0500
+
+    Added checkpointing, saving the state in an XML file. BOINC checkpointing
+    functions are included, but are only used if the "__USE_BOINC__"
+    preprocessor flag is set at compile time.
+    
+    XML file reading and writing is done with XMLParser, which is a wrapper for libxml2. Therefore, MMPBSA requires the libxml2 library, which is freely available and standard in linux.
+
+commit aa5252944831ff5724781fa7b68741d7cf47441c
+Author: David Coss <David.Coss@stjude.org>
+Date:   Thu Jul 22 10:11:26 2010 -0500
+
+    Did some serious documenting.
+
+commit 2809a60805b5f3d00edbbf682cb0cc7727316582
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Jul 21 12:44:41 2010 -0500
+
+    Separated Complex, Receptor and Ligand outputting. Doing so may help monitor and pause the application better (thinking ahead to the grid).
+
+commit 26d205c1ca5079ba3130ca6b8e72523ba52cb06d
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Jul 21 09:02:30 2010 -0500
+
+    Fixed typo.
+
+commit 8462a70ba9888dffc3cf9bd0e4e048ac99dc12ee
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jul 20 16:06:16 2010 -0500
+
+    Added command line parameter "snap_list" that will allow the use to calculate specific
+    snapshot energies. This is a good idea for parallel computing, since it will
+    allow one to calculate different snapshots on different nodes.
+
+commit 9f1275cd773843a1d872e925cafe43a48672d4e6
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Jul 19 12:47:13 2010 -0500
+
+    Restructured EmpEnerFun.
+
+commit 0044250713df30a082b61783be3a4bedd230f171
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Jul 19 11:46:48 2010 -0500
+
+    Moved main.cpp to mmpbsa.cpp. Might make other "main" classes. In which case, main.cpp will no longer make sense.
+
+commit ac5afef19f90471a4dff58cd002be45a3af32a5c
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Jul 19 08:42:10 2010 -0500
+
+    Made command line use more natural. All that is left in that respect is creating a list of which molecules belong to the receptor and which belong to the ligand. The implementation of this will depend in part on how it will be used later, .e. should it be a csv list.
+
+commit 6886921835ed1213c784e5935bc033597dc1348b
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Jul 14 09:39:18 2010 -0500
+
+    Updated gnu make file. Added a better handler for EOF of trajectory file
+    in main.cpp, adding an UNEXPECTED_EOF error type.
+
+commit 6ee892695fa151481683aa85826e4c9260fa52e2
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Jul 14 09:18:12 2010 -0500
+
+    Finished mmpbsa. Tested the program and the results match those of the python version of mmpbsa.
+
+commit 29aae13912f27189577867e36e4bceb5f0288de7
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jul 13 12:35:10 2010 -0500
+
+    Updated Makefile.mmpbsa for the new template instantation class.
+
+commit fdd5abe57cd9d03e5e7f8b8076d2873a0b1a0ff4
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jul 13 12:23:09 2010 -0500
+
+    Successfully added (and tested) adding MEAD's PB solver. All that remains for mmpbsa calculations is SA calculation.
+
+commit 347d487b71f44c649bcc33ecc00a40cc5c196753
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Jul 12 16:05:28 2010 -0500
+
+    Added MeadInterface class.
+    Added PB functionality to the project. Test + SA-functionality remain.
+
+commit c987dfd8ed3952497eff3591ad43e5f7436d6b95
+Author: David Coss <David.Coss@stjude.org>
+Date:   Thu Jul 8 15:22:15 2010 -0500
+
+    Complete testing of Energy data reading, stripping and reporting. Results match previous outputs from python code.
+
+commit 63cd57481266c15be4867f6d207ee47678af60fe
+Author: David Coss <David.Coss@stjude.org>
+Date:   Thu Jul 1 11:12:03 2010 -0500
+
+    Added stripEnerFun. Debugging should follow.
+
+commit 0053799e6d7b9f85484a182d77685242d8e77d17
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Jun 28 11:16:46 2010 -0500
+
+    Finished the EmpEnerFun Loading process. Test loaded an energy function with a solvent. Still need to test without a solvent to see if BondWalker works correctly.
+    
+    Added Makefile.mmpbsa which can be used with gnu compiler and make.
+
+commit 2f7a0e572eb73cf4eb48545e69a99db76d4d6923
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Jun 25 13:30:57 2010 -0500
+
+    Energy.cpp compiles. Whole set builds. Needs testing.
+
+commit 7eab261562be8825f9de17937ee726bfba730ea8
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Jun 23 16:46:01 2010 -0500
+
+    Added mmpbsa_utils, which is a namespace that holds various utility functions that are needed in the other classes.
+    Created an mmpbsa_t type using typedef. This was done so that precision, i.e. float versus double, may be adjusted.
+
+commit 4f31fd747ed218c2f6b52edf6e6738cdcf354860
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jun 22 11:41:26 2010 -0500
+
+    All of the SanderIO function is included in the combination of SanderIO and EnergyInfo. I separated out the energy specific information into a separate class. Now there exists classes for parameters and energy information, with the latter in EnergyInfo.
+    
+    Added StringTokenizer. With all of the file parsing that is needed to load data,this class became quite necessary. Borrowed this class from my own previous applications.
+
+commit 79cf384398b95aae5dcd7c55504a13743c904f58
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Jun 21 10:28:52 2010 -0500
+
+    Sander will now read and write coordinate files.
+
+commit f80dfc885a437ae32ede2653807c50bdcfbe58f7
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Jun 18 12:10:16 2010 -0500
+
+    SanderIO compiles, runs and correctly reads a file.
+    Added a doxygen file to produce documentation.
+    Separated out the SanderIOException class from SanderIO, creating a general
+    	mmpbsa exception class. In this header, there are globally scoped
+    	error types. These can be references for debugging purposes.
+
+commit 6b26f5480954d17382d2391309167e4a049b25ac
+Author: David Coss <David.Coss@stjude.org>
+Date:   Thu Jun 17 16:17:39 2010 -0500
+
+    Added a raw_read_amber_parm to SanderIO that compiles.
+
+commit 3da9c9890b500c1e4a450694af39e245f142ed09
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Jun 16 13:47:00 2010 -0500
+
+    Started to create the classes to handle Sander Energies and Sander file I/O. This is based on what already exists in the pyamber project.
+
+commit 7029075202beae77beffb8682e09a5b2e4c9711e
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Jun 16 11:06:55 2010 -0500
+
+    Initial Commit.
+    This commit simply marks the existence of the project. Files to be added.

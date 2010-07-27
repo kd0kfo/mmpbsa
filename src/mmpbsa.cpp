@@ -122,7 +122,7 @@ int realDeal(int argc, char** argv)
             {
                 if(e.getErrType() == UNEXPECTED_EOF)
                 {
-                  std::cerr << "End of Snapshots Reached" << std::endl;
+                  fprintf(stdout,"End of Snapshots Reached\n");
                   return 0;
                 }
             }
