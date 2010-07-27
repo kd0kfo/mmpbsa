@@ -16,7 +16,7 @@
 //mmpbsa stuff
 #include "mmpbsa_utils.h"
 #include "mmpbsa_exceptions.h"
-#include "Energy.h"
+#include "EmpEnerFun.h"
 #include "mmpbsa_io.h"
 #include "molsurf/molsurf.h"
 

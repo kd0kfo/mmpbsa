@@ -9,7 +9,7 @@
 #include "mmpbsa_exceptions.h"
 #include "mmpbsa_io.h"
 #include "EnergyInfo.h"
-#include "Energy.h"
+#include "EmpEnerFun.h"
 #include "MeadInterface.h"
 
 #include "MEAD/FinDiffMethod.h"

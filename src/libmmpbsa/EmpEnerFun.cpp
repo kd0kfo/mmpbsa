@@ -1,4 +1,4 @@
-#include "Energy.h"
+#include "EmpEnerFun.h"
 
 EmpEnerFun::EmpEnerFun()
 {
