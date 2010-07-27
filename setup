@@ -1,5 +1,0 @@
-#!/bin/bash
-aclocal
-autoheader
-automake -ac
-autoconf
