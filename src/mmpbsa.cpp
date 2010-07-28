@@ -406,7 +406,13 @@ bool MMPBSAState::checkpoint_in(const std::string& fileName)
     mmpbsa_utils::XMLParser xmlDoc;
     std::string theFileName = fileName;
 #ifdef __USE_BOINC__
-    int boinc_resolve_filename_s(fileName.c_str(), theFileName);
+    int retval = boinc_resolve_filename_s(fileName.c_str(), theFileName);
+    if(retval)
+      {
+	char error[256];
+	sprintf(error,"Could not open %s",fileName.c_str());
+	throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_READ_ERROR);
+      }
 #endif
     try
     {
@@ -493,7 +499,17 @@ void MMPBSAState::checkpoint_out()
     sprintf(buff,"%d",this->checkpointCounter);
     checkMap["checkpoint_counter"] = buff;
     mmpbsa_utils::XMLParser xmlDoc("mmpbsa_state",checkMap);
-    xmlDoc.write(this->checkpointFilename);
+    std::string theFileName = this->checkpointFilename;
+#ifdef __USE_BOINC__
+    int retval = boinc_resolve_filename_s(this->checkpointFilename.c_str(), theFileName);
+    if(retval)
+      {
+	char error[256];
+	sprintf(error,"Could not open %s",this->checkpointFilename.c_str());
+	throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_READ_ERROR);
+      }
+#endif
+    xmlDoc.write(theFileName.c_str());
 
 #ifdef __USE_BOINC__
     boinc_checkpoint_completed();

@@ -6,6 +6,10 @@
 #include <valarray>
 #include <fstream>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "libmmpbsa/mmpbsa_exceptions.h"
 #include "libmmpbsa/mmpbsa_io.h"
 #include "libmmpbsa/EnergyInfo.h"
@@ -14,6 +18,10 @@
 #include "libmmpbsa/XMLParser.h"
 
 #include "MEAD/FinDiffMethod.h"
+
+#ifdef __USE_BOINC__
+#include "boinc_api.h"
+#endif
 
 /**
  * Pulls everything together to perform the MMPBSA calculations.

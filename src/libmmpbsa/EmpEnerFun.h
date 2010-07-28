@@ -280,7 +280,6 @@ private:
      */
     static void visitor(std::valarray<int>& markers,const size_t& i){markers[i]++;}
 
-    void freeMemory();
 };
 
 class EMap{

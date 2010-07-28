@@ -1,7 +1,19 @@
-Latest change: 
-Restructored the library, placing everything not centered around the main() function in mmpbsa.cpp, in the "mmpbsa" namespace. Also SanderParm was placed in its own c++ file. Both of these choices are based on using mmpbsa as a library with other programs which will be developed later.
+Latest Changes:
+Added BOINC tags to configure.ac and Makefile.am
+	
+Removed freeMemory() from EmpEnerFun. The restructoring previously done to EmpEnerFun (git commit 9f1275cd773843a1d872e925cafe43a48672d4e6) made this unnecessary.
 
-Previous GIT log:
+Previous Git Log:
+	
+commit 53f11148c0799ebfd792d950b02f9b3a7fc8dda5
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Jul 28 09:44:44 2010 -0500
+
+    Restructored the library, placing everything not centered around
+    the main() function in mmpbsa.cpp, in the "mmpbsa" namespace.
+    Also SanderParm was placed in its own c++ file. Both of these
+    choices are based on using mmpbsa as a library with other programs
+    which will be developed later.
 
 commit c56f449e549f4fa3cdda1933fcfcdc2d895941ec
 Author: David Coss <David.Coss@stjude.org>

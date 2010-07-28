@@ -11,6 +11,10 @@
 #ifndef SANDERIO_H
 #define	SANDERIO_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 //Standard Includes
 #include <string>
 #include <cstring>
