@@ -32,8 +32,8 @@ Coord * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
     using std::min;
     
     if(acrds.size() % 3 != 0 || bcrds.size() % 3 != 0)
-        throw MMPBSAException("interaction_minmax was supply coordinates "
-                "that were not 3-D.",DATA_FORMAT_ERROR);
+        throw mmpbsa::MMPBSAException("interaction_minmax was supply coordinates "
+                "that were not 3-D.",mmpbsa::DATA_FORMAT_ERROR);
 
     mmpbsa_t cutsqrd = cutoff*cutoff;
     valarray<bool> aflags(false,size_t(acrds.size()/3));
@@ -101,7 +101,7 @@ Coord * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
 
 mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
         const std::map<std::string,mmpbsa_t>& radiusMap)
-            throw (MMPBSAException)
+            throw (mmpbsa::MMPBSAException)
 {
     using std::string;
     using std::map;
@@ -138,7 +138,7 @@ mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
         {
             char error[256];
             sprintf(error,"No radius found for '%s' in Radii Map",atomName.c_str());
-            throw MMPBSAException(error,DATA_FORMAT_ERROR);
+            throw mmpbsa::MMPBSAException(error,mmpbsa::DATA_FORMAT_ERROR);
         }
         return deeperSearch;
     }
@@ -146,7 +146,7 @@ mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
     {
         char error[256];
         sprintf(error,"%d matches for '%s' in Radii Map",possibleMatches.size(), atomName.c_str());
-        throw MMPBSAException(error,DATA_FORMAT_ERROR);
+        throw mmpbsa::MMPBSAException(error,mmpbsa::DATA_FORMAT_ERROR);
     }
     
     //iff there is one match.

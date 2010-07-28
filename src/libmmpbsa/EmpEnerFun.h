@@ -3,7 +3,7 @@
  *
  * Calculates Energies from Sander parmtop files.
  *
- * Created by David Coss
+ * Created by David Coss <David.Coss@stjude.org> 2010
  */
 #ifndef ENERGY_H
 #define	ENERGY_H
@@ -15,12 +15,9 @@
 
 #include "mmpbsa_utils.h"
 #include "mmpbsa_io.h"
+#include "SanderParm.h"
 
-
-
-#define DEFAULT_SCNB 2.0
-#define DEFAULT_SCEE 1.2
-#define DEFAULT_DIELC 1.0
+namespace mmpbsa{
 
 class EmpEnerFun{
 public:
@@ -46,7 +43,7 @@ public:
      * @param scee
      * @param dielc
      */
-    EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb = DEFAULT_SCNB,
+    EmpEnerFun(mmpbsa::SanderParm * newparminfo, const mmpbsa_t& scnb = DEFAULT_SCNB,
             const mmpbsa_t& scee = DEFAULT_SCEE, const mmpbsa_t& dielc = DEFAULT_DIELC);
 
     /**
@@ -231,7 +228,7 @@ public:
     
 
     //data
-    mmpbsa_io::SanderParm * parminfo;//do not delete via EmpEnerFun
+    mmpbsa::SanderParm * parminfo;//do not delete via EmpEnerFun
     
     int end_solute_atoms;
     int begin_solvent_atoms;
@@ -333,8 +330,7 @@ public:
      * @param rhs
      * @return
      */
-    friend std::ostream& operator<<(std::ostream& theStream, const EMap& toWrite);
-
+    
     //operators
     EMap& operator=(const EMap& rhs);
     EMap operator+(const EMap& rhs);
@@ -342,8 +338,9 @@ public:
     EMap operator-(const EMap& rhs);
     EMap& operator-=(const EMap& rhs);
 
+    friend std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite);
 
-private:
+protected:
     mmpbsa_t bond;
     mmpbsa_t angle;
     mmpbsa_t dihed;
@@ -356,6 +353,7 @@ private:
     mmpbsa_t sasol;
     
 };
+
 
 class BondWalker
 {
@@ -400,6 +398,8 @@ private:
      */
     std::vector<std::vector<int> > atom_bond_list;
 };
+
+};//end namespace mmpbsa
 
 
 #endif	/* ENERGY_H */

@@ -18,6 +18,8 @@
 #include "mmpbsa_exceptions.h"
 #include "mmpbsa_io.h"
 
+namespace mmpbsa_utils{
+
 class XMLParser {
 public:
     XMLParser();
@@ -73,7 +75,11 @@ private:
     xmlNodePtr head;/* top node in the tree */
 };
 
-class XMLParserException : public MMPBSAException
+};//end namespace mmpbsa_utils
+
+namespace mmpbsa{
+
+class XMLParserException : public mmpbsa::MMPBSAException
 {
     public:
     /**
@@ -81,13 +87,15 @@ class XMLParserException : public MMPBSAException
      *
      * @param error
      */
-    XMLParserException(const std::string& error) : MMPBSAException( error){}
+    XMLParserException(const std::string& error) : mmpbsa::MMPBSAException( error){}
 
-    XMLParserException(const std::string& error, const MMPBSAErrorTypes& errorType)
-        : MMPBSAException(error,errorType){}
+    XMLParserException(const std::string& error, const mmpbsa::MMPBSAErrorTypes& errorType)
+        : mmpbsa::MMPBSAException(error,errorType){}
 
     const char* identifier(){return "XML Parser Error";}
 };
+
+};//end namespace mmpbsa
 
 #endif	/* XMLPARSER_H */
 

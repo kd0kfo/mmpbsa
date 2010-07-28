@@ -1,3 +1,22 @@
+Latest change: 
+Restructored the library, placing everything not centered around the main() function in mmpbsa.cpp, in the "mmpbsa" namespace. Also SanderParm was placed in its own c++ file. Both of these choices are based on using mmpbsa as a library with other programs which will be developed later.
+
+Previous GIT log:
+
+commit c56f449e549f4fa3cdda1933fcfcdc2d895941ec
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jul 27 14:48:15 2010 -0500
+
+    Renamed Energy.* to EmpEnerFun.*
+    	There may be more pure energy classes later with MD calculations.
+    	Therefore, I may not want to call this Energy.
+
+commit ac87455b636646156b0afecd1879fac70ae34442
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Jul 27 10:13:17 2010 -0500
+
+    Information file updates. Nothing major.
+
 commit 95c7849d522386849fe724138d2d4d8ac3a7a2e1
 Author: David Coss <David.Coss@stjude.org>
 Date:   Tue Jul 27 09:21:14 2010 -0500

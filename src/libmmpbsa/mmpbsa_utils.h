@@ -1,8 +1,7 @@
 /* 
- * File:   mmpbsa_utils.h
- * Author: dcoss
+ * Utility functions and type/constant definitions for the MMPBSA library.
  *
- * Created on June 23, 2010, 9:08 AM
+ * Created by David Coss <David.Coss@stjude.org> 2010
  */
 
 
@@ -10,6 +9,10 @@
 #define	MMPBSA_UTILS_H
 
 #define MMPBSA_PI 3.14159265358979323846
+#define DEFAULT_SCNB 2.0
+#define DEFAULT_SCEE 1.2
+#define DEFAULT_DIELC 1.0
+
 
 #include <fstream>
 #include <cmath>
@@ -55,7 +58,7 @@ namespace mmpbsa_utils {
      */
     mmpbsa_t lookup_radius(const std::string& atomName,
             const std::map<std::string,mmpbsa_t>& radiusMap)
-            throw (MMPBSAException);
+            throw (mmpbsa::MMPBSAException);
 
     std::string toUpperCase(const std::string& bean);
 

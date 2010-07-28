@@ -1,12 +1,14 @@
 /* 
  * Various exceptions (hopefully not) thrown by mmpbsa classes.
  *
- * Created on June 18, 2010, 8:52 AM
+ * Created by David Coss <David.Coss@stjude.org> 2010
  */
 #include <stdexcept>
 
 #ifndef MMPBSA_EXCEPTIONS_H
 #define	MMPBSA_EXCEPTIONS_H
+
+namespace mmpbsa{
 
 //MMPBSAErrorTypes could be used as return values. Therefore, zero is not used.
 enum MMPBSAErrorTypes {UNKNOWN_ERROR = 1, /*<Avoid, as this is vague.*/
@@ -67,7 +69,7 @@ public:
     const char* identifier(){return "SanderIO Error";}
 };
 
-
+};//end namespace mmpbsa
 
 #endif	/* MMPBSA_EXCEPTIONS_H */
 

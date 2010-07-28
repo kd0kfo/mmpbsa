@@ -1,3 +1,11 @@
+/**
+ * String Tokenizer
+ * Borrowed from previous work.
+ *
+ * Copyright David Coss 2010
+ * Copying and distributing are permitted under the terms of the GNU Public License version 3(see COPYING or http://www.gnu.org/licenses/gpl.txt).
+*/
+
 #ifndef STRINGTOKENIZER_CPP
 #define STRINGTOKENIZER_CPP
 
@@ -9,11 +17,6 @@
 
 namespace mmpbsa_utils{
 
-  /**
-   * String Tokenizer
-   * Copyright David Coss 2010
-   * Copying and distributing are permitted under the terms of the GNU Public License version 3(see COPYING or http://www.gnu.org/licenses/gpl.txt).
-   */
   class StringTokenizer
   {
   public:
@@ -118,10 +121,10 @@ namespace mmpbsa_utils{
 
   };
 
-  
 }
 
-
+namespace mmpbsa{
+    
 class TokenizerException : public MMPBSAException
 {
 public:
@@ -133,6 +136,8 @@ public:
     const char* identifier(){return "String Tokenizer Error";}
 
   };
+
+}
 
 #endif
 

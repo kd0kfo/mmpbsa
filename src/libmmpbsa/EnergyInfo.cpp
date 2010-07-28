@@ -1,18 +1,18 @@
 #include "EnergyInfo.h"
 
-EnergyInfo::EnergyInfo() {
+mmpbsa::EnergyInfo::EnergyInfo() {
     energydata;
     energydata.resize(total_parameters,0);
 }
 
-EnergyInfo::EnergyInfo(const EnergyInfo& orig) {
+mmpbsa::EnergyInfo::EnergyInfo(const mmpbsa::EnergyInfo& orig) {
     energydata = orig.energydata;
 }
 
-EnergyInfo::~EnergyInfo() {
+mmpbsa::EnergyInfo::~EnergyInfo() {
 }
 
-EnergyInfo& EnergyInfo::operator=(const EnergyInfo& rhs)
+mmpbsa::EnergyInfo& mmpbsa::EnergyInfo::operator=(const mmpbsa::EnergyInfo& rhs)
 {
     if (this == &rhs)
         return *this;
@@ -22,42 +22,42 @@ EnergyInfo& EnergyInfo::operator=(const EnergyInfo& rhs)
 
 }
 
-EnergyInfo EnergyInfo::operator+(const EnergyInfo& rhs)const
+mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator+(const mmpbsa::EnergyInfo& rhs)const
 {
     EnergyInfo tmp;
     tmp.energydata = energydata+rhs.energydata;
     return tmp;
 }
 
-void EnergyInfo::operator+=(const EnergyInfo& rhs)
+void mmpbsa::EnergyInfo::operator+=(const EnergyInfo& rhs)
 {
     energydata += rhs.energydata;
 }
-EnergyInfo EnergyInfo::operator-(const EnergyInfo& rhs)const
+mmpbsa::EnergyInfo mmpbsa:: EnergyInfo::operator-(const mmpbsa::EnergyInfo& rhs)const
 {
     EnergyInfo tmp;
     tmp.energydata = energydata-rhs.energydata;
     return tmp;
 }
 
-void EnergyInfo::operator-=(const EnergyInfo& rhs)
+void mmpbsa::EnergyInfo::operator-=(const mmpbsa::EnergyInfo& rhs)
 {
     energydata -= rhs.energydata;
 }
 
-EnergyInfo EnergyInfo::operator/(const EnergyInfo& rhs)const
+mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator/(const mmpbsa::EnergyInfo& rhs)const
 {
-    EnergyInfo returnMe;
+    mmpbsa::EnergyInfo returnMe;
     returnMe.energydata = energydata/rhs.energydata;
     return returnMe;
 }
 
-void EnergyInfo::operator/=(const EnergyInfo& rhs)
+void mmpbsa::EnergyInfo::operator/=(const mmpbsa::EnergyInfo& rhs)
 {
     energydata /= rhs.energydata;
 }
 
-void EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
+void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
 {
     using std::string;
     using mmpbsa_io::getNextLine;
@@ -94,7 +94,7 @@ void EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
 
 }
 
-void EnergyInfo::get_first_energyinfo(const char* fileName)
+void mmpbsa::EnergyInfo::get_first_energyinfo(const char* fileName)
 {
     std::fstream mdout;
     mmpbsa_io::fileopen(fileName,std::ios::in,mdout);
@@ -102,14 +102,14 @@ void EnergyInfo::get_first_energyinfo(const char* fileName)
     mdout.close();
 }
 
-bool EnergyInfo::loadEnergyValue(const std::string& identifier,const std::string& value)
+bool mmpbsa::EnergyInfo::loadEnergyValue(const std::string& identifier,const std::string& value)
 {
     float dblValue = 0;
     sscanf(value.c_str(),"%f",&dblValue);
     return loadEnergyValue(identifier,dblValue);
 }
 
-bool EnergyInfo::loadEnergyValue(const std::string& identifier,const mmpbsa_t& value)
+bool mmpbsa::EnergyInfo::loadEnergyValue(const std::string& identifier,const mmpbsa_t& value)
 {
     //ensure the energydata valarray is the correct size. If not, whatever is
     //there is lost. Not a problem, because in that case something is wrong anyways.
@@ -194,26 +194,26 @@ bool EnergyInfo::loadEnergyValue(const std::string& identifier,const mmpbsa_t& v
     return true;
 }
 
-void EnergyInfo::clear()
+void mmpbsa::EnergyInfo::clear()
 {
     energydata *= 0.0;
 }
 
-AveRmsEnerInfo::AveRmsEnerInfo()
+mmpbsa::AveRmsEnerInfo::AveRmsEnerInfo()
 {
     avg;
     rms;
     relrms;
 }
 
-AveRmsEnerInfo::AveRmsEnerInfo(const AveRmsEnerInfo& orig)
+mmpbsa::AveRmsEnerInfo::AveRmsEnerInfo(const mmpbsa::AveRmsEnerInfo& orig)
 {
     avg = orig.avg;
     rms = orig.rms;
     relrms = orig.relrms;
 }
 
-AveRmsEnerInfo::AveRmsEnerInfo(const EnergyInfo& avgs, const EnergyInfo& rmses)
+mmpbsa::AveRmsEnerInfo::AveRmsEnerInfo(const mmpbsa::EnergyInfo& avgs, const mmpbsa::EnergyInfo& rmses)
 {
     using std::valarray;
 
@@ -232,7 +232,7 @@ AveRmsEnerInfo::AveRmsEnerInfo(const EnergyInfo& avgs, const EnergyInfo& rmses)
             relrmsData[i] = rmsdata[i]/std::abs(avgdata[i]);
 }
 
-AveRmsEnerInfo& AveRmsEnerInfo::operator=(const AveRmsEnerInfo& rhs)
+mmpbsa::AveRmsEnerInfo& mmpbsa::AveRmsEnerInfo::operator=(const mmpbsa::AveRmsEnerInfo& rhs)
 {
     if(this == &rhs)
         return *this;
@@ -243,7 +243,7 @@ AveRmsEnerInfo& AveRmsEnerInfo::operator=(const AveRmsEnerInfo& rhs)
     return *this;
 }
 
-void AveRmsEnerInfo::get_first_energyinfo(const char* fileName)
+void mmpbsa::AveRmsEnerInfo::get_first_energyinfo(const char* fileName)
 {
     1;
 }
@@ -254,7 +254,7 @@ void AveRmsEnerInfo::get_first_energyinfo(const char* fileName)
  * @param mdoutFile
  * @return
  */
-void AveRmsEnerInfo::get_next_energyinfo(std::fstream& mdoutFile)
+void mmpbsa::AveRmsEnerInfo::get_next_energyinfo(std::fstream& mdoutFile)
 {
     using std::string;
     using mmpbsa_io::getNextLine;
@@ -268,15 +268,15 @@ void AveRmsEnerInfo::get_next_energyinfo(std::fstream& mdoutFile)
     rmses.get_next_energyinfo(mdoutFile);
     *this = AveRmsEnerInfo(avgs,rmses);
 }
-void AveRmsEnerInfo::clear()
+void mmpbsa::AveRmsEnerInfo::clear()
 {
     avg.clear();
     rms.clear();
     relrms.clear();
 }
 
-void mdout2enerinfos(std::fstream& mdout, std::valarray<EnergyInfo>& energyinfos,
-        std::valarray<AveRmsEnerInfo>& avginfos)
+void mmpbsa::mdout2enerinfos(std::fstream& mdout, std::valarray<mmpbsa::EnergyInfo>& energyinfos,
+        std::valarray<mmpbsa::AveRmsEnerInfo>& avginfos)
 {
     /**
     """Given an open file object for an MDOUT file, return a pair of
@@ -320,8 +320,8 @@ void mdout2enerinfos(std::fstream& mdout, std::valarray<EnergyInfo>& energyinfos
     int avginfoIndex = 0;
     int energyinfoIndex = 0;
 
-    EnergyInfo newEnergyInfo;
-    AveRmsEnerInfo newAvgInfo;
+    mmpbsa::EnergyInfo newEnergyInfo;
+    mmpbsa::AveRmsEnerInfo newAvgInfo;
     while(!mdout.eof())
     {
         //peek
@@ -347,13 +347,13 @@ void mdout2enerinfos(std::fstream& mdout, std::valarray<EnergyInfo>& energyinfos
             
 }
 
-float get_minimized_energy(std::fstream& mdout) throw (SanderIOException)
+float mmpbsa::get_minimized_energy(std::fstream& mdout) throw (SanderIOException)
 {
     using std::string;
     using mmpbsa_io::getNextLine;
     
     if(!mdout.is_open())
-        throw SanderIOException("Cannot read mdout file to obtain final energy",FILE_READ_ERROR);
+        throw mmpbsa::SanderIOException("Cannot read mdout file to obtain final energy",FILE_READ_ERROR);
 
     mdout.seekg(0,std::ios::beg);
 
@@ -383,7 +383,7 @@ float get_minimized_energy(std::fstream& mdout) throw (SanderIOException)
 
 }
 
-void EnergyInfo::setEnergyData(const std::valarray<mmpbsa_t>& newData)
+void mmpbsa::EnergyInfo::setEnergyData(const std::valarray<mmpbsa_t>& newData)
 {
     if(newData.size() != this->total_parameters)
     {

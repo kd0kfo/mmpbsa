@@ -1,5 +1,5 @@
 #include "mmpbsa.h"
-#include "XMLParser.h"
+
 
 int main(int argc, char** argv)
 {
@@ -14,7 +14,7 @@ int main(int argc, char** argv)
         currState.close();
         return returnMe;
     }    
-    catch (MMPBSAException e)
+    catch (mmpbsa::MMPBSAException e)
     {
         std::cerr << e.identifier() << ": " << e.what() << std::endl;
         if(currState.trustPrmtop)
@@ -31,6 +31,7 @@ int realDeal(int argc, char** argv)
     using std::vector;
     using std::slice;
     using std::map;
+    using namespace mmpbsa;
 
     MeadInterface mi;
 
@@ -42,10 +43,13 @@ int realDeal(int argc, char** argv)
 
     currState.receptorStartPos.push_back(0);//would be better as a command line argument, but I don't know yet what this will look like. To add later.
     currState.ligandStartPos.push_back(1);//array containing the starting positions of ligands and receiptors
-    parseArgs(argc,argv,mi);
+    
+    int retval = parseArgs(argc,argv,mi);
+    if(retval)
+        return retval - 1;//this way "help, for example, will trigger exiting (retval = 1), but will return the program with an exit value of 0 (i.e. not an error-based exit);
 
     //load and check the parmtop file.
-    mmpbsa_io::SanderParm * sp = new mmpbsa_io::SanderParm;
+    mmpbsa::SanderParm * sp = new mmpbsa::SanderParm;
     sp->raw_read_amber_parm(currState.prmtopFile);
     if(!currState.trustPrmtop)
         if(!sp->sanityCheck())
@@ -226,24 +230,33 @@ int realDeal(int argc, char** argv)
     return 0;
 }
 
-void parseArgs(int argc, char** argv, MeadInterface& mi)
+int parseArgs(int argc, char** argv, mmpbsa::MeadInterface& mi)
 {
     using std::string;
     for(int i = 1;i<argc;i++)
     {
         string currArg = argv[i];
-        
+        int retval = 0;
         if(currArg.substr(0,2) == "--")
             currArg.erase(currArg.begin(),currArg.begin()+2);
 
         if(currArg.find("=") != string::npos)
-            parseParameter(currArg,mi);
+        {
+            retval = parseParameter(currArg,mi);
+            if(retval)
+                return retval;
+        }
         else
-            parseFlag(currArg,mi);
+        {
+            retval = parseFlag(currArg,mi);
+            if(retval)
+                return retval;
+        }
     }
+    return 0;
 }
 
-void parseParameter(std::string arg, MeadInterface& mi)
+int parseParameter(std::string arg, mmpbsa::MeadInterface& mi)
 {
     if(arg.find("=") == string::npos)
         return parseFlag(arg,mi);//oops that's a flag.
@@ -252,7 +265,7 @@ void parseParameter(std::string arg, MeadInterface& mi)
     {
         char error[256];
         sprintf(error,"Multiple occurance of \"=\" in parameter: %s\n",arg.c_str());
-        throw MMPBSAException(error,COMMAND_LINE_ERROR);
+        throw mmpbsa::MMPBSAException(error,mmpbsa::COMMAND_LINE_ERROR);
     }
     
     using std::string;
@@ -317,32 +330,38 @@ void parseParameter(std::string arg, MeadInterface& mi)
     }
     else
     {
-        fprintf(stderr,"I don't know what to do with the parameter %s (=%s)\n",name.c_str(),value.c_str());
+      char error[256];
+      sprintf(error,"I don't know what to do with the parameter %s (=%s)\n",name.c_str(),value.c_str());
+      throw mmpbsa::MMPBSAException(error,mmpbsa::COMMAND_LINE_ERROR);
     }
+    return 0;
 }
 
-void parseFlag(std::string flag, MeadInterface& mi)
+int parseFlag(std::string flag, mmpbsa::MeadInterface& mi)
 {
     if(flag.find("=") != flag.npos)
     {
         parseParameter(flag,mi);//Oops that's a flag.
-        return;
+        return 0;
     }
 
     if(flag == "help" || flag == "h")
       {
 	std::cout << helpString() << std::endl;
-	return;
+	return 1;
       }
     else if(flag == "trust_prmtop")
     {
         currState.trustPrmtop = true;
+	return 0;
     }
 
-    fprintf(stderr,"I don't know what to do with the flag \"%s\"\n",flag.c_str());
+    char error[256];
+    sprintf(error,"I don't know what to do with the flag \"%s\"",flag.c_str());
+    throw mmpbsa::MMPBSAException(error,mmpbsa::COMMAND_LINE_ERROR);
 }
 
-void loadListArg(const std::string& values,std::vector<size_t>& array)
+int loadListArg(const std::string& values,std::vector<size_t>& array)
 {
     using mmpbsa_utils::StringTokenizer;
     StringTokenizer valTokens(values,",");
@@ -353,6 +372,7 @@ void loadListArg(const std::string& values,std::vector<size_t>& array)
         sscanf(curr.c_str(),"%d",&currValue);
         array.push_back(size_t(currValue));
     }
+    return 0;
 }
 
 std::string helpString()
@@ -383,7 +403,7 @@ MMPBSAState::MMPBSAState()
 
 bool MMPBSAState::checkpoint_in(const std::string& fileName)
 {
-    XMLParser xmlDoc;
+    mmpbsa_utils::XMLParser xmlDoc;
     std::string theFileName = fileName;
 #ifdef __USE_BOINC__
     int boinc_resolve_filename_s(fileName.c_str(), theFileName);
@@ -392,7 +412,7 @@ bool MMPBSAState::checkpoint_in(const std::string& fileName)
     {
         xmlDoc.parse(theFileName);
     }
-    catch(::XMLParserException xpe)
+    catch(mmpbsa::XMLParserException xpe)
     {
         if(this->checkpointCounter == 0)
             return false;
@@ -401,7 +421,7 @@ bool MMPBSAState::checkpoint_in(const std::string& fileName)
             char error[40+strlen(xpe.what())+fileName.size()];
             xpe.what();
             sprintf(error,"Trouble opening XML file: %s -> %s\n",theFileName.c_str(),xpe.what());
-            throw XMLParserException(error,xpe.getErrType());
+            throw mmpbsa::XMLParserException(error,xpe.getErrType());
         }
     }
     
@@ -472,7 +492,7 @@ void MMPBSAState::checkpoint_out()
     checkMap["current_snap"] = buff;
     sprintf(buff,"%d",this->checkpointCounter);
     checkMap["checkpoint_counter"] = buff;
-    XMLParser xmlDoc("mmpbsa_state",checkMap);
+    mmpbsa_utils::XMLParser xmlDoc("mmpbsa_state",checkMap);
     xmlDoc.write(this->checkpointFilename);
 
 #ifdef __USE_BOINC__

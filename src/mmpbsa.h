@@ -6,11 +6,12 @@
 #include <valarray>
 #include <fstream>
 
-#include "mmpbsa_exceptions.h"
-#include "mmpbsa_io.h"
-#include "EnergyInfo.h"
-#include "EmpEnerFun.h"
-#include "MeadInterface.h"
+#include "libmmpbsa/mmpbsa_exceptions.h"
+#include "libmmpbsa/mmpbsa_io.h"
+#include "libmmpbsa/EnergyInfo.h"
+#include "libmmpbsa/EmpEnerFun.h"
+#include "libmmpbsa/MeadInterface.h"
+#include "libmmpbsa/XMLParser.h"
 
 #include "MEAD/FinDiffMethod.h"
 
@@ -23,8 +24,8 @@
  * @return
  */
 int realDeal(int argc, char** argv);
-void printSnapshot(const EMap& complexEMap, const EMap& receptorEMap,
-        const EMap& ligandEMap, std::fstream& outFile);
+void printSnapshot(const mmpbsa::EMap& complexEMap, const mmpbsa::EMap& receptorEMap,
+        const mmpbsa::EMap& ligandEMap, std::fstream& outFile);
 
 /**
  * Takes the command line arguments and performs the necessary functions.
@@ -33,7 +34,7 @@ void printSnapshot(const EMap& complexEMap, const EMap& receptorEMap,
  * @param argv
  * @param mi
  */
-void parseArgs(int argc, char** argv, MeadInterface& mi);
+int parseArgs(int argc, char** argv, mmpbsa::MeadInterface& mi);
 
 /**
  * When a command line argument provides data or information(to the right of an
@@ -42,7 +43,7 @@ void parseArgs(int argc, char** argv, MeadInterface& mi);
  * @param arg
  * @param mi
  */
-void parseParameter(std::string arg, MeadInterface& mi);
+int parseParameter(std::string arg, mmpbsa::MeadInterface& mi);
 
 /**
  * When a command line argument toggles a program flag, this method makes the
@@ -51,7 +52,7 @@ void parseParameter(std::string arg, MeadInterface& mi);
  * @param flag
  * @param mi
  */
-void parseFlag(std::string flag, MeadInterface& mi);
+int parseFlag(std::string flag, mmpbsa::MeadInterface& mi);
 
 /**
  * When a parameter has a list of variables (separated by commas), this method
@@ -60,7 +61,7 @@ void parseFlag(std::string flag, MeadInterface& mi);
  * @param values
  * @param array
  */
-void loadListArg(const std::string& values,std::vector<size_t>& array);
+int loadListArg(const std::string& values,std::vector<size_t>& array);
 
 /**
  * Creates a string about the usage of the program, listing the parameters and

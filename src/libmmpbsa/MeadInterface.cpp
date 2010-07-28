@@ -1,6 +1,6 @@
 #include "MeadInterface.h"
 
-MeadInterface::MeadInterface() {
+mmpbsa::MeadInterface::MeadInterface() {
     brad;
     brad["N"] = 1.550;
     brad["H"] = 1.200;
@@ -17,28 +17,28 @@ MeadInterface::MeadInterface() {
     surf_offset = 0.92;// kcal/mol
 }
 
-MeadInterface::MeadInterface(const MeadInterface& orig) {
+mmpbsa::MeadInterface::MeadInterface(const mmpbsa::MeadInterface& orig) {
     brad = orig.brad;
     istrength = orig.istrength;
     surf_offset = orig.surf_offset;
     surf_tension = orig.surf_tension;
 }
 
-MeadInterface::~MeadInterface() {
+mmpbsa::MeadInterface::~MeadInterface() {
     brad.clear();
 }
 
-FinDiffMethod MeadInterface::createFDM(const std::valarray<mmpbsa_t>& complexCrds,
+FinDiffMethod mmpbsa::MeadInterface::createFDM(const std::valarray<mmpbsa_t>& complexCrds,
         const std::valarray<mmpbsa_t>& receptorCrds, const std::valarray<mmpbsa_t>& ligandCrds,
-        const int& outbox_grid_dim, const mmpbsa_t& fine_grid_spacing) throw (MMPBSAException)
+        const int& outbox_grid_dim, const mmpbsa_t& fine_grid_spacing) throw (mmpbsa::MeadException)
 {
     using std::max;
     
     if(complexCrds.size() == 0 || receptorCrds.size() == 0 || ligandCrds.size() == 0)
-        throw MMPBSAException("Trivial coordinates supplied to createFDM must be 3-D.",DATA_FORMAT_ERROR);
+        throw MeadException("Trivial coordinates supplied to createFDM must be 3-D.",DATA_FORMAT_ERROR);
     
     if(complexCrds.size() % 3 != 0 || receptorCrds.size() % 3 != 0 || ligandCrds.size() % 3 != 0)
-        throw MMPBSAException("Coordinates supplied to createFDM must be 3-D.",DATA_FORMAT_ERROR);
+        throw MeadException("Coordinates supplied to createFDM must be 3-D.",DATA_FORMAT_ERROR);
 
     //Obtain Complex dimensions and size
     mmpbsa_t comMax[3] = {complexCrds[0],complexCrds[1],complexCrds[2]};
@@ -106,12 +106,12 @@ FinDiffMethod MeadInterface::createFDM(const std::valarray<mmpbsa_t>& complexCrd
     return fdm;
 }
 
-EMap MeadInterface::full_EMap(const EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
+mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
         const FinDiffMethod& fdm, const std::map<std::string,mmpbsa_t>& radii,
         const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
-        const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (MMPBSAException)
+        const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException)
 {
-    EMap returnMe(&efun,crds);
+    mmpbsa::EMap returnMe(&efun,crds);
     mmpbsa_t * pbsa_values = pbsa_solvation(efun,crds,fdm,radii,residueMap,interactionStrength);
     returnMe.set_elstat_solv(pbsa_values[0]);
     returnMe.set_area(pbsa_values[1]);
@@ -120,21 +120,21 @@ EMap MeadInterface::full_EMap(const EmpEnerFun& efun, const std::valarray<mmpbsa
     return returnMe;
 }
 
-mmpbsa_t* MeadInterface::pbsa_solvation(const EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
+mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
         const FinDiffMethod& fdm, const std::map<std::string,mmpbsa_t>& radii,
         const std::map<std::string,std::string>& residueMap,
-        const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius) throw (MMPBSAException)
+        const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius) throw (mmpbsa::MeadException)
 {
     if(crds.size() % 3 != 0)
-        throw MMPBSAException("Coordinates supplied to pbsa_solvation must be "
+        throw mmpbsa::MeadException("Coordinates supplied to pbsa_solvation must be "
                 "3-D coordinates.", DATA_FORMAT_ERROR);
 
     mmpbsa_t * returnMe = new mmpbsa_t[2];size_t esol = 0;size_t area = 1;
 
-    MeadInterface MI;//stores bond info for atoms not in radii.
+    mmpbsa::MeadInterface MI;//stores bond info for atoms not in radii.
     //PB
     AtomSet atmSet;
-    const mmpbsa_io::SanderParm * parminfo = efun.parminfo;
+    const mmpbsa::SanderParm * parminfo = efun.parminfo;
     for(size_t i = 0;i<parminfo->natom;i++)
     {
         Atom currAtom;

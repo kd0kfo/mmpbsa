@@ -5,3 +5,7 @@ git clone git://TBA
 
 Then a development log may be found by running
 git log (which is periodically dumped into ChangeLog)
+
+For help on installation see INSTALL.
+
+This program is release under the terms of the GNU Public License (GPL), which is outlined in COPYING. If the file COPYING is missing, see http://www.gnu.org for details. All libraries used with the mmpbsa library and program "mmpbsa" are GPL compliant as well.

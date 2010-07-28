@@ -1,6 +1,6 @@
 #include "EmpEnerFun.h"
 
-EmpEnerFun::EmpEnerFun()
+mmpbsa::EmpEnerFun::EmpEnerFun()
 {
     parminfo = 0;
 
@@ -12,7 +12,7 @@ EmpEnerFun::EmpEnerFun()
     
 }
 
-EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb,
+mmpbsa::EmpEnerFun::EmpEnerFun(mmpbsa::SanderParm * newparminfo, const mmpbsa_t& scnb,
         const mmpbsa_t& scee, const mmpbsa_t& dielc)
 {
     using namespace mmpbsa_utils;
@@ -191,7 +191,7 @@ EmpEnerFun::EmpEnerFun(mmpbsa_io::SanderParm * newparminfo, const mmpbsa_t& scnb
 
 }/*end of constructor*/
 
-EmpEnerFun::EmpEnerFun(const EmpEnerFun& orig)
+mmpbsa::EmpEnerFun::EmpEnerFun(const mmpbsa::EmpEnerFun& orig)
 {
     using std::vector;
     using std::valarray;
@@ -245,12 +245,12 @@ EmpEnerFun::EmpEnerFun(const EmpEnerFun& orig)
 }
 
 //do not delete parminfo. It is externally made and should be deleted outside of EmpEnerInfo
-EmpEnerFun::~EmpEnerFun()
+mmpbsa::EmpEnerFun::~EmpEnerFun()
 {
     
 }
 
-EmpEnerFun& EmpEnerFun::operator=(const EmpEnerFun& orig)
+mmpbsa::EmpEnerFun& mmpbsa::EmpEnerFun::operator=(const mmpbsa::EmpEnerFun& orig)
 {
     using std::vector;
     using std::valarray;
@@ -307,7 +307,7 @@ EmpEnerFun& EmpEnerFun::operator=(const EmpEnerFun& orig)
     return *this;
 }
 
-std::string EmpEnerFun::ereport(const std::valarray<mmpbsa_t>& crds)
+std::string mmpbsa::EmpEnerFun::ereport(const std::valarray<mmpbsa_t>& crds)
 {
     char ereport[512];
     mmpbsa_t bon,ang,dihe,vdw14,ele14,vdw,ele;
@@ -331,7 +331,7 @@ std::string EmpEnerFun::ereport(const std::valarray<mmpbsa_t>& crds)
     return returnMe;
 }
 
-std::valarray<size_t> EmpEnerFun::get_res_ranges(const std::valarray<size_t>& resptr,
+std::valarray<size_t> mmpbsa::EmpEnerFun::get_res_ranges(const std::valarray<size_t>& resptr,
         const size_t& natoms) {
     std::valarray<size_t> res_ranges(2 * resptr.size());
 
@@ -347,7 +347,7 @@ std::valarray<size_t> EmpEnerFun::get_res_ranges(const std::valarray<size_t>& re
     return res_ranges;
 }
 
-std::valarray<size_t> EmpEnerFun::get_mol_ranges(const std::valarray<size_t>& molptrs) {
+std::valarray<size_t> mmpbsa::EmpEnerFun::get_mol_ranges(const std::valarray<size_t>& molptrs) {
     std::valarray<size_t> mol_ranges(2 * molptrs.size());
 
     size_t mol_range_index = 0;
@@ -363,13 +363,13 @@ std::valarray<size_t> EmpEnerFun::get_mol_ranges(const std::valarray<size_t>& mo
     return mol_ranges;
 }
 
-EmpEnerFun EmpEnerFun::stripEnerFun(const std::valarray<bool>& keepers,
+mmpbsa::EmpEnerFun mmpbsa::EmpEnerFun::stripEnerFun(const std::valarray<bool>& keepers,
         const bool& dangleWarn) const
 {
     using std::valarray;
     using std::vector;
     using std::slice;
-    using namespace mmpbsa_io;
+    using namespace mmpbsa;
     
     if(keepers.size() != parminfo->natom)
     {
@@ -603,21 +603,21 @@ EmpEnerFun EmpEnerFun::stripEnerFun(const std::valarray<bool>& keepers,
 }//end stripEnerFun(...)
 
 //Energy Calculations
-mmpbsa_t EmpEnerFun::bond_inc_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::bond_inc_H(const std::valarray<mmpbsa_t>& crds)const
 {
     return bond_energy_calc(crds,parminfo->bonds_inc_hydrogen);
 }
 
-mmpbsa_t EmpEnerFun::bond_without_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::bond_without_H(const std::valarray<mmpbsa_t>& crds)const
 {
     return bond_energy_calc(crds,parminfo->bonds_without_hydrogen);
 }
 
-mmpbsa_t EmpEnerFun::bond_energy_calc(const std::valarray<mmpbsa_t>& crds,
+mmpbsa_t mmpbsa::EmpEnerFun::bond_energy_calc(const std::valarray<mmpbsa_t>& crds,
         const std::valarray<size_t>& bondIndices)const
 {
     if(crds.size() % 3 != 0)
-        throw MMPBSAException("Coordinate arrays must be a multiple of 3. "
+        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
                 "bond_energy_calc was given one that was not.",INVALID_ARRAY_SIZE);
     
     size_t numBonds = size_t(bondIndices.size()/3);
@@ -641,22 +641,22 @@ mmpbsa_t EmpEnerFun::bond_energy_calc(const std::valarray<mmpbsa_t>& crds,
 
 }
 
-mmpbsa_t EmpEnerFun::angle_inc_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::angle_inc_H(const std::valarray<mmpbsa_t>& crds)const
 {
     return angle_energy_calc(crds,parminfo->angles_inc_hydrogen);
 }
 
-mmpbsa_t EmpEnerFun::angle_without_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::angle_without_H(const std::valarray<mmpbsa_t>& crds)const
 {
     return angle_energy_calc(crds,parminfo->angles_without_hydrogen);
 }
 
-mmpbsa_t EmpEnerFun::angle_energy_calc(const std::valarray<mmpbsa_t>& crds,
+mmpbsa_t mmpbsa::EmpEnerFun::angle_energy_calc(const std::valarray<mmpbsa_t>& crds,
         const std::valarray<size_t>& angleIndices)const
 {
     if(crds.size() % 3 != 0)
-        throw MMPBSAException("Coordinate arrays must be a multiple of 3. "
-                "bond_energy_calc was given one that was not.",INVALID_ARRAY_SIZE);
+        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
+                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
     
     size_t numAngles = size_t(angleIndices.size()/4);
     mmpbsa_t totalEnergy = 0;//total energy = \sum^N_m (const_m*(angle_m-eq_m)^2)
@@ -681,22 +681,22 @@ mmpbsa_t EmpEnerFun::angle_energy_calc(const std::valarray<mmpbsa_t>& crds,
     return totalEnergy;
 }
 
-mmpbsa_t EmpEnerFun::dihedral_inc_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::dihedral_inc_H(const std::valarray<mmpbsa_t>& crds)const
 {
     return dihedral_energy_calc(crds,parminfo->dihedrals_inc_hydrogen);
 }
 
-mmpbsa_t EmpEnerFun::dihedral_without_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::dihedral_without_H(const std::valarray<mmpbsa_t>& crds)const
 {
     return dihedral_energy_calc(crds,parminfo->dihedrals_without_hydrogen);
 }
 
-mmpbsa_t EmpEnerFun::dihedral_energy_calc(const std::valarray<mmpbsa_t>& crds,
+mmpbsa_t mmpbsa::EmpEnerFun::dihedral_energy_calc(const std::valarray<mmpbsa_t>& crds,
         const std::valarray<size_t>& dihedralIndices)const
 {
     if(crds.size() % 3 != 0)
-        throw MMPBSAException("Coordinate arrays must be a multiple of 3. "
-                "bond_energy_calc was given one that was not.",INVALID_ARRAY_SIZE);
+        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
+                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
     using namespace mmpbsa_utils;
     mmpbsa_t * r_ij = new mmpbsa_t[3];//simply easier to put coordinates into an array
@@ -732,7 +732,7 @@ mmpbsa_t EmpEnerFun::dihedral_energy_calc(const std::valarray<mmpbsa_t>& crds,
             char* error;
             sprintf(error,"dihedral routine fails on %d,%d,%d,%d: ct1 = %f\n",
                     dihedralIndices[5*i],dihedralIndices[5*i+1],dihedralIndices[5*i+2],dihedralIndices[5*i+3],dihedralIndices[5*i+4],ct1);
-            throw MMPBSAException(error,DATA_FORMAT_ERROR);
+            throw mmpbsa::MMPBSAException(error,mmpbsa::DATA_FORMAT_ERROR);
         }
 
         if(ct1 > 1)
@@ -778,23 +778,23 @@ mmpbsa_t EmpEnerFun::dihedral_energy_calc(const std::valarray<mmpbsa_t>& crds,
     return totalEnergy;
 }
 
-mmpbsa_t EmpEnerFun::vdw14_inc_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::vdw14_inc_H(const std::valarray<mmpbsa_t>& crds)const
 {
     return vdw14_energy_calc(crds,parminfo->dihedrals_inc_hydrogen,parminfo->dihedral_h_mask);
 }
 
-mmpbsa_t EmpEnerFun::vdw14_without_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::vdw14_without_H(const std::valarray<mmpbsa_t>& crds)const
 {
     return vdw14_energy_calc(crds,parminfo->dihedrals_without_hydrogen,parminfo->dihedral_mask);
 }
 
 
-mmpbsa_t EmpEnerFun::vdw14_energy_calc(const std::valarray<mmpbsa_t>& crds,
+mmpbsa_t mmpbsa::EmpEnerFun::vdw14_energy_calc(const std::valarray<mmpbsa_t>& crds,
         const std::valarray<size_t>& dihedralIndices,const std::valarray<bool>& phi_mask)const
 {
     if(crds.size() % 3 != 0)
-        throw MMPBSAException("Coordinate arrays must be a multiple of 3. "
-                "bond_energy_calc was given one that was not.",INVALID_ARRAY_SIZE);
+        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
+                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
     const size_t& ntypes = parminfo->ntypes;
     size_t numDihedrals = size_t(dihedralIndices.size()/5);
@@ -831,22 +831,22 @@ mmpbsa_t EmpEnerFun::vdw14_energy_calc(const std::valarray<mmpbsa_t>& crds,
 
 }
 
-mmpbsa_t EmpEnerFun::elstat14_inc_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::elstat14_inc_H(const std::valarray<mmpbsa_t>& crds)const
 {
     return elstat14_energy_calc(crds,parminfo->dihedrals_inc_hydrogen,parminfo->dihedral_h_mask);
 }
 
-mmpbsa_t EmpEnerFun::elstat14_without_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::elstat14_without_H(const std::valarray<mmpbsa_t>& crds)const
 {
     return elstat14_energy_calc(crds,parminfo->dihedrals_without_hydrogen,parminfo->dihedral_mask);
 }
 
-mmpbsa_t EmpEnerFun::elstat14_energy_calc(const std::valarray<mmpbsa_t>& crds,
+mmpbsa_t mmpbsa::EmpEnerFun::elstat14_energy_calc(const std::valarray<mmpbsa_t>& crds,
         const std::valarray<size_t>& dihedralIndices, const std::valarray<bool>& phi_mask)const
 {
     if(crds.size() % 3 != 0)
-        throw MMPBSAException("Coordinate arrays must be a multiple of 3. "
-                "bond_energy_calc was given one that was not.",INVALID_ARRAY_SIZE);
+        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
+                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
 
     size_t numDihedrals = size_t(dihedralIndices.size()/5);
@@ -875,11 +875,11 @@ mmpbsa_t EmpEnerFun::elstat14_energy_calc(const std::valarray<mmpbsa_t>& crds,
     return totalEnergy;
 }
 
-mmpbsa_t EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>& crds)const
 {
     if(crds.size() % 3 != 0)
-        throw MMPBSAException("Coordinate arrays must be a multiple of 3. "
-                "bond_energy_calc was given one that was not.",INVALID_ARRAY_SIZE);
+        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
+                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
     mmpbsa_t totalEnergy = 0;
     size_t natom = parminfo->natom;
@@ -910,11 +910,11 @@ mmpbsa_t EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>& crds)co
 }
 
 
-mmpbsa_t EmpEnerFun::total_elstat_energy(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_elstat_energy(const std::valarray<mmpbsa_t>& crds)const
 {
     if(crds.size() % 3 != 0)
-        throw MMPBSAException("Coordinate arrays must be a multiple of 3. "
-                "bond_energy_calc was given one that was not.",INVALID_ARRAY_SIZE);
+        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
+                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
     mmpbsa_t totalEnergy = 0;
     size_t natom = parminfo->natom;
@@ -939,7 +939,7 @@ mmpbsa_t EmpEnerFun::total_elstat_energy(const std::valarray<mmpbsa_t>& crds)con
 }
 
 
-template <class M> void EmpEnerFun::internalConvert(
+template <class M> void mmpbsa::EmpEnerFun::internalConvert(
     std::valarray<M>& newIndices,
         const std::valarray<M>& oldIndices,const std::valarray<std::slice>& slices,
         const std::valarray<size_t>& newidx,
@@ -949,13 +949,14 @@ template <class M> void EmpEnerFun::internalConvert(
     using std::valarray;
 
     if(slices.size() == 0)
-        throw MMPBSAException("At least one slice is needed for EmpEnerFun::internalConvert",UNKNOWN_ERROR);
+        throw mmpbsa::MMPBSAException("At least one slice is needed for "
+                "EmpEnerFun::internalConvert",mmpbsa::UNKNOWN_ERROR);
 
     size_t sliceSize = slices[0].size();
     for(size_t i = 1;i<slices.size();i++)
         if(sliceSize != slices[i].size())
-            throw MMPBSAException("Slices used by EmpEnerFun::internalConvert "
-                    "must have the same size",UNKNOWN_ERROR);
+            throw mmpbsa::MMPBSAException("Slices used by EmpEnerFun::internalConvert "
+                    "must have the same size",mmpbsa::UNKNOWN_ERROR);
     size_t numKeptItems = 0;
 
     //An atom is dangling if it is not kept, but other are.
@@ -1015,7 +1016,7 @@ template <class M> void EmpEnerFun::internalConvert(
 
 }//end internalConvert
 
-template <class M> void EmpEnerFun::updatePhiMasks(std::valarray<bool>& newMask,
+template <class M> void mmpbsa::EmpEnerFun::updatePhiMasks(std::valarray<bool>& newMask,
     const std::valarray<bool>& oldMask,
     const std::valarray<M>& oldIndices, const std::valarray<std::slice>& slices,
         const std::valarray<bool>& keepers, const bool& dangleWarn)
@@ -1024,13 +1025,14 @@ template <class M> void EmpEnerFun::updatePhiMasks(std::valarray<bool>& newMask,
     using std::valarray;
 
     if(slices.size() == 0)
-        throw MMPBSAException("At least one slice is needed for EmpEnerFun::internalConvert",UNKNOWN_ERROR);
+        throw mmpbsa::MMPBSAException("At least one slice is needed for "
+                "EmpEnerFun::internalConvert",mmpbsa::UNKNOWN_ERROR);
 
     size_t sliceSize = slices[0].size();
     for(size_t i = 1;i<slices.size();i++)
         if(sliceSize != slices[i].size())
-            throw MMPBSAException("Slices used by EmpEnerFun::internalConvert "
-                    "must have the same size",UNKNOWN_ERROR);
+            throw mmpbsa::MMPBSAException("Slices used by EmpEnerFun::internalConvert "
+                    "must have the same size",mmpbsa::UNKNOWN_ERROR);
     size_t numKeptItems = 0;
 
     //An atom is dangling if it is not kept, but other are.
@@ -1084,7 +1086,7 @@ template <class M> void EmpEnerFun::updatePhiMasks(std::valarray<bool>& newMask,
     }
 }//end updatePhiMasks
 
-EMap::EMap()
+mmpbsa::EMap::EMap()
 {
     bond = 0;
     angle = 0;
@@ -1099,7 +1101,7 @@ EMap::EMap()
 }
 
 
-EMap::EMap(const EMap& orig)
+mmpbsa::EMap::EMap(const mmpbsa::EMap& orig)
 {
     bond = orig.bond;
     angle = orig.angle;
@@ -1113,11 +1115,11 @@ EMap::EMap(const EMap& orig)
     sasol = orig.sasol;
 }
 
-EMap::EMap(const EmpEnerFun* efun, const std::valarray<mmpbsa_t>& crds)
+mmpbsa::EMap::EMap(const mmpbsa::EmpEnerFun* efun, const std::valarray<mmpbsa_t>& crds)
 {
     if(efun == 0)
-        throw MMPBSAException("An attempt was made to create an EMap with a null"
-                " EmpEnerFun pointer.",UNKNOWN_ERROR);
+        throw mmpbsa::MMPBSAException("An attempt was made to create an EMap with a null"
+                " EmpEnerFun pointer.",mmpbsa::UNKNOWN_ERROR);
     
     bond = efun->total_bond_energy(crds);
     angle = efun->total_angle_energy(crds);
@@ -1131,7 +1133,8 @@ EMap::EMap(const EmpEnerFun* efun, const std::valarray<mmpbsa_t>& crds)
     sasol = 0;
 }
 
-std::ostream& operator<<(std::ostream& theStream, const EMap& toWrite)
+namespace mmpbsa{
+std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite)
 {
     std::streamsize prevPrecision = theStream.precision();
     std::ios::fmtflags prevFloatfield = theStream.floatfield;
@@ -1151,8 +1154,9 @@ std::ostream& operator<<(std::ostream& theStream, const EMap& toWrite)
     theStream.setf(prevFloatfield,std::ios::floatfield);
     return theStream;
 }
+}
 
-EMap& EMap::operator=(const EMap& rhs)
+mmpbsa::EMap& mmpbsa::EMap::operator=(const mmpbsa::EMap& rhs)
 {
     if(this == &rhs)
         return *this;
@@ -1170,9 +1174,9 @@ EMap& EMap::operator=(const EMap& rhs)
     return *this;
 }
 
-EMap EMap::operator+(const EMap& rhs)
+mmpbsa::EMap mmpbsa::EMap::operator+(const mmpbsa::EMap& rhs)
 {
-    EMap returnMe;
+    mmpbsa::EMap returnMe;
     returnMe.bond = rhs.bond+bond;//i know. rhs. But addition is commutative...
     returnMe.angle = rhs.angle+angle;
     returnMe.dihed = rhs.dihed+dihed;
@@ -1186,7 +1190,7 @@ EMap EMap::operator+(const EMap& rhs)
     return returnMe;
 }
 
-EMap& EMap::operator+=(const EMap& rhs)
+mmpbsa::EMap& mmpbsa::EMap::operator+=(const mmpbsa::EMap& rhs)
 {
     bond += rhs.bond;
     angle += rhs.angle;
@@ -1201,7 +1205,7 @@ EMap& EMap::operator+=(const EMap& rhs)
     return *this;
 }
 
-EMap EMap::operator-(const EMap& rhs)
+mmpbsa::EMap mmpbsa::EMap::operator-(const mmpbsa::EMap& rhs)
 {
     EMap returnMe;
     returnMe.bond = bond-rhs.bond;
@@ -1218,7 +1222,7 @@ EMap EMap::operator-(const EMap& rhs)
 }
 
 
-EMap& EMap::operator-=(const EMap& rhs)
+mmpbsa::EMap& mmpbsa::EMap::operator-=(const mmpbsa::EMap& rhs)
 {
     bond -= rhs.bond;
     angle -= rhs.angle;
@@ -1235,7 +1239,7 @@ EMap& EMap::operator-=(const EMap& rhs)
 }
 
 
-BondWalker::BondWalker(EmpEnerFun const * efun)
+mmpbsa::BondWalker::BondWalker(mmpbsa::EmpEnerFun const * efun)
 {
     enerfun = efun;
     initialized = false;
@@ -1243,13 +1247,13 @@ BondWalker::BondWalker(EmpEnerFun const * efun)
     atom_bond_list;
 }
 
-void BondWalker::init()
+void mmpbsa::BondWalker::init()
 {
     using std::valarray;
     using std::slice;
     using std::slice_array;
 
-    mmpbsa_io::SanderParm const * const parminfo = enerfun->parminfo;
+    mmpbsa::SanderParm const * const parminfo = enerfun->parminfo;
     atom_bond_list.resize(parminfo->natom);
     size_t numBondPairs = size_t( parminfo->bonds_without_hydrogen.size()/3
         + parminfo->bonds_inc_hydrogen.size()/3 );//divide by 3 because each bond has an i,j pair plus force info
@@ -1292,7 +1296,7 @@ void BondWalker::init()
 
 }
 
-std::vector<size_t> BondWalker::walk(const size_t& startAtom,
+std::vector<size_t> mmpbsa::BondWalker::walk(const size_t& startAtom,
         std::valarray<int> stoppers,std::valarray<int>& enerfunMarkers,
         void func(std::valarray<int>& markers, const size_t& funcAtom))
 {
@@ -1310,7 +1314,7 @@ std::vector<size_t> BondWalker::walk(const size_t& startAtom,
     return returnMe;
 }
 
-void BondWalker::recwalk(std::vector<size_t>& list, const size_t& atom,
+void mmpbsa::BondWalker::recwalk(std::vector<size_t>& list, const size_t& atom,
         std::valarray<int>& enerfunMarkers,
         void func(std::valarray<int>& markers, const size_t& funcAtom))
 {

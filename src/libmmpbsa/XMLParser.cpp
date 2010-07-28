@@ -1,16 +1,16 @@
 #include "XMLParser.h"
 
-XMLParser::XMLParser() {
+mmpbsa_utils::XMLParser::XMLParser() {
     doc = 0;
     head = 0;
 }
 
-XMLParser::XMLParser(const XMLParser& orig) {
+mmpbsa_utils::XMLParser::XMLParser(const mmpbsa_utils::XMLParser& orig) {
     doc = orig.doc;
     head = orig.head;
 }
 
-XMLParser::XMLParser(const std::string& rootName, const std::map<std::string,std::string>& docMap)
+mmpbsa_utils::XMLParser::XMLParser(const std::string& rootName, const std::map<std::string,std::string>& docMap)
 {
     using std::string;
     doc = xmlNewDoc(BAD_CAST "1.0");
@@ -21,7 +21,7 @@ XMLParser::XMLParser(const std::string& rootName, const std::map<std::string,std
         xmlNewChild(head,NULL,BAD_CAST it->first.c_str(),BAD_CAST it->second.c_str());
 }
 
-XMLParser::XMLParser(const std::map<std::string,std::string>& docMap)
+mmpbsa_utils::XMLParser::XMLParser(const std::map<std::string,std::string>& docMap)
 {
     using std::string;
     if(!doc)
@@ -38,29 +38,29 @@ XMLParser::XMLParser(const std::map<std::string,std::string>& docMap)
 }
 
 
-XMLParser::~XMLParser() {
+mmpbsa_utils::XMLParser::~XMLParser() {
     xmlFreeDoc(doc);
     xmlCleanupParser();
 }
 
 
-void XMLParser::parse(const std::string& xmlFile)
+void mmpbsa_utils::XMLParser::parse(const std::string& xmlFile)
 {
     this->doc = xmlReadFile(xmlFile.c_str(), NULL, 0);
     if (doc == NULL) {
         char error[256];
         sprintf(error, "Failed to parse %s\n", xmlFile.c_str());
-        throw XMLParserException(error,::FILE_READ_ERROR);
+        throw mmpbsa::XMLParserException(error,mmpbsa::FILE_READ_ERROR);
     }
     this->head = xmlDocGetRootElement(doc);
 }
 
-void XMLParser::write(const char* fileName)
+void mmpbsa_utils::XMLParser::write(const char* fileName)
 {
     xmlSaveFormatFileEnc(fileName, doc, "UTF-8", 1);
 }
 
-std::map<std::string,std::string> XMLParser::getChildren()
+std::map<std::string,std::string> mmpbsa_utils::XMLParser::getChildren()
 {
     std::map<std::string,std::string> returnMe;
     std::pair<std::string,std::string> currPair;

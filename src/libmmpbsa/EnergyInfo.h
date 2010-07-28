@@ -1,8 +1,8 @@
 /* 
- * File:   EnergyInfo.h
- * Author: dcoss
+ * Molecular dynamics wrapper
  *
- * Created on June 21, 2010, 1:49 PM
+ *
+ * Created by David Coss <David.Coss@stjude.org> 2010
  */
 
 #ifndef ENERGYINFO_H
@@ -17,6 +17,7 @@
 #include "StringTokenizer.h"
 #include "mmpbsa_io.h"
 
+namespace mmpbsa{
 
 class EnergyInfo {
 public:
@@ -127,7 +128,7 @@ public:
     };
 
 
-protected:
+private:
     std::valarray<mmpbsa_t> energydata;//keys correspond to above listed variables.
 };
 
@@ -186,6 +187,8 @@ void mdout2enerinfos(std::fstream& mdout, std::valarray<EnergyInfo>& energyinfos
  * @return
  */
 float get_minimized_energy(std::fstream& mdout) throw (SanderIOException);
+
+};//end namespace mmpbsa
 
 #endif	/* ENERGYINFO_H */
 

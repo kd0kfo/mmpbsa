@@ -46,7 +46,7 @@ mmpbsa_utils::StringTokenizer mmpbsa_utils::StringTokenizer::operator=(const Str
 std::string mmpbsa_utils::StringTokenizer::nextToken(bool keepD)
 	{
 	  if(tokenStream.eof())
-	    throw TokenizerException("No more tokens in string tokenizer");
+	    throw mmpbsa::TokenizerException("No more tokens in string tokenizer");
 
 	  std::string returnMe;
 

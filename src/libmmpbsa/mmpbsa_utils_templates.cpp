@@ -58,7 +58,7 @@ template <class T> std::vector<T> mmpbsa_utils::take(const std::valarray<T>& lar
                 char * error;
                 sprintf(error,"An index (%d) to be used in taking from the larger array exceeds "
                         "the size (%d) of the larger array.",subsetIndices[i],largerArray.size());
-                throw MMPBSAException(error,INVALID_ARRAY_SIZE);
+                throw mmpbsa::MMPBSAException(error,mmpbsa::INVALID_ARRAY_SIZE);
             }
             returnMe.push_back(largerArray[subsetIndices[i]]);
         }
@@ -109,7 +109,8 @@ template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<T>& le
             const std::valarray<T>& right)
 {
     if(left.size() != right.size())
-        throw MMPBSAException("When using zip, the two arrays must have the same size.",DATA_FORMAT_ERROR);
+        throw mmpbsa::MMPBSAException("When using zip, the two arrays must have "
+                "the same size.",mmpbsa::DATA_FORMAT_ERROR);
 
     int oldsize = left.size();
     std::valarray<T> returnMe(2*oldsize);
@@ -127,7 +128,8 @@ template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<T>& le
 {
     int oldsize = leftSlice.size();
     if(oldsize != rightSlice.size())
-        throw MMPBSAException("Cannot zip two slices of difference sizes.",DATA_FORMAT_ERROR);
+        throw mmpbsa::MMPBSAException("Cannot zip two slices of difference "
+                "sizes.",mmpbsa::DATA_FORMAT_ERROR);
 
     using std::slice;
 
@@ -145,7 +147,8 @@ template <class T> std::valarray<T> mmpbsa_utils::zip(const std::vector<T>& left
             const std::valarray<T>& right)
 {
     if(left.size() != right.size())
-        throw MMPBSAException("When using zip, the two arrays must have the same size.",DATA_FORMAT_ERROR);
+        throw mmpbsa::MMPBSAException("When using zip, the two arrays must have "
+                "the same size.",mmpbsa::DATA_FORMAT_ERROR);
 
     int oldsize = left.size();
     std::valarray<T> returnMe(2*oldsize);
@@ -168,7 +171,7 @@ template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<std::v
             sprintf(error,"When using mmpbsa_utils::zip, all arrays "
                     "must have the same length. Here the expected length was %d,"
                     " but one array had a length of %d",newSize,toBeZipped[i].size());
-            throw MMPBSAException(error,INVALID_ARRAY_SIZE);
+            throw mmpbsa::MMPBSAException(error,mmpbsa::INVALID_ARRAY_SIZE);
         }
 
     std::valarray<T> returnMe(newSize*toBeZipped.size());
@@ -185,8 +188,8 @@ template <class T> std::valarray<T> mmpbsa_utils::cshift(const std::vector<T>& o
 {
     int size = orig.size();
     if(abs(n) > size)
-        throw MMPBSAException("cshift amount must be between 0 and the array "
-                "size",DATA_FORMAT_ERROR);
+        throw mmpbsa::MMPBSAException("cshift amount must be between 0 and the array "
+                "size",mmpbsa::DATA_FORMAT_ERROR);
 
     std::valarray<T> returnMe(size);
     int returnMeIndex = 0;
@@ -229,7 +232,7 @@ template<class T> T* mmpbsa_utils::cross_product(const T* A, const T* B,const si
         char* error;
         sprintf(error,"mmpbsa_utils::cross_product currently only works on 3 dimensional vectors."
                 "Here, a %d-dimensional vector was given.",dim);
-        throw MMPBSAException(error,DATA_FORMAT_ERROR);
+        throw mmpbsa::MMPBSAException(error,mmpbsa::DATA_FORMAT_ERROR);
     }
 
     T * cross = new T[dim];
