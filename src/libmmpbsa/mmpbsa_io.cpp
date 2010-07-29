@@ -304,7 +304,17 @@ void mmpbsa_io::read_siz_file(std::fstream& theFile,
 int mmpbsa_io::fileopen(const char* filename, const std::ios::openmode& mode, std::fstream& file)
 {
 
-#ifndef __BOINC__
+#ifdef __USE_BOINC__
+    std::string resolved_name;
+    int retval = boinc_resolve_filename_s(filename, resolved_name);
+    if(retval)
+        return retval;
+
+    if(file.is_open())
+        file.close();
+    file.open(resolved_name.c_str(),mode);
+    return retval;
+#else
     if(file.is_open())
         file.close();
     file.open(filename,mode);
@@ -312,16 +322,6 @@ int mmpbsa_io::fileopen(const char* filename, const std::ios::openmode& mode, st
         return 0;
     else
         return 1;
-#else
-    string resolved_name;
-    int retval = boinc_resolve_filename_s("my_file", resolved_name);
-    if(retval)
-        return retval;
-
-    if(file.is_open())
-        file.close();
-    file.open(filename,mode);
-    return retval;
 #endif
 
 }

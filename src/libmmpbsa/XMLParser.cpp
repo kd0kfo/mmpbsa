@@ -60,7 +60,7 @@ void mmpbsa_utils::XMLParser::write(const char* fileName)
     xmlSaveFormatFileEnc(fileName, doc, "UTF-8", 1);
 }
 
-std::map<std::string,std::string> mmpbsa_utils::XMLParser::getChildren()
+std::map<std::string,std::string> mmpbsa_utils::XMLParser::getChildren() const
 {
     std::map<std::string,std::string> returnMe;
     std::pair<std::string,std::string> currPair;

@@ -1,8 +1,5 @@
 /**
- * SanderIO
- *
- * Handles IO for sander parameter files. Parameters are stored in the
- *      "SanderParm" class.
+ * Handles IO for MMPBSA classes. 
  *
  * Created by David Coss <David.Coss@stjude.org> 2010
  */
@@ -28,6 +25,10 @@
 #include "mmpbsa_utils.h"
 #include "mmpbsa_exceptions.h"
 #include "SanderParm.h"
+
+#ifdef __USE_BOINC__
+#include "boinc_api.h"
+#endif
 
 namespace mmpbsa_io{
 

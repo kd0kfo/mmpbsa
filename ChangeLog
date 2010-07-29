@@ -1,10 +1,24 @@
 Latest Changes:
-Added BOINC tags to configure.ac and Makefile.am
-	
-Removed freeMemory() from EmpEnerFun. The restructoring previously done to EmpEnerFun (git commit 9f1275cd773843a1d872e925cafe43a48672d4e6) made this unnecessary.
+Removed Makefile.mmpbsa since it is unnecessary after using automake
 
-Previous Git Log:
+Started the integration of Sander into MMPBSA. Right now it forks and controls sander as its own process. BOINC functions remain in MMPBSA, which will handle reporting sander's progress, as well as controlling sander based on the client's wishes. This commit marks the prototype of this integration. Testing and refinement are needed.
 	
+Previous Git Log:
+
+commit 4d493ead14a8401bca7ef7007d694ea645e59a9b
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Jul 28 12:30:28 2010 -0500
+
+    Added files needed by make that were left out of the previous commit.
+
+commit 7d9a62f2fe09e7f0b66a2f60f5de1bd80b4a5399
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Jul 28 12:11:02 2010 -0500
+
+    Added BOINC tags to configure.ac and Makefile.am
+    
+    Removed freeMemory() from EmpEnerFun. The restructoring previously done to EmpEnerFun (git commit 9f1275cd773843a1d872e925cafe43a48672d4e6) made this unnecessary.
+
 commit 53f11148c0799ebfd792d950b02f9b3a7fc8dda5
 Author: David Coss <David.Coss@stjude.org>
 Date:   Wed Jul 28 09:44:44 2010 -0500

@@ -64,7 +64,7 @@ public:
      * 
      * @return
      */
-    std::map<std::string,std::string> getChildren();
+    std::map<std::string,std::string> getChildren() const;
 
 
     virtual ~XMLParser();

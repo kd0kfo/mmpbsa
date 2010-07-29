@@ -16,6 +16,7 @@
 #include "libmmpbsa/EmpEnerFun.h"
 #include "libmmpbsa/MeadInterface.h"
 #include "libmmpbsa/XMLParser.h"
+#include "libmmpbsa/SanderInterface.h"
 
 #include "MEAD/FinDiffMethod.h"
 
@@ -31,7 +32,11 @@
  * @param argv
  * @return
  */
-int realDeal(int argc, char** argv);
+int mmpbsa_run(int argc, char** argv);
+
+int sander_run(int argc, char** argv);
+
+
 void printSnapshot(const mmpbsa::EMap& complexEMap, const mmpbsa::EMap& receptorEMap,
         const mmpbsa::EMap& ligandEMap, std::fstream& outFile);
 
@@ -43,6 +48,7 @@ void printSnapshot(const mmpbsa::EMap& complexEMap, const mmpbsa::EMap& receptor
  * @param mi
  */
 int parseArgs(int argc, char** argv, mmpbsa::MeadInterface& mi);
+int parseArgs(int argc, char** argv, mmpbsa::SanderInterface& si);
 
 /**
  * When a command line argument provides data or information(to the right of an
@@ -52,6 +58,7 @@ int parseArgs(int argc, char** argv, mmpbsa::MeadInterface& mi);
  * @param mi
  */
 int parseParameter(std::string arg, mmpbsa::MeadInterface& mi);
+int parseParameter(std::string arg, mmpbsa::SanderInterface& si);
 
 /**
  * When a command line argument toggles a program flag, this method makes the
@@ -61,6 +68,7 @@ int parseParameter(std::string arg, mmpbsa::MeadInterface& mi);
  * @param mi
  */
 int parseFlag(std::string flag, mmpbsa::MeadInterface& mi);
+int parseFlag(std::string flag, mmpbsa::SanderInterface& si);
 
 /**
  * When a parameter has a list of variables (separated by commas), this method
@@ -79,7 +87,19 @@ int loadListArg(const std::string& values,std::vector<size_t>& array);
  */
 std::string helpString();
 
+/**
+ * If BOINC is used, this function will resolve the file name within the BOINC tree
+ * and returns the value the boinc function returns.
+ * If BOINC is not used, then resolved_name = unresolved_name and zero is returned.
+ * 
+ * @param resolved_name
+ * @param unresolved_name
+ */
+int resolveSanderFile(std::string& resolved_name,const std::string& unresolved_name);
 
+int mmpbsa_boinc_init();
+
+void poll_boinc_messages(mmpbsa::SanderInterface& si);
 
 class MMPBSAState
 {
@@ -94,10 +114,20 @@ public:
     std::fstream outputFile;
 
     std::string checkpointFilename;
-
+    
+    size_t checkpointCounter;
     size_t currentSnap;
-    enum MOLECULE{COMPLEX,RECEPTOR,LIGAND,END_OF_MOLECULES};///<List parts of the complex on which to perform MMPBSA. END_OF_MOLECUES signifies the snapshot is finished.
-    MOLECULE currentMolecule;
+
+    double fractionDone;
+    /**
+     * List parts of the complex on which to perform MMPBSA. END_OF_MOLECUES signifies the snapshot is finished.
+     */
+    enum MOLECULE{COMPLEX,RECEPTOR,LIGAND,END_OF_MOLECULES} currentMolecule;
+
+    /**
+     * Stage in the program.
+     */
+    enum SimProcess{MMPBSA,SANDER} currentProcess;
 
     bool trustPrmtop;///<Flag to indicate if the sanity check of the SanderParm object should be ignored. This is not suggested, but if the sanity check fails and one *does* believe it should work, this is provided as a work around, for whatever reason might arise.
     /**
@@ -107,20 +137,6 @@ public:
     MMPBSAState();
     MMPBSAState(const MMPBSAState& orig);
     virtual ~MMPBSAState(){}
-
-    /**
-     * Saves the state of the MMPBSA Program. If BOINC is being used, BOINC checkpointing
-     * is performed.
-     */
-    void checkpoint_out();
-
-    /**
-     * Load the last MMPBSA state. Returns true is all of the parameters in the
-     * checkpoint file were used.
-     * 
-     */
-    bool checkpoint_in(const std::string& fileName);
-    bool checkpoint_in(){return checkpoint_in(this->checkpointFilename);}
 
     /**
      * Flushes all of the buffers within the MMPBSA state (if they're open at all;
@@ -134,11 +150,26 @@ public:
     void close();
 
     MMPBSAState& operator=(const MMPBSAState& orig);
-private:
-    size_t checkpointCounter;
-};
 
-MMPBSAState currState;
+
+    
+} currState;
+
+/**
+ * Saves the state of the MMPBSA Program. If BOINC is being used, BOINC checkpointing
+ * is performed.
+ */
+void checkpoint_out(MMPBSAState& saveState);
+
+/**
+ * Load the last MMPBSA state. Returns true is all of the parameters in the
+ * checkpoint file were used.
+ *
+ */
+bool checkpoint_in(const std::string& fileName, MMPBSAState& theState);
+
+bool checkpoint_in(MMPBSAState& theState) {return checkpoint_in(theState.checkpointFilename,theState);}
+
 
 #endif	/* MMPBSA_H */
 
