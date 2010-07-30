@@ -40,16 +40,22 @@ public:
     SanderInterface(const SanderInterface& orig);
     virtual ~SanderInterface();
 
-    int start();
+    int start(const double& start_time = 0.0);
     bool poll(int& status);
     void kill();
     void stop();
     void resume();
     void poll_boinc_messages();
-    double cpu_time()const;
+    
 
     const double& start_time()const{return starting_cpu;}
     const bool& isSuspended()const{return suspended;}
+    const int& getPID()const{return pid;}
+    const double netRuntime()const{return starting_cpu + final_cpu_time;}
+    double cpu_time()const;
+
+    void setPID(const int& newPID){pid = newPID;}
+    void set_start_time(const double& new_start_time){starting_cpu = new_start_time;}
 
     std::string mdinFilename;
     std::string mdoutFilename;
@@ -57,6 +63,8 @@ public:
     std::string inpcrdFilename;
     std::string restartFilename;
     static const double pollPeriod = 1.0;
+    bool completed;
+    
 private:
     int pid;
     double wall_cpu_time;

@@ -161,7 +161,7 @@ template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
         dataArray.resize(arrayLength);
 
     size_t lineIndex = 0;
-    float fltCurrentData = 0;
+    mmpbsa_t fltCurrentData = 0;
     size_t dataIndex = 0;
 
     for(dataIndex;dataIndex<arrayLength;)
@@ -262,7 +262,7 @@ void mmpbsa_io::read_siz_file(std::fstream& theFile,
     std::string atomName;
     std::string residue;
     std::string data;
-    float fData;
+    mmpbsa_t fData;
     size_t lineNumber = 0;
     while(theFile.good())
     {
@@ -295,7 +295,7 @@ void mmpbsa_io::read_siz_file(std::fstream& theFile,
         data = trimString(currLine.substr(9));
         sscanf(data.c_str(),"%f",&fData);
 
-        radii[atomName] = mmpbsa_t(fData);
+        radii[atomName] = fData;
         residues[atomName] = residue;
     }
 

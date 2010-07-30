@@ -12,6 +12,8 @@ int main(int argc, char** argv)
         currState.flush();
         currState.close();
 #ifdef __USE_BOINC__
+        if(retval)
+            fprintf(stderr,"BOINC Error: %s\n",boincerror(retval));
         boinc_finish(retval);
 #endif
         return retval;
@@ -207,7 +209,7 @@ int mmpbsa_run(int argc, char** argv)
             currState.outputFile << "COMPLEX" << endl << complexEMap << endl;
             currState.currentMolecule = MMPBSAState::RECEPTOR;
             currState.currentSnap = snapcounter;
-            checkpoint_out(currState);
+            checkpoint_mmpbsa(currState);
         }
         
 
@@ -218,7 +220,7 @@ int mmpbsa_run(int argc, char** argv)
             currState.outputFile << "RECEPTOR" << endl << receptorEMap << endl;
             currState.currentMolecule = MMPBSAState::LIGAND;
             currState.currentSnap = snapcounter;
-            checkpoint_out(currState);
+            checkpoint_mmpbsa(currState);
         }
 
         if(currState.currentMolecule == MMPBSAState::LIGAND)
@@ -228,7 +230,7 @@ int mmpbsa_run(int argc, char** argv)
             currState.outputFile << "LIGAND" << endl << ligandEMap << endl << endl;
             currState.currentMolecule = MMPBSAState::END_OF_MOLECULES;
         }
-        checkpoint_out(currState);
+        checkpoint_mmpbsa(currState);
         currState.currentMolecule = MMPBSAState::COMPLEX;//Rest current molecule
     }//end of snapshot loop
 
@@ -252,6 +254,13 @@ int sander_run(int argc, char** argv)
     if(retval)
         return retval - 1;//this way "help, for example, will trigger exiting (retval = 1), but will return the program with an exit value of 0 (i.e. not an error-based exit);
 
+    if(currState.checkpointFilename.size())
+        restart_sander(currState,si);
+        
+
+    if(si.completed)
+        return 0;
+
     retval = si.start();
     if(retval)
         return retval;
@@ -263,19 +272,21 @@ int sander_run(int argc, char** argv)
         {
             if(status)
             {
-                fprintf(stderr,"Sander had a problem: 0x%x\n",status);
+                fprintf(stderr,"Sander(%d) had a problem: 0x%x\n",si.getPID(),status);
                 return EXIT_CHILD_FAILED;
             }
             break;
         }
-        ::poll_boinc_messages(si);
 #ifdef __USE_BOINC__
+        ::poll_boinc_messages(si);
         if(::boinc_time_to_checkpoint())
-            checkpoint_out(currState);
-        ::boinc_sleep(si.pollPeriod);
+            checkpoint_sander(currState,si);
+        ::boinc_sleep(SanderInterface::pollPeriod);
 #endif
     }
-    checkpoint_out(currState);
+    si.completed = true;
+    checkpoint_sander(currState,si);
+    return 0;
 }
 
 int parseArgs(int argc, char** argv, mmpbsa::MeadInterface& mi)
@@ -373,8 +384,8 @@ int parseParameter(std::string arg, mmpbsa::MeadInterface& mi)
     }
     else if(name == "checkpoint")
     {
-        currState.checkpointFilename = value;
-        checkpoint_in(currState);
+        resolveSanderFile(currState.checkpointFilename,value);
+        restart_mmpbsa(currState);
     }
     else
     {
@@ -474,8 +485,7 @@ int parseParameter(std::string arg, mmpbsa::SanderInterface& si)
     }
     else if(name == "checkpoint")
     {
-        currState.checkpointFilename = value;
-        checkpoint_in(currState);
+        resolveSanderFile(currState.checkpointFilename,value);
     }
     else
     {
@@ -555,8 +565,21 @@ MMPBSAState::MMPBSAState()
     this->fractionDone = 0;
 }
 
-bool restart_sander(const mmpbsa_utils::XMLParser& xmlDoc, MMPBSAState& restartState)
+bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
 {
+    mmpbsa_utils::XMLParser xmlDoc;
+
+    try{
+        xmlDoc.parse(restartState.checkpointFilename);
+    }
+    catch(mmpbsa::XMLParserException xpe)
+    {
+        fprintf(stderr,"Did not open %s\n",restartState.checkpointFilename.c_str());
+        if(xpe.getErrType() == mmpbsa::FILE_READ_ERROR)
+            return false;
+        else
+            throw xpe;
+    }
     std::map<std::string,std::string> checkMap = xmlDoc.getChildren();
 
     bool usedAllParameters = true;
@@ -566,10 +589,24 @@ bool restart_sander(const mmpbsa_utils::XMLParser& xmlDoc, MMPBSAState& restartS
     {
         tag = it->first;
         //chain to load parameters into correct variables.
-        if(tag == "sander_tag_blah_blah_fill_this")
+        if(tag == "pid")
         {
-            1+4;
-        }//end "current_molecule" case
+            int newPID = 0;
+            sscanf(it->second.c_str(),"%d",&newPID);
+            si.setPID(newPID);
+        }
+        else if(tag == "cpu_time")
+        {
+            double new_start_time = 0;
+            sscanf(it->second.c_str(),"%e",&new_start_time);
+            si.set_start_time(new_start_time);
+        }
+        else if(tag == "finished")
+        {
+            int newPID = 0;
+            sscanf(it->second.c_str(),"%d",&newPID);
+            si.completed = newPID;
+        }
         else
         {
             usedAllParameters = false;
@@ -578,8 +615,19 @@ bool restart_sander(const mmpbsa_utils::XMLParser& xmlDoc, MMPBSAState& restartS
     return usedAllParameters;
 }
 
-bool restart_mmpbsa(const mmpbsa_utils::XMLParser& xmlDoc, MMPBSAState& restartState)
+bool restart_mmpbsa(MMPBSAState& restartState)
 {
+    mmpbsa_utils::XMLParser xmlDoc;
+    try{
+        xmlDoc.parse(restartState.checkpointFilename);
+    }
+    catch(mmpbsa::XMLParserException xpe)
+    {
+        if(xpe.getErrType() == mmpbsa::FILE_READ_ERROR)
+            return false;
+        else
+            throw xpe;
+    }
     std::map<std::string,std::string> checkMap = xmlDoc.getChildren();
 
     bool usedAllParameters = true;
@@ -628,61 +676,25 @@ bool restart_mmpbsa(const mmpbsa_utils::XMLParser& xmlDoc, MMPBSAState& restartS
     return usedAllParameters;
 }
 
-bool checkpoint_in(const std::string& fileName, MMPBSAState& theState)
-{
-    mmpbsa_utils::XMLParser xmlDoc;
-    std::string theFileName = fileName;
-#ifdef __USE_BOINC__
-    int retval = boinc_resolve_filename_s(fileName.c_str(), theFileName);
-    if(retval)
-      {
-	char error[256];
-	sprintf(error,"Could not open %s",fileName.c_str());
-	throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_READ_ERROR);
-      }
-#endif
-    try
-    {
-        xmlDoc.parse(theFileName);
-    }
-    catch(mmpbsa::XMLParserException xpe)
-    {
-        if(theState.checkpointCounter == 0)
-            return false;
-        else
-        {
-            char error[40+strlen(xpe.what())+fileName.size()];
-            xpe.what();
-            sprintf(error,"Trouble opening XML file: %s -> %s\n",theFileName.c_str(),xpe.what());
-            throw mmpbsa::XMLParserException(error,xpe.getErrType());
-        }
-    }
-
-    bool returnMe;
-    switch(theState.currentProcess)
-    {
-        case MMPBSAState::MMPBSA:
-            returnMe = restart_mmpbsa(xmlDoc,theState);
-            break;
-        case MMPBSAState::SANDER:
-            returnMe = restart_sander(xmlDoc,theState);
-            break;
-    }
-
-    return returnMe;
-}
-
-mmpbsa_utils::XMLParser* save_sander_state(MMPBSAState& saveState)
+void checkpoint_sander(MMPBSAState& saveState, mmpbsa::SanderInterface& si)
 {
     std::map<std::string,std::string> checkMap;
     char buff[16];
-    sprintf(buff,"%d",42);
-    checkMap["fill_with_stuff"] = buff;
-    mmpbsa_utils::XMLParser* xmlDoc = new mmpbsa_utils::XMLParser("mmpbsa_state",checkMap);
-    return xmlDoc;
+    sprintf(buff,"%d",si.getPID());
+    checkMap["pid"] = buff;
+    sprintf(buff,"%e",si.start_time());
+    checkMap["start_time"] = buff;
+    sprintf(buff,"%e",si.cpu_time());
+    checkMap["cpu_time"] = buff;
+    sprintf(buff,"%e",si.netRuntime());
+    checkMap["runtime"] = buff;
+    sprintf(buff,"%d",si.completed);
+    checkMap["finished"] = buff;
+    mmpbsa_utils::XMLParser xmlDoc("moldyn_state",checkMap);
+    checkpoint_out(saveState,xmlDoc);
 }
 
-mmpbsa_utils::XMLParser* save_mmpbsa_state(MMPBSAState& saveState)
+void checkpoint_mmpbsa(MMPBSAState& saveState)
 {
     std::map<std::string,std::string> checkMap;
     char buff[16];
@@ -692,14 +704,14 @@ mmpbsa_utils::XMLParser* save_mmpbsa_state(MMPBSAState& saveState)
     checkMap["current_snap"] = buff;
     sprintf(buff,"%d",saveState.checkpointCounter);
     checkMap["checkpoint_counter"] = buff;
-    mmpbsa_utils::XMLParser* xmlDoc = new mmpbsa_utils::XMLParser("mmpbsa_state",checkMap);
-    return xmlDoc;
+    mmpbsa_utils::XMLParser xmlDoc("mmpbsa_state",checkMap);
+    checkpoint_out(saveState,xmlDoc);
 }
 
-void checkpoint_out(MMPBSAState& saveState)
+void checkpoint_out(MMPBSAState& saveState,mmpbsa_utils::XMLParser& xmlDoc)
 {
 #ifdef __USE_BOINC__
-    if(!boinc_time_to_checkpoint())
+    if(!boinc_time_to_checkpoint() && !::boinc_is_standalone())
         return;
 #endif
     
@@ -724,20 +736,12 @@ void checkpoint_out(MMPBSAState& saveState)
 	throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_READ_ERROR);
       }
 #endif
-
-    mmpbsa_utils::XMLParser* xmlDoc = 0;
-    if(saveState.currentProcess == MMPBSAState::MMPBSA)
-        xmlDoc = save_mmpbsa_state(saveState);
-    else
-        xmlDoc = save_sander_state(saveState);
-
-    xmlDoc->write(theFileName.c_str());
+    xmlDoc.write(theFileName.c_str());
 #ifdef __USE_BOINC__
     boinc_checkpoint_completed();
     if (currState.snapList.size())
         boinc_fraction_done(currState.currentSnap / currState.snapList.size());
 #endif
-    delete xmlDoc;
 }
 
 
@@ -793,7 +797,7 @@ int resolveSanderFile(std::string& resolved_name,const std::string& unresolved_n
 void send_status_message(mmpbsa::SanderInterface& si, double frac_done, 
         double checkpoint_cpu_time)
 {
-    double current_cpu_time = si.start_time() + si.cpu_time();
+    double current_cpu_time =  si.start_time() + si.cpu_time();
     boinc_report_app_status(current_cpu_time,checkpoint_cpu_time,frac_done);
 }
 

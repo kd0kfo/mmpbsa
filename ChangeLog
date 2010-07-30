@@ -1,9 +1,14 @@
-Latest Changes:
-Removed Makefile.mmpbsa since it is unnecessary after using automake
+commit 5f43da7ef5d326188dd2e069b18c5ac9bb9fd6e6
+Author: David Coss <David.Coss@stjude.org>
+Date:   Thu Jul 29 15:53:37 2010 -0500
 
-Started the integration of Sander into MMPBSA. Right now it forks and controls sander as its own process. BOINC functions remain in MMPBSA, which will handle reporting sander's progress, as well as controlling sander based on the client's wishes. This commit marks the prototype of this integration. Testing and refinement are needed.
-	
-Previous Git Log:
+    Removed Makefile.mmpbsa since it is unnecessary after using automake
+    
+    Started the integration of Sander into MMPBSA. Right now it forks and
+    controls sander as its own process. BOINC functions remain in MMPBSA,
+    which will handle reporting sander's progress, as well as controlling
+    sander based on the client's wishes. This commit marks the prototype
+    of this integration. Testing and refinement are needed.
 
 commit 4d493ead14a8401bca7ef7007d694ea645e59a9b
 Author: David Coss <David.Coss@stjude.org>

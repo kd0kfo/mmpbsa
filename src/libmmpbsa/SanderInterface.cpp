@@ -2,9 +2,10 @@
 
 mmpbsa::SanderInterface::SanderInterface() {
     pid = 0;
-    double wall_cpu_time = 0;
-    double final_cpu_time = 0;
-    bool suspended = false;
+    wall_cpu_time = 0;
+    final_cpu_time = 0;
+    suspended = false;
+    completed = false;
 }
 
 mmpbsa::SanderInterface::SanderInterface(const mmpbsa::SanderInterface& orig)
@@ -23,30 +24,26 @@ mmpbsa::SanderInterface::SanderInterface(const mmpbsa::SanderInterface& orig)
 mmpbsa::SanderInterface::~SanderInterface() {
 }
 
-int mmpbsa::SanderInterface::start() {
+int mmpbsa::SanderInterface::start(const double& start_time) {
     using std::string;
+    this->starting_cpu = start_time;
     string stdout_path = "sander-stdout.txt";
     string stdin_path = "sander-stdin.txt";
     string stderr_path = "sander-stdin.txt";
-    string fraction_done_filename = "sander-pace.txt";
-
-#ifdef __USE_BOINC__/* Clear files to be used by this calling of start()*/
-    if (fraction_done_filename.size()) {
-        boinc_delete_file(fraction_done_filename.c_str());
-    }
-#endif
     
-    string application = "moldyn";
+    
+    char application[256];
+    strcat(application,"./moldyn");
 #ifdef __USE_BOINC__
     char buff[256];
-    boinc_resolve_filename_s("moldyn", application);
+    boinc_resolve_filename(application, application,sizeof(application));
 #endif
     
-    std::string command_line = "-O  -i " + mdinFilename + " -o  " + mdoutFilename
-            + "-c " + inpcrdFilename + " -p " + prmtopFilename + " -r " + restartFilename;
+    std::string command_line = "-O -i " + mdinFilename + " -o  " + mdoutFilename
+            + " -c " + inpcrdFilename + " -p " + prmtopFilename + " -r " + restartFilename;
 
     fprintf(stderr, "%s running with arguments: %s\n",
-        application.c_str(), command_line.c_str()
+        application, command_line.c_str()
     );
 
     
@@ -102,8 +99,8 @@ int mmpbsa::SanderInterface::start() {
 #else
     int retval;
     
-
     pid = fork();
+    fprintf(stderr,"PID: %d\n",pid);
     if (pid == -1)
     {
         perror("fork(): ");
@@ -111,7 +108,6 @@ int mmpbsa::SanderInterface::start() {
     }
     if (pid == 0) 
     {
-
         // we're in the child process here
         //
         // open stdout, stdin if file names are given
@@ -119,29 +115,21 @@ int mmpbsa::SanderInterface::start() {
         // we should deal with atomicity somehow
         //
         FILE* stdout_file;
-        FILE* stdin_file;
-        FILE* stderr_file;
         stdout_file = freopen(stdout_path.c_str(), "a", stdout);
         if (!stdout_file) return ERR_FOPEN;
-
-        stdin_file = freopen(stdin_path.c_str(), "r", stdin);
-        if (!stdin_file) return ERR_FOPEN;
-
-        stderr_file = freopen(stderr_path.c_str(), "a", stderr);
-        if (!stderr_file) return ERR_FOPEN;
-		// construct argv
+        //stderr_file = freopen(stderr_path.c_str(), "a", stderr);
+        //if (!stderr_file) return ERR_FOPEN;
+        	// construct argv
         // TODO: use malloc instead of stack var
         //
-        string argv = application + " " + command_line;
-        setpriority(PRIO_PROCESS, 0, PROCESS_IDLE_PRIORITY);
-        char arglist[4096];
-        ::strlcpy(arglist,argv.c_str(),sizeof(arglist));
         char* argvs[256];
-        argvs[0] = "";
-        strcat(argvs[0],application.c_str());
-        int argc = parse_command_line(arglist, argvs+1);
-        retval = execv(application.c_str(), argvs);
-        perror("execv() failed: ");
+        strcat(argvs[0],application);
+        char arglist[4096];
+        strlcpy(arglist,command_line.c_str(),sizeof(arglist));
+        int argc = parse_command_line(arglist,argvs+1);
+        setpriority(PRIO_PROCESS, 0, PROCESS_IDLE_PRIORITY);
+        retval = execv(application,argvs);
+        perror("execl() failed: ");
         exit(ERR_EXEC);
     }
 #endif

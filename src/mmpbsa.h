@@ -22,6 +22,7 @@
 
 #ifdef __USE_BOINC__
 #include "boinc_api.h"
+#include "str_util.h"
 #endif
 
 /**
@@ -159,17 +160,17 @@ public:
  * Saves the state of the MMPBSA Program. If BOINC is being used, BOINC checkpointing
  * is performed.
  */
-void checkpoint_out(MMPBSAState& saveState);
-
+void checkpoint_out(MMPBSAState& saveState, mmpbsa_utils::XMLParser& xmlDoc);
+void checkpoint_mmpbsa(MMPBSAState& saveState);
+void checkpoint_sander(MMPBSAState& saveState, mmpbsa::SanderInterface& si);
+\
 /**
  * Load the last MMPBSA state. Returns true is all of the parameters in the
  * checkpoint file were used.
  *
  */
-bool checkpoint_in(const std::string& fileName, MMPBSAState& theState);
-
-bool checkpoint_in(MMPBSAState& theState) {return checkpoint_in(theState.checkpointFilename,theState);}
-
+bool restart_mmpbsa(MMPBSAState& restartState);
+bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si);
 
 #endif	/* MMPBSA_H */
 
