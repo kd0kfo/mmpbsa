@@ -109,11 +109,11 @@ public:
     std::vector<size_t> ligandStartPos;///<Starting positions for ligands. End positions are deduced from the parmtop file.
     std::vector<size_t> snapList;///<List of snapshots to be used in the calculations. If the list is empty, all snapshots are used.
 
-    std::fstream prmtopFile;
-    std::fstream trajFile;
-    std::fstream radiiFile;
     std::fstream outputFile;
 
+    std::string prmtopFilename;
+    std::string trajFilename;
+    std::string radiiFilename;
     std::string checkpointFilename;
     
     size_t checkpointCounter;

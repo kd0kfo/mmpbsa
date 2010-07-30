@@ -4,6 +4,7 @@ mmpbsa::SanderInterface::SanderInterface() {
     pid = 0;
     wall_cpu_time = 0;
     final_cpu_time = 0;
+    mdcrdFilename = "";
     suspended = false;
     completed = false;
 }
@@ -15,10 +16,12 @@ mmpbsa::SanderInterface::SanderInterface(const mmpbsa::SanderInterface& orig)
     prmtopFilename = orig.prmtopFilename;
     inpcrdFilename = orig.inpcrdFilename;
     restartFilename = orig.restartFilename;
+    mdcrdFilename = orig.mdcrdFilename;
     pid = orig.pid;
     wall_cpu_time = orig.wall_cpu_time;
     final_cpu_time = orig.final_cpu_time;
     suspended = orig.suspended;
+    completed = orig.completed;
 }
 
 mmpbsa::SanderInterface::~SanderInterface() {
@@ -41,6 +44,10 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
     
     std::string command_line = "-O -i " + mdinFilename + " -o  " + mdoutFilename
             + " -c " + inpcrdFilename + " -p " + prmtopFilename + " -r " + restartFilename;
+
+    if(mdcrdFilename.size())
+        command_line += " -x " + mdcrdFilename;
+
 
     fprintf(stderr, "%s running with arguments: %s\n",
         application, command_line.c_str()

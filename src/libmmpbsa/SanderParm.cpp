@@ -360,7 +360,16 @@ void mmpbsa::SanderParm::raw_read_amber_parm(std::string file) throw (mmpbsa::Sa
     fstream prmtopFile;
     mmpbsa_io::fileopen(file.c_str(),fstream::in,prmtopFile);
 
-    raw_read_amber_parm(prmtopFile);
+    try
+    {
+        raw_read_amber_parm(prmtopFile);
+    }
+    catch(mmpbsa::SanderIOException sioe)
+    {
+        char buff[strlen(sioe.what())+20+file.size()];
+        sprintf(buff,"%s\nParmtop File = %s",sioe.what(),file.c_str());
+        throw mmpbsa::SanderIOException(buff,sioe.getErrType());
+    }
     prmtopFile.close();
 }
 
@@ -376,7 +385,7 @@ void mmpbsa::SanderParm::raw_read_amber_parm(std::fstream& prmtopFile) throw (mm
 
     string currentLine = getNextLine(prmtopFile);
     if(!strcmp(currentLine.substr(0,9).c_str(),"%VERSION"))
-        throw mmpbsa::SanderIOException("Parmtop file is malformed. %VERSION is missing.",mmpbsa::BROKEN_PRMTOP_FILE);
+        throw mmpbsa::SanderIOException("Parmtop file is malformed. %%VERSION is missing.",mmpbsa::BROKEN_PRMTOP_FILE);
 
     string flag;
     string format;
@@ -393,7 +402,7 @@ void mmpbsa::SanderParm::raw_read_amber_parm(std::fstream& prmtopFile) throw (mm
                 return;
 
             char flagLocation[256];
-            sprintf(flagLocation,"Parmtop file is malformed. %FLAG is "
+            sprintf(flagLocation,"Parmtop file is malformed. %%FLAG is "
                     "missing. Flag #%i",flagCounter);
             throw mmpbsa::SanderIOException(flagLocation,mmpbsa::BROKEN_PRMTOP_FILE);
         }
@@ -407,7 +416,7 @@ void mmpbsa::SanderParm::raw_read_amber_parm(std::fstream& prmtopFile) throw (mm
         if(currentLine.substr(0,7) != "%FORMAT")
         {
             char flagLocation[256];
-            sprintf(flagLocation,"Parmtop file is malformed. %FORMAT is "
+            sprintf(flagLocation,"Parmtop file is malformed. %%FORMAT is "
                     "missing. Format #%i",flagCounter);
             throw mmpbsa::SanderIOException(flagLocation,mmpbsa::BROKEN_PRMTOP_FILE);
         }

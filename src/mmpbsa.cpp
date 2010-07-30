@@ -8,7 +8,7 @@ int main(int argc, char** argv)
         mmpbsa_boinc_init();//must be called before any other BOINC routines. If BOINC is not used, nothing will happen.
         currState;
         int retval = sander_run(argc, argv);
-        //int retval = mmpbsa_run(argc, argv);
+        retval = mmpbsa_run(argc, argv);
         currState.flush();
         currState.close();
 #ifdef __USE_BOINC__
@@ -59,11 +59,10 @@ int mmpbsa_run(int argc, char** argv)
 
     //load and check the parmtop file.
     mmpbsa::SanderParm * sp = new mmpbsa::SanderParm;
-    sp->raw_read_amber_parm(currState.prmtopFile);
+    sp->raw_read_amber_parm(currState.prmtopFilename);
     if(!currState.trustPrmtop)
         if(!sp->sanityCheck())
             throw MMPBSAException("Parmtop file is insane.",INVALID_PRMTOP_DATA);
-    currState.prmtopFile.close();
 
     //Create energy function with the parmtop data. This energy function will
     //have everything in it. Receptor and ligand will be stripped out.
@@ -105,17 +104,19 @@ int mmpbsa_run(int argc, char** argv)
     //load radii data, if available
     map<std::string,mmpbsa_t> radii;//later, check to see if radii.size() > 0 before calling full_EMap(...)
     map<std::string,std::string> residues;
-    if(currState.radiiFile.is_open())
+    if(currState.radiiFilename.size())
     {
-        mmpbsa_io::read_siz_file(currState.radiiFile,radii, residues);
-        currState.radiiFile.close();
+        std::fstream radiiFile(currState.radiiFilename.c_str(),std::ios::in);
+        mmpbsa_io::read_siz_file(radiiFile,radii, residues);
+        radiiFile.close();
     }
 
-    if(!currState.trajFile.good())
+    std::fstream trajFile(currState.trajFilename.c_str(),std::ios::in);
+    if(!trajFile.good())
         throw MMPBSAException("Unable to read from trajectory file",BROKEN_TRAJECTORY_FILE);
 
     using namespace mmpbsa_io;
-    get_traj_title(currState.trajFile);//Don't need title, but this ensure we are at the top of the file. If the title is needed later, hook this.
+    get_traj_title(trajFile);//Don't need title, but this ensure we are at the top of the file. If the title is needed later, hook this.
     valarray<mmpbsa_t> snapshot(sp->natom*3);
     valarray<mmpbsa_t> complexSnap(complexSize*3);
     valarray<mmpbsa_t> receptorSnap(receptorSize*3);
@@ -129,7 +130,7 @@ int mmpbsa_run(int argc, char** argv)
         for(size_t i = 0;i<currState.currentSnap-1;i++)
             try
             {
-                mmpbsa_io::skip_next_snap(currState.trajFile,sp->natom,isPeriodic);
+                mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
             }
             catch(MMPBSAException e)
             {
@@ -142,7 +143,7 @@ int mmpbsa_run(int argc, char** argv)
     size_t snapcounter = (currState.currentSnap) ? currState.currentSnap - 1 : 0;//snapcounter will be incremented below
 
     //Walk through the snapshots. This is where MMPBSA is actually done.
-    while(!currState.trajFile.eof())
+    while(!trajFile.eof())
     {
         try{
             //if a list of snaps to be run is provided, check to see if this snapshot
@@ -151,12 +152,12 @@ int mmpbsa_run(int argc, char** argv)
             if(currState.snapList.size())//check if the current snapshot should be skipped
                 if(!mmpbsa_utils::contains(currState.snapList,snapcounter))
                 {
-                    mmpbsa_io::skip_next_snap(currState.trajFile,sp->natom,isPeriodic);
+                    mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
                     fprintf(stdout,"Skipping Snapshot #%d\n",snapcounter);
                     continue;
                 }
         
-            if(get_next_snap(currState.trajFile, snapshot, sp->natom,isPeriodic))
+            if(get_next_snap(trajFile, snapshot, sp->natom,isPeriodic))
                 fprintf(stdout,"Running Snapshot #%d\n",snapcounter);
             else
             {
@@ -234,7 +235,7 @@ int mmpbsa_run(int argc, char** argv)
         currState.currentMolecule = MMPBSAState::COMPLEX;//Rest current molecule
     }//end of snapshot loop
 
-
+    trajFile.close();
     delete sp;
     return 0;
 }
@@ -286,6 +287,9 @@ int sander_run(int argc, char** argv)
     }
     si.completed = true;
     checkpoint_sander(currState,si);
+
+    currState.currentMolecule = MMPBSAState::COMPLEX;
+    currState.trajFilename = si.mdcrdFilename;
     return 0;
 }
 
@@ -332,24 +336,7 @@ int parseParameter(std::string arg, mmpbsa::MeadInterface& mi)
     string name = arg.substr(0,arg.find("="));
     string value = arg.substr(arg.find("=")+1);
 
-    if(name == "prmtop" || name == "parmtop")
-    {
-        fileopen(value.c_str(),std::ios::in,currState.prmtopFile);
-    }
-    else if(name == "coordinates" || name == "traj" || name == "mdcrd" || name == "mdcrds")
-    {
-        fileopen(value.c_str(),std::ios::in,currState.trajFile);
-    }
-    else if(name == "out" || name == "output")
-    {
-        //will append for the sake of restarting in the middle of calculations.
-        fileopen(value.c_str(),std::ios::out | std::ios::app,currState.outputFile);
-    }
-    else if(name == "radii")
-    {
-        fileopen(value.c_str(),std::ios::in,currState.radiiFile);
-    }
-    else if(name == "istrength")
+    if(name == "istrength")
     {
         float fValue = 0;
         sscanf(value.c_str(),"%f",&fValue);
@@ -367,32 +354,7 @@ int parseParameter(std::string arg, mmpbsa::MeadInterface& mi)
         sscanf(value.c_str(),"%f",&fValue);
         mi.surf_tension = mmpbsa_t(fValue);
     }
-    else if(name == "rec_list")
-    {
-        currState.receptorStartPos.clear();
-        loadListArg(value,currState.receptorStartPos);
-    }
-    else if(name == "lig_list")
-    {
-        currState.ligandStartPos.clear();
-        loadListArg(value,currState.ligandStartPos);
-    }
-    else if(name == "snap_list")
-    {
-        currState.snapList.clear();
-        loadListArg(value,currState.snapList);
-    }
-    else if(name == "checkpoint")
-    {
-        resolveSanderFile(currState.checkpointFilename,value);
-        restart_mmpbsa(currState);
-    }
-    else
-    {
-      char error[256];
-      sprintf(error,"I don't know what to do with the parameter %s (=%s)\n",name.c_str(),value.c_str());
-      throw mmpbsa::MMPBSAException(error,mmpbsa::COMMAND_LINE_ERROR);
-    }
+
     return 0;
 }
 
@@ -466,12 +428,13 @@ int parseParameter(std::string arg, mmpbsa::SanderInterface& si)
     if(name == "prmtop" || name == "parmtop")
     {
         resolveSanderFile(si.prmtopFilename,value);
+        currState.prmtopFilename = si.prmtopFilename;
     }
-    else if(name == "coordinates" || name == "traj" || name == "mdcrd" || name == "mdcrds")
+    else if(name == "inpcrd")
     {
         resolveSanderFile(si.inpcrdFilename,value);
     }
-    else if(name == "out" || name == "output" || name == "mdout")
+    else if(name == "mdout")
     {
         resolveSanderFile(si.mdoutFilename,value);
     }
@@ -479,18 +442,47 @@ int parseParameter(std::string arg, mmpbsa::SanderInterface& si)
     {
         resolveSanderFile(si.mdinFilename,value);
     }
-    else if(name == "rst" || name == "restart")
+    else if(name == "rst" || name == "restart" || name == "restrt")
     {
         resolveSanderFile(si.restartFilename,value);
+    }
+    else if(name == "mdcrd")
+    {
+        resolveSanderFile(si.mdcrdFilename,value);
     }
     else if(name == "checkpoint")
     {
         resolveSanderFile(currState.checkpointFilename,value);
     }
+    else if(name == "radii")
+    {
+        resolveSanderFile(currState.radiiFilename,value);
+    }
+    else if(name == "mmpbsa_out")
+    {
+        resolveSanderFile(value,value);
+        currState.outputFile.open(value.c_str(),std::ios::out | std::ios::app);
+    }
+    else if(name == "rec_list")
+    {
+        currState.receptorStartPos.clear();
+        loadListArg(value,currState.receptorStartPos);
+    }
+    else if(name == "lig_list")
+    {
+        currState.ligandStartPos.clear();
+        loadListArg(value,currState.ligandStartPos);
+    }
+    else if(name == "snap_list")
+    {
+        currState.snapList.clear();
+        loadListArg(value,currState.snapList);
+    }
     else
     {
       char error[256];
-      sprintf(error,"I don't know what to do with the parameter %s (=%s)\n",name.c_str(),value.c_str());
+      sprintf(error,"I don't know what to do with the parameter %s (=%s)\n",
+              name.c_str(),value.c_str());
       throw mmpbsa::MMPBSAException(error,mmpbsa::COMMAND_LINE_ERROR);
     }
     return 0;
@@ -749,24 +741,12 @@ void MMPBSAState::flush()
 {
     if(outputFile.is_open())
         outputFile.flush();
-    if(prmtopFile.is_open())
-        prmtopFile.flush();
-    if(radiiFile.is_open())
-        radiiFile.flush();
-    if(trajFile.is_open())
-        trajFile.flush();
 }
 
 void MMPBSAState::close()
 {
     if(outputFile.is_open())
         outputFile.close();
-    if(prmtopFile.is_open())
-        prmtopFile.close();
-    if(radiiFile.is_open())
-        radiiFile.close();
-    if(trajFile.is_open())
-        trajFile.close();
 }
 
 int mmpbsa_boinc_init()

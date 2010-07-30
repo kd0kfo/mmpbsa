@@ -59,6 +59,7 @@ public:
 
     std::string mdinFilename;
     std::string mdoutFilename;
+    std::string mdcrdFilename;
     std::string prmtopFilename;
     std::string inpcrdFilename;
     std::string restartFilename;
