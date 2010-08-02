@@ -105,7 +105,7 @@ void mmpbsa::EnergyInfo::get_first_energyinfo(const char* fileName)
 bool mmpbsa::EnergyInfo::loadEnergyValue(const std::string& identifier,const std::string& value)
 {
     float dblValue = 0;
-    sscanf(value.c_str(),"%f",&dblValue);
+    sscanf(value.c_str(),MMPBSA_FORMAT,&dblValue);
     return loadEnergyValue(identifier,dblValue);
 }
 
@@ -377,7 +377,7 @@ float mmpbsa::get_minimized_energy(std::fstream& mdout) throw (SanderIOException
     tokens.nextToken();//NSTEP
     string strEnergy = tokens.nextToken();
     float fEnergy = 0;
-    sscanf(strEnergy.c_str(),"%f",&fEnergy);
+    sscanf(strEnergy.c_str(),MMPBSA_FORMAT,&fEnergy);
 
     return fEnergy;
 

@@ -35,8 +35,7 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
     string stderr_path = "sander-stdin.txt";
     
     
-    char application[256];
-    strcat(application,"./moldyn");
+    char application[] = "./moldyn";
 #ifdef __USE_BOINC__
     char buff[256];
     boinc_resolve_filename(application, application,sizeof(application));
@@ -129,11 +128,13 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
         	// construct argv
         // TODO: use malloc instead of stack var
         //
+        fprintf(stderr,"Generating arguments\n");
         char* argvs[256];
-        strcat(argvs[0],application);
+        argvs[0] = application;
         char arglist[4096];
         strlcpy(arglist,command_line.c_str(),sizeof(arglist));
         int argc = parse_command_line(arglist,argvs+1);
+        fprintf(stderr,"Creating fork\n");
         setpriority(PRIO_PROCESS, 0, PROCESS_IDLE_PRIORITY);
         retval = execv(application,argvs);
         perror("execl() failed: ");

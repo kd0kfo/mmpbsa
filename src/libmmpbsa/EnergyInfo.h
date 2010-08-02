@@ -16,6 +16,7 @@
 
 #include "StringTokenizer.h"
 #include "mmpbsa_io.h"
+#include "mmpbsa_utils.h"
 
 namespace mmpbsa{
 

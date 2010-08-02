@@ -8,7 +8,8 @@ int main(int argc, char** argv)
         mmpbsa_boinc_init();//must be called before any other BOINC routines. If BOINC is not used, nothing will happen.
         currState;
         int retval = sander_run(argc, argv);
-        retval = mmpbsa_run(argc, argv);
+        if(!retval && !currState.MDOnly)
+            retval = mmpbsa_run(argc, argv);
         currState.flush();
         currState.close();
 #ifdef __USE_BOINC__
@@ -56,6 +57,9 @@ int mmpbsa_run(int argc, char** argv)
     int retval = parseArgs(argc,argv,mi);
     if(retval)
         return retval - 1;//this way "help, for example, will trigger exiting (retval = 1), but will return the program with an exit value of 0 (i.e. not an error-based exit);
+
+    if(!currState.outputFile.is_open())
+        currState.outputFile.open("mmpbsa-output.txt",std::ios::out | std::ios::app);
 
     //load and check the parmtop file.
     mmpbsa::SanderParm * sp = new mmpbsa::SanderParm;
@@ -257,9 +261,11 @@ int sander_run(int argc, char** argv)
 
     if(currState.checkpointFilename.size())
         restart_sander(currState,si);
-        
 
-    if(si.completed)
+    //Setup mmpbsa to follow
+    currState.currentMolecule = MMPBSAState::COMPLEX;
+    currState.trajFilename = si.mdcrdFilename;
+    if(si.completed || currState.currentProcess == MMPBSAState::MMPBSA)
         return 0;
 
     retval = si.start();
@@ -288,8 +294,6 @@ int sander_run(int argc, char** argv)
     si.completed = true;
     checkpoint_sander(currState,si);
 
-    currState.currentMolecule = MMPBSAState::COMPLEX;
-    currState.trajFilename = si.mdcrdFilename;
     return 0;
 }
 
@@ -338,20 +342,20 @@ int parseParameter(std::string arg, mmpbsa::MeadInterface& mi)
 
     if(name == "istrength")
     {
-        float fValue = 0;
-        sscanf(value.c_str(),"%f",&fValue);
+        mmpbsa_t fValue = 0;
+        sscanf(value.c_str(),MMPBSA_FORMAT,&fValue);
         mi.istrength = mmpbsa_t(fValue);
     }
     else if(name == "surf_offset")
     {
-        float fValue = 0;
-        sscanf(value.c_str(),"%f",&fValue);
+        mmpbsa_t fValue = 0;
+        sscanf(value.c_str(),MMPBSA_FORMAT,&fValue);
         mi.surf_offset = mmpbsa_t(fValue);
     }
     else if(name == "surf_tension")
     {
-        float fValue = 0;
-        sscanf(value.c_str(),"%f",&fValue);
+        mmpbsa_t fValue = 0;
+        sscanf(value.c_str(),MMPBSA_FORMAT,&fValue);
         mi.surf_tension = mmpbsa_t(fValue);
     }
 
@@ -376,10 +380,7 @@ int parseFlag(std::string flag, mmpbsa::MeadInterface& mi)
         currState.trustPrmtop = true;
 	return 0;
     }
-
-    char error[256];
-    sprintf(error,"I don't know what to do with the flag \"%s\"",flag.c_str());
-    throw mmpbsa::MMPBSAException(error,mmpbsa::COMMAND_LINE_ERROR);
+    return 0;
 }
 
 int parseArgs(int argc, char** argv, mmpbsa::SanderInterface& si)
@@ -473,7 +474,7 @@ int parseParameter(std::string arg, mmpbsa::SanderInterface& si)
         currState.ligandStartPos.clear();
         loadListArg(value,currState.ligandStartPos);
     }
-    else if(name == "snap_list")
+    else if(name == "snap_list" || name == "snaplist")
     {
         currState.snapList.clear();
         loadListArg(value,currState.snapList);
@@ -506,9 +507,20 @@ int parseFlag(std::string flag, mmpbsa::SanderInterface& si)
         currState.trustPrmtop = true;
 	return 0;
     }
+    else if(flag == "mmpbsa_only")
+    {
+        si.completed = true;
+        currState.currentProcess = MMPBSAState::MMPBSA;
+        return 0;
+    }
+    else if(flag == "md_only")
+    {
+        currState.MDOnly = true;
+        return 0;
+    }
 
     char error[256];
-    sprintf(error,"I don't know what to do with the flag \"%s\"",flag.c_str());
+    sprintf(error,"In Sander Flag Parser, I don't know what to do with the flag \"%s\"",flag.c_str());
     throw mmpbsa::MMPBSAException(error,mmpbsa::COMMAND_LINE_ERROR);
 }
 
@@ -555,6 +567,7 @@ MMPBSAState::MMPBSAState()
     currentMolecule = MMPBSAState::COMPLEX;
     checkpointCounter = 0;
     this->fractionDone = 0;
+    MDOnly = false;
 }
 
 bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
@@ -563,6 +576,8 @@ bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
 
     try{
         xmlDoc.parse(restartState.checkpointFilename);
+        if(xmlDoc.mainTag() == "mmpbsa_state")
+            restartState.currentProcess = MMPBSAState::MMPBSA;
     }
     catch(mmpbsa::XMLParserException xpe)
     {

@@ -81,4 +81,11 @@ std::map<std::string,std::string> mmpbsa_utils::XMLParser::getChildren() const
     return returnMe;
 }
 
+std::string mmpbsa_utils::XMLParser::mainTag()
+{
+    if(this->head)
+        return (char*) this->head->name;
+
+    return "";
+}
 

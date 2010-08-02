@@ -146,7 +146,7 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, 
         currAtom.rad = mmpbsa_utils::lookup_radius(currAtom.atname,radii);
 
         if(currAtom.rad < 0.1 || currAtom.rad > 3.0)
-            fprintf(stderr,"WARNING: strange radius, %f, for atom %s (index = %d)", currAtom.rad, currAtom.atname.c_str(),i);
+            fprintf(stderr,"WARNING: strange radius, MMPBSA_FORMAT, for atom %s (index = %d)", currAtom.rad, currAtom.atname.c_str(),i);
         atmSet.insert(currAtom);
     }
     //Solvent energy

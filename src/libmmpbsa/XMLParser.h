@@ -66,6 +66,7 @@ public:
      */
     std::map<std::string,std::string> getChildren() const;
 
+    std::string mainTag();
 
     virtual ~XMLParser();
 

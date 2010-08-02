@@ -9,9 +9,11 @@
 #define	MMPBSA_UTILS_H
 
 #define MMPBSA_PI 3.14159265358979323846
+#define MMPBSA_FORMAT "%lf"
 #define DEFAULT_SCNB 2.0
 #define DEFAULT_SCEE 1.2
 #define DEFAULT_DIELC 1.0
+
 
 
 #include <fstream>

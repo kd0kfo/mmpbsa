@@ -120,6 +120,8 @@ public:
     size_t currentSnap;
 
     double fractionDone;
+
+    bool MDOnly;
     /**
      * List parts of the complex on which to perform MMPBSA. END_OF_MOLECUES signifies the snapshot is finished.
      */
