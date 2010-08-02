@@ -1,3 +1,30 @@
+Recent Changes:
+Incorportated MD into MMPBSA, via Sander. Progress is relayed to 
+the BOINC client and the client can control Sander using this 
+program as an intermediary. An XML based queue has been made to 
+allow the user to explicitly layout the order of the simulations 
+to be performed. TODO: Add a sample queue file.
+
+Previous Git Log:
+commit 947e4ad895a2930d2ceddb5a5fab8bfaa9498714
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Aug 2 11:32:00 2010 -0500
+
+    MMPBSA can now do MD, MMPBSA or both. This commit is to save that
+    stage before better organizing the procedure.
+
+commit daa53ae8ba075cb0be9e1006d4406d8a6bda611b
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Jul 30 16:15:14 2010 -0500
+
+    No major changes. Just committing before the weekend.
+
+commit 0a32b3d5497ece3670266094e157ad59f651b6ad
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Jul 30 11:54:59 2010 -0500
+
+    Tested the integration of sander. Minimization was sucessfully done on polyAT.
+
 commit 5f43da7ef5d326188dd2e069b18c5ac9bb9fd6e6
 Author: David Coss <David.Coss@stjude.org>
 Date:   Thu Jul 29 15:53:37 2010 -0500

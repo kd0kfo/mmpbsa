@@ -62,9 +62,16 @@ void mmpbsa_utils::XMLParser::write(const char* fileName)
 
 std::map<std::string,std::string> mmpbsa_utils::XMLParser::getChildren() const
 {
+    return XMLParser::mapNode(this->head);
+}
+
+
+std::map<std::string,std::string> mmpbsa_utils::XMLParser::mapNode(const xmlNodePtr& theNode)
+{
     std::map<std::string,std::string> returnMe;
     std::pair<std::string,std::string> currPair;
-    for(xmlNodePtr currNode = head->children;currNode;currNode = currNode->next)
+
+    for(xmlNodePtr currNode = theNode->children;currNode;currNode = currNode->next)
     {
 
         if(currNode->type == ::XML_ELEMENT_NODE)

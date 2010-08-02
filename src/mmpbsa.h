@@ -16,6 +16,7 @@
 #include "libmmpbsa/EmpEnerFun.h"
 #include "libmmpbsa/MeadInterface.h"
 #include "libmmpbsa/XMLParser.h"
+#include "libxml/tree.h"//include libxml2 in Includes path.
 #include "libmmpbsa/SanderInterface.h"
 
 #include "MEAD/FinDiffMethod.h"
@@ -25,6 +26,54 @@
 #include "str_util.h"
 #endif
 
+class MMPBSAState
+{
+public:
+    std::vector<size_t> receptorStartPos;///<Starting positions for receptors. End positions are deduced from the parmtop file.
+    std::vector<size_t> ligandStartPos;///<Starting positions for ligands. End positions are deduced from the parmtop file.
+    std::vector<size_t> snapList;///<List of snapshots to be used in the calculations. If the list is empty, all snapshots are used.
+
+    std::string outputFilename;
+    std::string prmtopFilename;
+    std::string trajFilename;
+    std::string radiiFilename;
+    std::string checkpointFilename;
+
+    size_t checkpointCounter;
+    size_t currentSnap;
+
+    double fractionDone;
+
+    bool MDOnly;
+
+    mmpbsa::SanderInterface currentSI;
+    mmpbsa::MeadInterface currentMI;
+    /**
+     * List parts of the complex on which to perform MMPBSA. END_OF_MOLECUES signifies the snapshot is finished.
+     */
+    enum MOLECULE{COMPLEX,RECEPTOR,LIGAND,END_OF_MOLECULES} currentMolecule;
+
+    /**
+     * Stage in the program.
+     */
+    enum SimProcess{MMPBSA,SANDER} currentProcess;
+    int placeInQueue;//zero orderd place in queue.
+    float weight;//factor by which to multiple time in queue(i.e. weight = 1 means process will take equal time as other processes).
+
+    bool trustPrmtop;///<Flag to indicate if the sanity check of the SanderParm object should be ignored. This is not suggested, but if the sanity check fails and one *does* believe it should work, this is provided as a work around, for whatever reason might arise.
+    /**
+     * Stores variables needed to restart the program. This is needed for running
+     * on systems where the program may be closed and restarted again, i.e. BOINC Grid
+     */
+    MMPBSAState();
+    MMPBSAState(const MMPBSAState& orig);
+    virtual ~MMPBSAState(){}
+
+    MMPBSAState& operator=(const MMPBSAState& orig);
+};
+
+std::vector<MMPBSAState> processQueue;
+
 /**
  * Pulls everything together to perform the MMPBSA calculations.
  * Calls the parseArgs to load information from the command line.
@@ -33,9 +82,9 @@
  * @param argv
  * @return
  */
-int mmpbsa_run(int argc, char** argv);
+int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi);
 
-int sander_run(int argc, char** argv);
+int sander_run(MMPBSAState& currState,mmpbsa::SanderInterface& si);
 
 
 void printSnapshot(const mmpbsa::EMap& complexEMap, const mmpbsa::EMap& receptorEMap,
@@ -48,8 +97,7 @@ void printSnapshot(const mmpbsa::EMap& complexEMap, const mmpbsa::EMap& receptor
  * @param argv
  * @param mi
  */
-int parseArgs(int argc, char** argv, mmpbsa::MeadInterface& mi);
-int parseArgs(int argc, char** argv, mmpbsa::SanderInterface& si);
+std::map<std::string,std::string> parseArgs(int argc, char** argv);
 
 /**
  * When a command line argument provides data or information(to the right of an
@@ -58,8 +106,8 @@ int parseArgs(int argc, char** argv, mmpbsa::SanderInterface& si);
  * @param arg
  * @param mi
  */
-int parseParameter(std::string arg, mmpbsa::MeadInterface& mi);
-int parseParameter(std::string arg, mmpbsa::SanderInterface& si);
+int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currState, mmpbsa::MeadInterface& mi);
+int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currState, mmpbsa::SanderInterface& si);
 
 /**
  * When a command line argument toggles a program flag, this method makes the
@@ -68,8 +116,8 @@ int parseParameter(std::string arg, mmpbsa::SanderInterface& si);
  * @param flag
  * @param mi
  */
-int parseFlag(std::string flag, mmpbsa::MeadInterface& mi);
-int parseFlag(std::string flag, mmpbsa::SanderInterface& si);
+int parseFlag(std::string flag, MMPBSAState& currState, mmpbsa::MeadInterface& mi);
+int parseFlag(std::string flag, MMPBSAState& currState, mmpbsa::SanderInterface& si);
 
 /**
  * When a parameter has a list of variables (separated by commas), this method
@@ -79,6 +127,8 @@ int parseFlag(std::string flag, mmpbsa::SanderInterface& si);
  * @param array
  */
 int loadListArg(const std::string& values,std::vector<size_t>& array);
+
+std::vector<MMPBSAState> getQueueFile(int argc,char** argv);
 
 /**
  * Creates a string about the usage of the program, listing the parameters and
@@ -102,61 +152,7 @@ int mmpbsa_boinc_init();
 
 void poll_boinc_messages(mmpbsa::SanderInterface& si);
 
-class MMPBSAState
-{
-public:
-    std::vector<size_t> receptorStartPos;///<Starting positions for receptors. End positions are deduced from the parmtop file.
-    std::vector<size_t> ligandStartPos;///<Starting positions for ligands. End positions are deduced from the parmtop file.
-    std::vector<size_t> snapList;///<List of snapshots to be used in the calculations. If the list is empty, all snapshots are used.
 
-    std::fstream outputFile;
-
-    std::string prmtopFilename;
-    std::string trajFilename;
-    std::string radiiFilename;
-    std::string checkpointFilename;
-    
-    size_t checkpointCounter;
-    size_t currentSnap;
-
-    double fractionDone;
-
-    bool MDOnly;
-    /**
-     * List parts of the complex on which to perform MMPBSA. END_OF_MOLECUES signifies the snapshot is finished.
-     */
-    enum MOLECULE{COMPLEX,RECEPTOR,LIGAND,END_OF_MOLECULES} currentMolecule;
-
-    /**
-     * Stage in the program.
-     */
-    enum SimProcess{MMPBSA,SANDER} currentProcess;
-
-    bool trustPrmtop;///<Flag to indicate if the sanity check of the SanderParm object should be ignored. This is not suggested, but if the sanity check fails and one *does* believe it should work, this is provided as a work around, for whatever reason might arise.
-    /**
-     * Stores variables needed to restart the program. This is needed for running
-     * on systems where the program may be closed and restarted again, i.e. BOINC Grid
-     */
-    MMPBSAState();
-    MMPBSAState(const MMPBSAState& orig);
-    virtual ~MMPBSAState(){}
-
-    /**
-     * Flushes all of the buffers within the MMPBSA state (if they're open at all;
-     * MMPBSAState tries not to be stingy with files).
-     */
-    void flush();
-
-    /**
-     * Closes all of the buffers within the MMPBSA state.
-     */
-    void close();
-
-    MMPBSAState& operator=(const MMPBSAState& orig);
-
-
-    
-} currState;
 
 /**
  * Saves the state of the MMPBSA Program. If BOINC is being used, BOINC checkpointing

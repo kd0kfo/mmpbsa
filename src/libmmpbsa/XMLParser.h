@@ -65,6 +65,9 @@ public:
      * @return
      */
     std::map<std::string,std::string> getChildren() const;
+    static std::map<std::string,std::string> mapNode(const xmlNodePtr& theNode);
+
+    xmlNodePtr getHead(){return head;}
 
     std::string mainTag();
 
