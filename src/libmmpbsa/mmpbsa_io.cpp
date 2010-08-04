@@ -303,27 +303,56 @@ void mmpbsa_io::read_siz_file(std::fstream& theFile,
 
 int mmpbsa_io::fileopen(const char* filename, const std::ios::openmode& mode, std::fstream& file)
 {
-
-#ifdef __USE_BOINC__
-    std::string resolved_name;
-    int retval = boinc_resolve_filename_s(filename, resolved_name);
-    if(retval)
-        return retval;
-
-    if(file.is_open())
-        file.close();
-    file.open(resolved_name.c_str(),mode);
-    return retval;
-#else
     if(file.is_open())
         file.close();
     file.open(filename,mode);
     if(file.is_open())
         return 0;
     else
-        return 1;
+        return int(mmpbsa::FILE_READ_ERROR);
+}
+
+int mmpbsa_io::resolve_filename(const std::string& unresolvedFilename, std::string& resolvedFilename)
+{
+#ifdef __USE_BOINC__
+      return boinc_resolve_filename_s(unresolvedFilename.c_str(),resolvedFilename);
+#else
+    resolvedFilename = unresolvedFilename;
+    return 0;
+#endif
+}
+
+#ifndef __USE_BOINC__
+//These are needed for start() below. However, if BOINC is not used, it must
+//be provided here.
+//Copied from str_util.cpp under the terms of the GNU Lesser General Public License.
+//See http://boinc.berkeley.edu or http://www.gnu.org for details.
+#if !defined(HAVE_STRLCPY)
+size_t strlcpy(char *dst, const char *src, size_t size) {
+    size_t ret = strlen(src);
+
+    if (size) {
+        size_t len = (ret >= size) ? size-1 : ret;
+        memcpy(dst, src, len);
+        dst[len] = '\0';
+    }
+
+    return ret;
+}
+#endif
 #endif
 
+int mmpbsa_io::resolve_filename(const char* unresolvedFilename, char* resolvedFilename, int length)
+{
+#ifdef __USE_BOINC__
+    return boinc_resolve_filename(unresolvedFilename, resolvedFilename,
+            length);
+#else
+    if(!unresolvedFilename)
+        return 1;
+    strlcpy(resolvedFilename,unresolvedFilename,length);
+    return 0;
+#endif
 }
 
 //explicit instantiation

@@ -45,7 +45,7 @@ public:
      * @param file
      * @return
      */
-    void raw_read_amber_parm(std::string file) throw (mmpbsa::SanderIOException);
+    void raw_read_amber_parm(const std::string& file) throw (mmpbsa::SanderIOException);
 
     /**
      * Reads the AMBER Topology Parameter files (prmtop)

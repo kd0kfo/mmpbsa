@@ -1,10 +1,10 @@
-Recent Changes:
-Incorportated MD into MMPBSA, via Sander. Progress is relayed to 
-the BOINC client and the client can control Sander using this 
-program as an intermediary. An XML based queue has been made to 
-allow the user to explicitly layout the order of the simulations 
-to be performed. TODO: Add a sample queue file.
-
+Latest Change:
+Added a sample queue which may be created as via a command line argument.
+Tested (with success) the program in a BOINC client. Both MD and MMPBSA will run in the boinc client. Progress is reported well.
+	
+Now that MMPBSA & MD work with BOINC, the compilation requirement of
+BOINC has been removed. MMPBSA can be used with or without BOINC.	
+	
 Previous Git Log:
 commit 947e4ad895a2930d2ceddb5a5fab8bfaa9498714
 Author: David Coss <David.Coss@stjude.org>

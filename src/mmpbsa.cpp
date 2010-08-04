@@ -5,24 +5,32 @@ int main(int argc, char** argv)
 {
     try 
     {
+        ::timeAtPreviousCheckpoint = 0;
         mmpbsa_boinc_init();//must be called before any other BOINC routines. If BOINC is not used, nothing will happen.
         int retval = 0;
 
         ::processQueue = getQueueFile(argc,argv);
+        //If no queue was found, run based on arguments in argv. These should
+        //correspond to what is placed in the queue XML file.
         if(processQueue.size() == 0)
         {
             std::map<std::string,std::string> argMap = parseArgs(argc,argv);
             MMPBSAState currState;
             mmpbsa::SanderInterface si;
             retval = parseParameter(argMap,currState,si);
-            sander_run(currState,si);
-            if(!retval && !currState.MDOnly)
+            if(!retval)
             {
-                mmpbsa::MeadInterface mi;
-                retval = parseParameter(argMap,currState,mi);
-                if(!retval)
-                    retval = mmpbsa_run(currState,mi);
+                sander_run(currState,si);
+                if(!retval && !currState.MDOnly)
+                {
+                    mmpbsa::MeadInterface mi;
+                    retval = parseParameter(argMap,currState,mi);
+                    if(!retval)
+                        retval = mmpbsa_run(currState,mi);
+                }
             }
+            else
+                retval--;
         }
         else
         {
@@ -39,6 +47,12 @@ int main(int argc, char** argv)
                             queuePosition++;
                             continue;
                         }
+                        else if(it->placeInQueue < queuePosition)
+                        {
+                            it->currentSI.completed = false;
+                            it->fractionDone = 0;
+                            it->placeInQueue = queuePosition;
+                        }
                         retval = sander_run(*it,it->currentSI);
                         break;
                     case MMPBSAState::MMPBSA:
@@ -47,6 +61,11 @@ int main(int argc, char** argv)
                         {
                             queuePosition++;
                             continue;
+                        }
+                        else if(it->placeInQueue < queuePosition)
+                        {
+                            it->fractionDone = 0;
+                            it->placeInQueue = queuePosition;
                         }
                         retval = mmpbsa_run(*it,it->currentMI);
                         break;
@@ -81,9 +100,6 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     using std::slice;
     using std::map;
     using namespace mmpbsa;
-
-    currState.receptorStartPos.push_back(0);//would be better as a command line argument, but I don't know yet what this will look like. To add later.
-    currState.ligandStartPos.push_back(1);//array containing the starting positions of ligands and receiptors
 
     std::fstream outputFile;
     if(!currState.outputFilename.size())
@@ -164,6 +180,8 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             try
             {
                 mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
+                ::updateMMPBSAProgress(currState,1);
+                report_boinc_progress();
             }
             catch(MMPBSAException e)
             {
@@ -233,6 +251,8 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         if(currState.currentMolecule == MMPBSAState::END_OF_MOLECULES)
         {
             currState.currentMolecule = MMPBSAState::COMPLEX;
+            ::updateMMPBSAProgress(currState,1);
+            report_boinc_progress();
             continue;//Restarted program at the end of a snapshot. So, move on.
         }
         
@@ -243,9 +263,9 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             outputFile << "COMPLEX" << endl << complexEMap << endl;
             currState.currentMolecule = MMPBSAState::RECEPTOR;
             currState.currentSnap = snapcounter;
+            ::updateMMPBSAProgress(currState,0.33333333);
             checkpoint_mmpbsa(currState);
         }
-        
 
         if(currState.currentMolecule == MMPBSAState::RECEPTOR)
         {
@@ -254,6 +274,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             outputFile << "RECEPTOR" << endl << receptorEMap << endl;
             currState.currentMolecule = MMPBSAState::LIGAND;
             currState.currentSnap = snapcounter;
+            ::updateMMPBSAProgress(currState,0.333333);
             checkpoint_mmpbsa(currState);
         }
 
@@ -263,10 +284,14 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
                     *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
             outputFile << "LIGAND" << endl << ligandEMap << endl << endl;
             currState.currentMolecule = MMPBSAState::END_OF_MOLECULES;
+            ::updateMMPBSAProgress(currState,0.3333333);
         }
         checkpoint_mmpbsa(currState);
-        currState.currentMolecule = MMPBSAState::COMPLEX;//Rest current molecule
+        currState.currentMolecule = MMPBSAState::COMPLEX;//Reset current molecule
     }//end of snapshot loop
+
+    currState.fractionDone = 1.0;
+    checkpoint_mmpbsa(currState);
 
     trajFile.close();
     delete sp;
@@ -276,12 +301,6 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 int sander_run(MMPBSAState& currState,mmpbsa::SanderInterface& si)
 {
     using namespace mmpbsa;
-    if(currState.checkpointFilename.size())
-        restart_sander(currState,si);
-
-    //Setup mmpbsa to follow
-    currState.currentMolecule = MMPBSAState::COMPLEX;
-    currState.trajFilename = si.mdcrdFilename;
     if(si.completed || currState.currentProcess == MMPBSAState::MMPBSA)
         return 0;
 
@@ -309,6 +328,7 @@ int sander_run(MMPBSAState& currState,mmpbsa::SanderInterface& si)
 #endif
     }
     si.completed = true;
+    currState.fractionDone = 1.0;
     checkpoint_sander(currState,si);
 
     return 0;
@@ -387,6 +407,8 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
 int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currState, mmpbsa::SanderInterface& si)
 {
     int returnMe = 0;
+    currState.receptorStartPos.push_back(0);//in case these are not set manually by the use. This is the default.
+    currState.ligandStartPos.push_back(1);
     for(std::map<std::string,std::string>::const_iterator it = args.begin();it != args.end();it++)
     {
         if (it->second.find("=") != string::npos)
@@ -397,38 +419,51 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
         }
 
         if (it->first == "prmtop" || it->first == "parmtop") {
-            resolveSanderFile(si.prmtopFilename, it->second);
+            mmpbsa_io::resolve_filename(it->second, si.prmtopFilename);
             currState.prmtopFilename = si.prmtopFilename;
         } else if (it->first == "inpcrd") {
-            resolveSanderFile(si.inpcrdFilename, it->second);
+            mmpbsa_io::resolve_filename(it->second, si.inpcrdFilename);
         } else if (it->first == "mdout") {
-            resolveSanderFile(si.mdoutFilename, it->second);
+            mmpbsa_io::resolve_filename(it->second, si.mdoutFilename);
         } else if (it->first == "in" || it->first == "mdin") {
-            resolveSanderFile(si.mdinFilename, it->second);
+            mmpbsa_io::resolve_filename(it->second, si.mdinFilename);
         } else if (it->first == "rst" || it->first == "restart" || it->first == "restrt") {
-            resolveSanderFile(si.restartFilename, it->second);
+            mmpbsa_io::resolve_filename(it->second, si.restartFilename);
         } else if (it->first == "mdcrd") {
-            resolveSanderFile(si.mdcrdFilename, it->second);
-            resolveSanderFile(currState.trajFilename,it->second);
+            mmpbsa_io::resolve_filename(it->second, si.mdcrdFilename);
+            mmpbsa_io::resolve_filename(it->second, currState.trajFilename);
         } else if (it->first == "checkpoint") {
-            resolveSanderFile(currState.checkpointFilename, it->second);
+            mmpbsa_io::resolve_filename(it->second, currState.checkpointFilename);
         } else if (it->first == "radii") {
-            resolveSanderFile(currState.radiiFilename, it->second);
+            mmpbsa_io::resolve_filename(it->second, currState.radiiFilename);
         } else if (it->first == "mmpbsa_out") {
-            resolveSanderFile(currState.outputFilename, it->second);
+            mmpbsa_io::resolve_filename(it->second, currState.outputFilename);
         } else if (it->first == "rec_list") {
             currState.receptorStartPos.clear();
-            loadListArg(it->second, currState.receptorStartPos);
+            loadListArg(it->second, currState.receptorStartPos,1);
         } else if (it->first == "lig_list") {
             currState.ligandStartPos.clear();
-            loadListArg(it->second, currState.ligandStartPos);
+            loadListArg(it->second, currState.ligandStartPos,1);
         } else if (it->first == "snap_list" || it->first == "snaplist") {
             currState.snapList.clear();
             loadListArg(it->second, currState.snapList);
         } else if (it->first == "help" || it->first == "h") {
             std::cout << helpString() << std::endl;
             return 1;
-        } else if (it->first == "trust_prmtop") {
+        } 
+        else if(it->first == "sample_queue")
+        {
+            if(!it->second.size())
+            {
+                std::cout << "Parameter \"sample_queue\" requires a file name\"" << std::endl;
+                return 2;
+            }
+            std::string queueFilename;
+            mmpbsa_io::resolve_filename(it->second,queueFilename);
+            ::sampleQueue(queueFilename);
+            return 1;
+        }
+        else if (it->first == "trust_prmtop") {
             currState.trustPrmtop = true;
             return 0;
         } else if (it->first == "mmpbsa_only") {
@@ -448,7 +483,7 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
     return returnMe;
 }
 
-int loadListArg(const std::string& values,std::vector<size_t>& array)
+int loadListArg(const std::string& values,std::vector<size_t>& array, const size_t& offset)
 {
     using mmpbsa_utils::StringTokenizer;
     StringTokenizer valTokens(values,",");
@@ -457,7 +492,7 @@ int loadListArg(const std::string& values,std::vector<size_t>& array)
     {
         std::string curr = valTokens.nextToken();
         sscanf(curr.c_str(),"%d",&currValue);
-        array.push_back(size_t(currValue));
+        array.push_back(size_t(currValue) - offset);
     }
     return 0;
 }
@@ -471,16 +506,23 @@ std::string helpString()
 
     return returnMe + "Usage: ./mmpbsa prmtop=<prmtop file> mdcrd=<mdcrd file> out=<output file> [optional arguments]\n"
     "\n"
-    "radii=<radii file>                   SIZ radii file. If no file is provided, values are used from a \n"
-    "          lookup table built into mmpbsa\n"
+    "radii=<radii file>                   SIZ radii file. If no file is provided, "
+    "                                     values are used from a lookup table "
+    "                                     built into mmpbsa\n"
     "istrength=<strength value>           (default = 0)\n"
     "surf_offset=<surface offset>         (default = 0.92 kcal/mol)\n"
     "surf_tension=<surface tension value> (default = 0.00542 kcal/mol/Ang^2)\n"
-    "rec_list=<comma separated list>      (example rec_list=0,13,25)  List of beginning atoms of residues,\n"
-    "         where the length is deduced from the parmtop file. Note this is a zero indexed list.\n"
-    "lig_list=<comma separated list>      List of beginning atoms of ligand. See also, rec_list.\n"
-    "snap_list=<comma separated list>     1-indexed list of snapshots to be include. If this option is not used, all snapshots are calculated."
-    "trust_prmtop                         Override the Parmtop sanity check. Use with caution!";
+    "rec_list=<comma separated list>      (example rec_list=0,13,25)  List of "
+    "                                     beginning atoms of residues,\n"
+    "                                     where the length is deduced from the "
+    "                                     parmtop file. Note this is a one-indexed list.\n"
+    "lig_list=<comma separated list>      List of beginning atoms of ligand. "
+    "                                     See also, rec_list.\n"
+    "snap_list=<comma separated list>     1-indexed list of snapshots to be "
+    "                                     include. If this option is not used, "
+    "                                     all snapshots are calculated."
+    "trust_prmtop                         Override the Parmtop sanity check. Use with caution!"
+    "create_sample=<filename>             Creates a sample queue XML file.";
 }
 
 MMPBSAState::MMPBSAState()
@@ -614,8 +656,6 @@ bool restart_mmpbsa(MMPBSAState& restartState)
     mmpbsa_utils::XMLParser xmlDoc;
     try{
         xmlDoc.parse(restartState.checkpointFilename);
-        if(xmlDoc.mainTag() == "molecular_dynamics")
-            restartState.currentProcess = MMPBSAState::SANDER;
     }
     catch(mmpbsa::XMLParserException xpe)
     {
@@ -725,48 +765,19 @@ void checkpoint_mmpbsa(MMPBSAState& saveState)
 
 void checkpoint_out(MMPBSAState& saveState,mmpbsa_utils::XMLParser& xmlDoc)
 {
+    report_boinc_progress();
 #ifdef __USE_BOINC__
-    if(!boinc_time_to_checkpoint() && !::boinc_is_standalone())
+    if(!boinc_time_to_checkpoint() && !::boinc_is_standalone() && saveState.fractionDone != 1.0)
+    {
         return;
+    }
 #endif
     
     saveState.checkpointCounter++;
-    if(saveState.checkpointFilename == "")
-    {
+    if(saveState.checkpointFilename != "")
+        xmlDoc.write(saveState.checkpointFilename);
 #ifdef __USE_BOINC__
-        double totalWeight = 0;
-        double completed = 0;
-        for(size_t i = 0;i< ::processQueue.size();i++)
-        {
-            totalWeight += processQueue[i].weight;
-            completed += processQueue[i].fractionDone*processQueue[i].weight;
-        }
-        boinc_fraction_done(completed/totalWeight);
-        boinc_checkpoint_completed();
-#endif
-        return;
-    }
-    
-    std::string theFileName;
-#ifdef __USE_BOINC__
-    int retval = resolveSanderFile(theFileName,saveState.checkpointFilename);
-    if(retval)
-      {
-	char error[256];
-	sprintf(error,"Could not open %s",saveState.checkpointFilename.c_str());
-	throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_READ_ERROR);
-      }
-#endif
-    xmlDoc.write(theFileName.c_str());
-#ifdef __USE_BOINC__
-    double totalWeight = 0;
-    double completed = 0;
-    for(size_t i = 0;i< ::processQueue.size();i++)
-    {
-        totalWeight += processQueue[i].weight;
-        completed += processQueue[i].fractionDone*processQueue[i].weight;
-    }
-    boinc_fraction_done(completed/totalWeight);
+    ::boinc_wu_cpu_time(::timeAtPreviousCheckpoint);
     boinc_checkpoint_completed();
 #endif
 }
@@ -787,25 +798,18 @@ int mmpbsa_boinc_init()
 #endif
 }
 
-int resolveSanderFile(std::string& resolved_name,const std::string& unresolved_name)
-{
-#ifdef __USE_BOINC__
-    return boinc_resolve_filename_s(unresolved_name.c_str(),resolved_name);
-#else
-    resolved_name = unresolved_name;
-    return 0;
-#endif
-}
-
 void send_status_message(mmpbsa::SanderInterface& si, double frac_done, 
         double checkpoint_cpu_time)
 {
+#ifdef __USE_BOINC__
     double current_cpu_time =  si.start_time() + si.cpu_time();
     boinc_report_app_status(current_cpu_time,checkpoint_cpu_time,frac_done);
+#endif
 }
 
 void poll_boinc_messages(mmpbsa::SanderInterface& si)
 {
+#ifdef __USE_BOINC__
     BOINC_STATUS status;
     boinc_get_status(&status);
     if (status.no_heartbeat) {
@@ -829,6 +833,7 @@ void poll_boinc_messages(mmpbsa::SanderInterface& si)
             si.resume();
         }
     }
+#endif
 }
 
 
@@ -849,10 +854,13 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
         value = arg.substr(arg.find("=")+1);
         if(name == "queue")
         {
-            resolveSanderFile(xmlFilename,value);
+            mmpbsa_io::resolve_filename(value,xmlFilename);
             break;
         }
     }
+
+    if(xmlFilename.size() == 0)
+        return returnMe;
 
     try
     {
@@ -870,6 +878,9 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
     xmlNodePtr head = queueXML.getHead();
     if(!head)
         return returnMe;
+
+    if(xmlStrEqual(head->name,(xmlChar*)"grid_queue"))
+        head = head->children;
 
     int queuePosition = 0;
     for(xmlNodePtr sibling = head;sibling;sibling = sibling->next)
@@ -900,3 +911,63 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
     return returnMe;
 }
 
+void sampleQueue(const std::string& filename)
+{
+    using std::map;
+    using mmpbsa_utils::XMLParser;
+
+    map<std::string,std::string> queueMap;
+    queueMap["mdin"] = "sander_input.in";
+    queueMap["mdout"] = "sander_output.out";
+    queueMap["restart"] = "sander_restart.rst";
+    queueMap["inpcrd"] = "sander_input_coordinates.inpcrd";
+    queueMap["prmtop"] = "sander_prmtop_file.prmtop";
+    queueMap["mdcrd"] = "sander_snapshot_file.mdcrd";
+    queueMap["checkpoint"] = "checkpoint_file_name.xml";
+    XMLParser sanderXML("molecular_dynamics",queueMap);
+
+    queueMap.clear();
+
+    queueMap["prmtop"] = "sander_prmtop_file.prmtop";
+    queueMap["mdcrd"] = "sander_snapshot_file.mdcrd";
+    queueMap["radii"] = "DelPhi_radii_file.siz";
+    queueMap["mmpbsa_out"] = "mmpbsa-result-output.out";
+    queueMap["snap_list"] = "1,3";
+    queueMap["checkpoint"] = "checkpoint_file_name.xml";
+    XMLParser mmpbsaXML("mmpbsa",queueMap);
+    queueMap.clear();
+
+    xmlAddNextSibling(sanderXML.getHead(),mmpbsaXML.getHead());
+    XMLParser theDoc("grid_queue",queueMap);
+    ::xmlAddChild(theDoc.getHead(),sanderXML.getHead());
+    theDoc.write(filename);
+}
+
+void updateMMPBSAProgress(MMPBSAState& currState,const double& increment)
+{
+    if(currState.snapList.size())
+    {
+        currState.fractionDone += increment/currState.snapList.size();
+    }
+    else
+    {
+        currState.fractionDone += increment/5;
+    }
+}
+
+void report_boinc_progress()
+{
+#ifdef __USE_BOINC__
+    double totalWeight = 0;
+    double completed = 0;
+    for(size_t i = 0;i< ::processQueue.size();i++)
+    {
+        totalWeight += processQueue[i].weight;
+        completed += processQueue[i].fractionDone*processQueue[i].weight;
+    }
+    //boinc_fraction_done(completed/totalWeight);
+    double cpu_time;
+    ::boinc_wu_cpu_time(cpu_time);
+    ::boinc_report_app_status(cpu_time,::timeAtPreviousCheckpoint,completed/totalWeight);
+#endif
+}

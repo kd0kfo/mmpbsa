@@ -1,4 +1,5 @@
 #include "SanderInterface.h"
+#include "mmpbsa_io.h"
 
 mmpbsa::SanderInterface::SanderInterface() {
     pid = 0;
@@ -27,6 +28,81 @@ mmpbsa::SanderInterface::SanderInterface(const mmpbsa::SanderInterface& orig)
 mmpbsa::SanderInterface::~SanderInterface() {
 }
 
+
+#ifndef __USE_BOINC__
+//These are needed for start() below. However, if BOINC is not used, it must
+//be provided here.
+//Copied from str_util.cpp under the terms of the GNU Lesser General Public License.
+//See http://boinc.berkeley.edu or http://www.gnu.org for details.
+#if !defined(HAVE_STRLCPY)
+size_t strlcpy(char *dst, const char *src, size_t size) {
+    size_t ret = strlen(src);
+
+    if (size) {
+        size_t len = (ret >= size) ? size-1 : ret;
+        memcpy(dst, src, len);
+        dst[len] = '\0';
+    }
+
+    return ret;
+}
+#endif
+
+#define NOT_IN_TOKEN                0
+#define IN_SINGLE_QUOTED_TOKEN      1
+#define IN_DOUBLE_QUOTED_TOKEN      2
+#define IN_UNQUOTED_TOKEN           3
+
+int parse_command_line(char* p, char** argv) {
+    int state = NOT_IN_TOKEN;
+    int argc=0;
+
+    while (*p) {
+        switch(state) {
+        case NOT_IN_TOKEN:
+            if (isspace(*p)) {
+            } else if (*p == '\'') {
+                p++;
+                argv[argc++] = p;
+                state = IN_SINGLE_QUOTED_TOKEN;
+                break;
+            } else if (*p == '\"') {
+                p++;
+                argv[argc++] = p;
+                state = IN_DOUBLE_QUOTED_TOKEN;
+                break;
+            } else {
+                argv[argc++] = p;
+                state = IN_UNQUOTED_TOKEN;
+            }
+            break;
+        case IN_SINGLE_QUOTED_TOKEN:
+            if (*p == '\'') {
+                *p = 0;
+                state = NOT_IN_TOKEN;
+            }
+            break;
+        case IN_DOUBLE_QUOTED_TOKEN:
+            if (*p == '\"') {
+                *p = 0;
+                state = NOT_IN_TOKEN;
+            }
+            break;
+        case IN_UNQUOTED_TOKEN:
+            if (isspace(*p)) {
+                *p = 0;
+                state = NOT_IN_TOKEN;
+            }
+            break;
+        }
+        p++;
+    }
+    argv[argc] = 0;
+    return argc;
+}
+
+#endif
+
 int mmpbsa::SanderInterface::start(const double& start_time) {
     using std::string;
     this->starting_cpu = start_time;
@@ -35,11 +111,9 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
     string stderr_path = "sander-stdin.txt";
     
     
-    char application[] = "./moldyn";
-#ifdef __USE_BOINC__
-    char buff[256];
-    boinc_resolve_filename(application, application,sizeof(application));
-#endif
+    char buff[] = "./moldyn";
+    char application[1024];
+    mmpbsa_io::resolve_filename(buff, application,sizeof(application));
     
     std::string command_line = "-O -i " + mdinFilename + " -o  " + mdoutFilename
             + " -c " + inpcrdFilename + " -p " + prmtopFilename + " -r " + restartFilename;
@@ -48,7 +122,7 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
         command_line += " -x " + mdcrdFilename;
 
 
-    fprintf(stderr, "%s running with arguments: %s\n",
+    fprintf(stdout, "%s running with arguments: %s\n",
         application, command_line.c_str()
     );
 
@@ -67,17 +141,10 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
     //
     startup_info.dwFlags = STARTF_USESTDHANDLES;
 	if (stdout_filename != "") {
-		boinc_resolve_filename_s(stdout_filename.c_str(), stdout_path);
-		startup_info.hStdOutput = win_fopen(stdout_path.c_str(), "a");
+		mmpbsa_io::resolve_filename(stdout_filename, stdout_path);
+		startup_info.hStdOutput = win_fopen(stdout_filename.c_str(), "a");
 	}
-	if (stdin_filename != "") {
-		boinc_resolve_filename_s(stdin_filename.c_str(), stdin_path);
-		startup_info.hStdInput = win_fopen(stdin_path.c_str(), "r");
-	}
-    if (stderr_filename != "") {
-        boinc_resolve_filename_s(stderr_filename.c_str(), stderr_path);
-        startup_info.hStdError = win_fopen(stderr_path.c_str(), "a");
-    } else {
+    else {
         startup_info.hStdError = win_fopen(STDERR_FILE, "a");
     }
 
@@ -198,29 +265,32 @@ void mmpbsa::SanderInterface::resume() {
 }
 
 
-void mmpbsa::SanderInterface::poll_boinc_messages()
-{
-    BOINC_STATUS status;
-    boinc_get_status(&status);
-    if (status.no_heartbeat) {
-        this->kill();
+#ifndef __USE_BOINC__
+//These are needed for start() below. However, if BOINC is not used, it must
+//be provided here.
+//Copied from str_util.cpp under the terms of the GNU Lesser General Public License.
+//See http://boinc.berkeley.edu or http://www.gnu.org for details.
+#ifndef _USING_FCGI_
+#ifndef _WIN32
+// (linux) return current CPU time of the given process
+//
+double linux_cpu_time(int pid) {
+    FILE *file;
+    char file_name[24];
+    unsigned long utime = 0, stime = 0;
+    int n;
+
+    sprintf(file_name,"/proc/%d/stat",pid);
+    if ((file = fopen(file_name,"r")) != NULL) {
+        n = fscanf(file,"%*s%*s%*s%*s%*s%*s%*s%*s%*s%*s%*s%*s%*s%lu%lu",&utime,&stime);
+        fclose(file);
+        if (n != 2) return 0;
     }
-    if (status.quit_request) {
-        this->kill();
-    }
-    if (status.abort_request) {
-        this->kill();
-    }
-    if (status.suspended) {
-        if (!suspended) {
-            this->stop();
-        }
-    } else {
-        if (this->suspended) {
-            this->resume();
-        }
-    }
+    return (double)(utime + stime)/100;
 }
+#endif
+#endif
+#endif
 
 double mmpbsa::SanderInterface::cpu_time()const
 {

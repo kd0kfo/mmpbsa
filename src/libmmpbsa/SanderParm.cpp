@@ -351,7 +351,7 @@ void mmpbsa::SanderParm::initializeArrays()
     box_dimensions;
     }
 
-void mmpbsa::SanderParm::raw_read_amber_parm(std::string file) throw (mmpbsa::SanderIOException)
+void mmpbsa::SanderParm::raw_read_amber_parm(const std::string& file) throw (mmpbsa::SanderIOException)
 {
     using std::fstream;
     using std::string;

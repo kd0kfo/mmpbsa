@@ -22,14 +22,18 @@
 #define HAVE_STRCASESTR 1
 #include "str_replace.h"
 #include "str_util.h"
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <sys/wait.h>
-#include <signal.h>
 #else
 #define ERR_FORK -147
 #define PROCESS_IDLE_PRIORITY 19
 #define ERR_EXEC -148
+#define ERR_FOPEN -108
+#endif
+
+#ifndef _WIN32
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <sys/wait.h>
+#include <signal.h>
 #endif
 
 namespace mmpbsa{
@@ -45,9 +49,7 @@ public:
     void kill();
     void stop();
     void resume();
-    void poll_boinc_messages();
     
-
     const double& start_time()const{return starting_cpu;}
     const bool& isSuspended()const{return suspended;}
     const int& getPID()const{return pid;}

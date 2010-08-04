@@ -24,7 +24,11 @@
 #ifdef __USE_BOINC__
 #include "boinc_api.h"
 #include "str_util.h"
+#else
+#define EXIT_CHILD_FAILED 195
 #endif
+
+double timeAtPreviousCheckpoint;
 
 class MMPBSAState
 {
@@ -86,6 +90,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi);
 
 int sander_run(MMPBSAState& currState,mmpbsa::SanderInterface& si);
 
+void updateMMPBSAProgress(MMPBSAState& currState,const double& increment);
 
 void printSnapshot(const mmpbsa::EMap& complexEMap, const mmpbsa::EMap& receptorEMap,
         const mmpbsa::EMap& ligandEMap, std::fstream& outFile);
@@ -126,7 +131,7 @@ int parseFlag(std::string flag, MMPBSAState& currState, mmpbsa::SanderInterface&
  * @param values
  * @param array
  */
-int loadListArg(const std::string& values,std::vector<size_t>& array);
+int loadListArg(const std::string& values,std::vector<size_t>& array, const size_t& offset = 0);
 
 std::vector<MMPBSAState> getQueueFile(int argc,char** argv);
 
@@ -139,17 +144,19 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv);
 std::string helpString();
 
 /**
- * If BOINC is used, this function will resolve the file name within the BOINC tree
- * and returns the value the boinc function returns.
- * If BOINC is not used, then resolved_name = unresolved_name and zero is returned.
+ * Runs the boinc initialization process, if compiled with BOINC. Otherwise,
+ * nothing is done.
  * 
- * @param resolved_name
- * @param unresolved_name
+ * @return
  */
-int resolveSanderFile(std::string& resolved_name,const std::string& unresolved_name);
-
 int mmpbsa_boinc_init();
 
+/**
+ * Check with the BOINC client to see if anything should be done, if compiled
+ * with BOINC. Otherwise, nothing is done.
+ * 
+ * @param si
+ */
 void poll_boinc_messages(mmpbsa::SanderInterface& si);
 
 
@@ -169,6 +176,22 @@ void checkpoint_sander(MMPBSAState& saveState, mmpbsa::SanderInterface& si);
  */
 bool restart_mmpbsa(MMPBSAState& restartState);
 bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si);
+
+/**
+ * Generates a sample queue file and writes it to the provided file. The sample
+ * file is an XML document similar to that which the program takes and includes
+ * parameters used by both molecular dynamics and MMPBSA.
+ * 
+ * @param filename
+ */
+void sampleQueue(const std::string& filename);
+
+/**
+ * IF BOINC is being used, the progress is reported to the client based on CPU
+ * and precentages stored in the MMPBSAState's
+ */
+void report_boinc_progress();
+
 
 #endif	/* MMPBSA_H */
 

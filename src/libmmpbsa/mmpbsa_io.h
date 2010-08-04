@@ -146,14 +146,28 @@ template <> bool loadValarray<std::string>(std::fstream& dataFile,
             std::valarray<std::string>& dataArray, const size_t& arrayLength, const size_t& width,
             const size_t& numberOfColumns);
 
+
 /**
-     * Gets the next line with data, ie empty, whitespace lines are ignored.
-     * @param file
-     * @return
-     */
+ * If BOINC is used, this function will resolve the file name within the BOINC tree
+ * and returns the value the boinc function returns.
+ * If BOINC is not used, then resolved_name = unresolved_name and zero is returned.
+ *
+ * @param resolvedFilename
+ * @param unresolvedFilename
+ */
+int resolve_filename(const std::string& unresolvedFilename, std::string& resolvedFilename);
+
+/**
+ * If BOINC is used, this function will resolve the file name within the BOINC tree
+ * and returns the value the boinc function returns.
+ * If BOINC is not used, then resolved_name = unresolved_name and zero is returned.
+ *
+ * @param resolvedFilename
+ * @param unresolvedFilename
+ */
+int resolve_filename(const char* unresolvedFilename, char* resolvedFilename,  int length);
 
 }//end namespace mmpbsa_io
-
 
 
 #endif	//SANDERIO_H
