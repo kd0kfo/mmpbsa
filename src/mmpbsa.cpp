@@ -323,7 +323,11 @@ int sander_run(MMPBSAState& currState,mmpbsa::SanderInterface& si)
 #ifdef __USE_BOINC__
         ::poll_boinc_messages(si);
         if(::boinc_time_to_checkpoint())
+        {
+
+            ::netFractionDone = overallFractionDone();
             checkpoint_sander(currState,si);
+        }
         ::boinc_sleep(SanderInterface::pollPeriod);
 #endif
     }
@@ -613,6 +617,7 @@ bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
 
     bool usedAllParameters = true;
     std::string tag = "";
+    double runtime,cpu_time,start_time;
     for(std::map<std::string,std::string>::iterator it = checkMap.begin();
             it != checkMap.end();it++)
     {
@@ -626,9 +631,15 @@ bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
         }
         else if(tag == "cpu_time")
         {
-            double new_start_time = 0;
-            sscanf(it->second.c_str(),"%e",&new_start_time);
-            si.set_start_time(new_start_time);
+            sscanf(it->second.c_str(),"%le",&cpu_time);
+        }
+        else if(tag == "start_time")
+        {
+            sscanf(it->second.c_str(),"%le",&start_time);
+        }
+        else if(tag == "runtime")
+        {
+            sscanf(it->second.c_str(),"%le",&runtime);
         }
         else if(tag == "finished")
         {
@@ -645,6 +656,13 @@ bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
             usedAllParameters = false;
         }
     }
+    if(si.completed)
+        si.set_start_time(runtime);
+    else
+    {
+        si.set_start_time(cpu_time+start_time);
+    }
+    ::netCPUTime = si.start_time();
     return usedAllParameters;
 }
 
@@ -730,11 +748,11 @@ void checkpoint_sander(MMPBSAState& saveState, mmpbsa::SanderInterface& si)
     char buff[16];
     sprintf(buff,"%d",si.getPID());
     checkMap["pid"] = buff;
-    sprintf(buff,"%e",si.start_time());
+    sprintf(buff,"%le",si.start_time());
     checkMap["start_time"] = buff;
-    sprintf(buff,"%e",si.cpu_time());
+    sprintf(buff,"%le",si.cpu_time());
     checkMap["cpu_time"] = buff;
-    sprintf(buff,"%e",si.netRuntime());
+    sprintf(buff,"%le",si.netRuntime());
     checkMap["runtime"] = buff;
     sprintf(buff,"%d",si.completed);
     checkMap["finished"] = buff;
@@ -785,6 +803,16 @@ int mmpbsa_boinc_init()
     options.main_program = true;
     options.check_heartbeat = true;
     options.handle_process_control = true;
+
+#ifdef __USE_GRAPHICS__
+    options.backwards_compatible_graphics = true;
+    gshmem =(MMPBSA_SHMEM*)boinc_graphics_make_shmem("mmpbsa",sizeof(MMPBSA_SHMEM));
+    if(!gshmem)
+        fprintf(stderr,"Could not create shared memory for mmpbsa.\n");
+    update_gshmem();
+    boinc_register_timer_callback(update_gshmem);
+#endif
+
     fprintf(stderr, "mmpbsa started\n");
     return boinc_init_options(&options);
 #endif
@@ -947,9 +975,8 @@ void updateMMPBSAProgress(MMPBSAState& currState,const double& increment)
     }
 }
 
-void report_boinc_progress()
+double overallFractionDone()
 {
-#ifdef __USE_BOINC__
     double totalWeight = 0;
     double completed = 0;
     for(size_t i = 0;i< ::processQueue.size();i++)
@@ -957,9 +984,35 @@ void report_boinc_progress()
         totalWeight += processQueue[i].weight;
         completed += processQueue[i].fractionDone*processQueue[i].weight;
     }
+    return completed/totalWeight;
+}
+
+void report_boinc_progress()
+{
+#ifdef __USE_BOINC__
+    ::netFractionDone = overallFractionDone();
     //boinc_fraction_done(completed/totalWeight);
     double cpu_time;
     ::boinc_wu_cpu_time(cpu_time);
-    ::boinc_report_app_status(cpu_time,::timeAtPreviousCheckpoint,completed/totalWeight);
+    ::boinc_report_app_status(cpu_time,::timeAtPreviousCheckpoint,::netFractionDone);
 #endif
 }
+
+
+void update_gshmem()
+{
+#if defined(__USE_BOINC__) && defined(__USE_GRAPHICS__)
+    if(!gshmem)
+        return;
+    gshmem->update_time = dtime();//without this, the graphics app will think we've died.
+    if(gshmem->countdown > 0)
+        gshmem->countdown--;
+    else
+        return;
+    gshmem->fraction_done = ::netFractionDone;
+    gshmem->cpu_time = ::netCPUTime + boinc_elapsed_time();
+    boinc_get_status(&gshmem->status);
+#endif
+}
+
+

@@ -312,7 +312,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CC CFLAGS ac_ct_CC CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE RANLIB ac_ct_RANLIB XML2_CONFIG XML_CPPFLAGS XML_LIBS MEAD_PATH BOINC_CPPFLAGS BOINC_LIBS BOINC_LDFLAGS CPP EGREP LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CC CFLAGS ac_ct_CC CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE RANLIB ac_ct_RANLIB XML2_CONFIG XML_CPPFLAGS XML_LIBS MEAD_PATH BOINC_CPPFLAGS BOINC_LIBS BOINC_LDFLAGS GRAPHICS_CPPFLAGS GRAPHICS_LIBS GRAPHICS_LDFLAGS CPP EGREP LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -869,6 +869,8 @@ Optional Packages:
   --with-xml-exec-prefix=PFX Exec prefix where libxml is installed (optional)
   --with-mead             Include MEAD library
   --with-boinc            Include boinc under specified path
+  --with-graphics(=GL include path)
+                          Include the graphics app. Requires BOINC and GL.
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -1766,6 +1768,8 @@ INSTALL_STRIP_PROGRAM="\${SHELL} \$(install_sh) -c -s"
 AMTAR=${AMTAR-"${am_missing_run}tar"}
 
 am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
+
+
 
 
 
@@ -3766,6 +3770,29 @@ _ACEOF
 
 fi
 
+
+# Check whether --with-graphics or --without-graphics was given.
+if test "${with_graphics+set}" = set; then
+  withval="$with_graphics"
+  echo "$as_me:$LINENO: result: Using Graphics $with_graphics" >&5
+echo "${ECHO_T}Using Graphics $with_graphics" >&6
+GRAPHICS_CPPFLAGS="-DAPP_GRAPHICS -I$with_graphics"
+
+GRAPHICS_LIBS="-lboinc_graphics2 -lGL -lglut -ljpeg -lX11"
+
+GRAPHICS_LDFLAGS="-L/usr/X11R6/lib"
+
+cat >>confdefs.h <<\_ACEOF
+#define __USE_GRAPHICS__ 1
+_ACEOF
+
+
+else
+  echo "$as_me:$LINENO: result: Not creating a graphics application" >&5
+echo "${ECHO_T}Not creating a graphics application" >&6
+fi;
+
+
 # Checks for libraries.
 
 # Checks for header files.
@@ -5699,6 +5726,9 @@ s,@MEAD_PATH@,$MEAD_PATH,;t t
 s,@BOINC_CPPFLAGS@,$BOINC_CPPFLAGS,;t t
 s,@BOINC_LIBS@,$BOINC_LIBS,;t t
 s,@BOINC_LDFLAGS@,$BOINC_LDFLAGS,;t t
+s,@GRAPHICS_CPPFLAGS@,$GRAPHICS_CPPFLAGS,;t t
+s,@GRAPHICS_LIBS@,$GRAPHICS_LIBS,;t t
+s,@GRAPHICS_LDFLAGS@,$GRAPHICS_LDFLAGS,;t t
 s,@CPP@,$CPP,;t t
 s,@EGREP@,$EGREP,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t

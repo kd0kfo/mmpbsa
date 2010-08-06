@@ -77,6 +77,9 @@
 /* Define to use the BOINC library */
 #define __USE_BOINC__ 1
 
+/* Define to create the graphics application. Requires BOINC and GL */
+#define __USE_GRAPHICS__ 1
+
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
 

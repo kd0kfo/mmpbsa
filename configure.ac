@@ -9,6 +9,7 @@ AM_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE
 
 AH_TEMPLATE([__USE_BOINC__],[Define to use the BOINC library])
+AH_TEMPLATE([__USE_GRAPHICS__],[Define to create the graphics application. Requires BOINC and GL])
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
@@ -28,6 +29,16 @@ if test x$with_boinc != x; then
    AC_SUBST(BOINC_LDFLAGS,"-L$with_boinc/api -L$with_boinc/lib")
    AC_DEFINE([__USE_BOINC__],[1])   
 fi
+
+AC_ARG_WITH([graphics],AS_HELP_STRING([--with-graphics(=GL include path)],[Include the graphics app. Requires BOINC and GL.]),
+[AC_MSG_RESULT(Using Graphics $with_graphics)
+AC_SUBST(GRAPHICS_CPPFLAGS,"-DAPP_GRAPHICS -I$with_graphics")
+AC_SUBST(GRAPHICS_LIBS,"-lboinc_graphics2 -lGL -lglut -ljpeg -lX11")
+AC_SUBST(GRAPHICS_LDFLAGS,"-L/usr/X11R6/lib")
+AC_DEFINE([__USE_GRAPHICS__],[1])
+ ],
+AC_MSG_RESULT(Not creating a graphics application))
+
 
 # Checks for libraries.
 

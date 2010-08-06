@@ -1,11 +1,35 @@
 Latest Change:
-Added a sample queue which may be created as via a command line argument.
-Tested (with success) the program in a BOINC client. Both MD and MMPBSA will run in the boinc client. Progress is reported well.
-	
-Now that MMPBSA & MD work with BOINC, the compilation requirement of
-BOINC has been removed. MMPBSA can be used with or without BOINC.	
-	
+Integrated Graphics into MMPBSA/MD. Requires BOINC. Currently, the graphics app displays a the CPU time elapsed by the program and the overall progress. Also, a representation of Alanine bounces around the screen. This is create based on coordinates in a float array; there other molecules can be quickly created. The molecule can be rotated and zoomed using the left and right mouse buttons, respectively. 
+
 Previous Git Log:
+commit 24f4e237fdd784340c26ec3ef9ac4c09dfb90b44
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Aug 6 07:58:55 2010 -0500
+
+    Fixed boinc suspsend/restart problem.
+
+commit 0dfca1c4e388d783386ae5dc5b759b3dfc8e3807
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Aug 4 11:45:51 2010 -0500
+
+    Added a sample queue which may be created as via a command line
+    argument. Tested (with success) the program in a BOINC client.
+    Both MD and MMPBSA will run in the boinc client. Progress is
+    reported well by the client.
+    
+    Now that MMPBSA & MD work with BOINC, the compilation requirement of
+    BOINC has been removed. MMPBSA can be used with or without BOINC.
+
+commit f8bd9a0477009b3824c7285a9ba4a0fc4cb9fced
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Aug 2 16:15:53 2010 -0500
+
+    Incorportated MD into MMPBSA, via Sander. Progress is relayed to
+    the BOINC client and the client can control Sander using this
+    program as an intermediary. An XML based queue has been made to
+    allow the user to explicitly layout the order of the simulations
+    to be performed. TODO: Add a sample queue file.
+
 commit 947e4ad895a2930d2ceddb5a5fab8bfaa9498714
 Author: David Coss <David.Coss@stjude.org>
 Date:   Mon Aug 2 11:32:00 2010 -0500

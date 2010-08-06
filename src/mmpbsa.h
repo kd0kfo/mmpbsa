@@ -24,11 +24,20 @@
 #ifdef __USE_BOINC__
 #include "boinc_api.h"
 #include "str_util.h"
+
+#ifdef __USE_GRAPHICS__
+#include "mmpbsa_graphics.h"
+#include "graphics2.h"
+MMPBSA_SHMEM* gshmem;
+#endif
+
 #else
 #define EXIT_CHILD_FAILED 195
 #endif
 
 double timeAtPreviousCheckpoint;
+double netFractionDone;
+double netCPUTime;
 
 class MMPBSAState
 {
@@ -191,6 +200,10 @@ void sampleQueue(const std::string& filename);
  * and precentages stored in the MMPBSAState's
  */
 void report_boinc_progress();
+
+void update_gshmem();
+
+double overallFractionDone();
 
 
 #endif	/* MMPBSA_H */
