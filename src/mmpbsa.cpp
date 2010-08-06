@@ -766,18 +766,10 @@ void checkpoint_mmpbsa(MMPBSAState& saveState)
 void checkpoint_out(MMPBSAState& saveState,mmpbsa_utils::XMLParser& xmlDoc)
 {
     report_boinc_progress();
-#ifdef __USE_BOINC__
-    if(!boinc_time_to_checkpoint() && !::boinc_is_standalone() && saveState.fractionDone != 1.0)
-    {
-        return;
-    }
-#endif
-    
     saveState.checkpointCounter++;
     if(saveState.checkpointFilename != "")
         xmlDoc.write(saveState.checkpointFilename);
 #ifdef __USE_BOINC__
-    ::boinc_wu_cpu_time(::timeAtPreviousCheckpoint);
     boinc_checkpoint_completed();
 #endif
 }
