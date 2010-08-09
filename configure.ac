@@ -17,6 +17,11 @@ AC_PROG_RANLIB
 
 AM_PATH_XML2(2.6.0)
 
+AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Statically]),
+[AC_MSG_RESULT(Compiling MMPBSA statically)
+AC_SUBST(CUSTOM_LDFLAGS,"-static")
+AC_SUBST(CUSTOM_LIBS,"-lpthread")],)
+
 AC_ARG_WITH([mead],AS_HELP_STRING([--with-mead],[Include MEAD library]),with_mead=${withval},AC_MSG_RESULT(Assuming mead is installed in system paths))
 if test x$with_mead != x; then
    AC_SUBST(MEAD_PATH,$with_mead)

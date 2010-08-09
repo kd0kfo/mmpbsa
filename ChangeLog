@@ -1,5 +1,5 @@
-Latest Change:
-Integrated Graphics into MMPBSA/MD. Requires BOINC. Currently, the graphics app displays a the CPU time elapsed by the program and the overall progress. Also, a representation of Alanine bounces around the screen. This is create based on coordinates in a float array; there other molecules can be quickly created. The molecule can be rotated and zoomed using the left and right mouse buttons, respectively. 
+Latest Changes:
+Added a flag to configure ("--enable-static") that will compile MMPBSA statically.
 
 Previous Git Log:
 commit 24f4e237fdd784340c26ec3ef9ac4c09dfb90b44
