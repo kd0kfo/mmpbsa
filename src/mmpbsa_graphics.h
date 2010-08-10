@@ -8,6 +8,12 @@
 #ifndef MMPBSA_GRAPHICS_H
 #define	MMPBSA_GRAPHICS_H
 
+/**
+ * Shared Memory is used to communicate between the science application and the
+ * graphics application. MMPBSA_SHMEM stores information that is used by the
+ * graphics application based on the progress of the science application.
+ * 
+ */
 struct MMPBSA_SHMEM {
     float* crds;
     size_t natoms;
