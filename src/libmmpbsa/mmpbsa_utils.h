@@ -59,7 +59,7 @@ namespace mmpbsa_utils {
      * @return
      */
     mmpbsa_t lookup_radius(const std::string& atomName,
-            const std::map<std::string,mmpbsa_t>& radiusMap)
+            std::map<std::string,mmpbsa_t>& radiusMap)
             throw (mmpbsa::MMPBSAException);
 
     std::string toUpperCase(const std::string& bean);

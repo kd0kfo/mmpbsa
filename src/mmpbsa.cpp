@@ -242,7 +242,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         }
 
         FinDiffMethod fdm = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
-        const map<std::string,mmpbsa_t>* pradii = &(mi.brad);//don't delete!!!
+        map<std::string,mmpbsa_t>* pradii = &(mi.brad);//don't delete!!!
         if(radii.size())//if the radius map is empty, use MeadInterface's lookup table.
             pradii = &radii;
 
@@ -824,6 +824,8 @@ void send_status_message(mmpbsa::SanderInterface& si, double frac_done,
 #ifdef __USE_BOINC__
     double current_cpu_time =  si.start_time() + si.cpu_time();
     boinc_report_app_status(current_cpu_time,checkpoint_cpu_time,frac_done);
+#else
+    return;
 #endif
 }
 
@@ -854,6 +856,8 @@ void poll_boinc_messages(mmpbsa::SanderInterface& si)
         }
     }
 #endif
+    int a = 3;
+    a *= 42;
 }
 
 
@@ -995,6 +999,8 @@ void report_boinc_progress()
     double cpu_time;
     ::boinc_wu_cpu_time(cpu_time);
     ::boinc_report_app_status(cpu_time,::timeAtPreviousCheckpoint,::netFractionDone);
+#else
+    return;
 #endif
 }
 
@@ -1012,6 +1018,8 @@ void update_gshmem()
     gshmem->fraction_done = ::netFractionDone;
     gshmem->cpu_time = ::netCPUTime + boinc_elapsed_time();
     boinc_get_status(&gshmem->status);
+#else
+    return;
 #endif
 }
 

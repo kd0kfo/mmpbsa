@@ -3,6 +3,7 @@
 #include <csetjmp>//:-(
 #endif
 
+
 #define ERROR (-1)
 #define REAL_T	double
 
@@ -33,7 +34,7 @@ extern REAL_T __dx__, __dy__, __dz__;
                ( (pi)[1] - (pj)[1] )* ( (pi)[1] - (pj)[1] ) + \
 	           ( (pi)[2] - (pj)[2] )* ( (pi)[2] - (pj)[2] )  ) )
 
-typedef REAL_T POINT[3];
+typedef REAL_T molsurfPOINT[3];
 
 #define NAME_SIZE       8
 
@@ -46,7 +47,7 @@ typedef struct res {
 } RES;
 
 typedef struct atom {
-	POINT pos;
+	molsurfPOINT pos;
 	REAL_T q, rad;
 	char anam[NAME_SIZE];
 	char rnam[NAME_SIZE];
@@ -64,7 +65,7 @@ typedef struct atom {
 	int n_cycles;       /*  cycles of edges associated with atom */
 	int cycle_start;    /*  points to start of cyclelist for the atom */
 	REAL_T area;    /* accessible surface area  associated with the atom */
-} ATOM;
+} molsurfATOM;
 
 typedef struct neighbor_torus {
 	int iatom;
@@ -77,7 +78,7 @@ typedef struct neighbor{
 
 /************* torus and probe data structures *********/
 typedef struct {
-        POINT center, uv;       /* torus center and axis unit vector */
+        molsurfPOINT center, uv;       /* torus center and axis unit vector */
         REAL_T rad;
         int a1, a2;
 	int concave_edges[MAXTOR_EDGE], n_concave_edges;
@@ -87,7 +88,7 @@ typedef struct {
 } TORUS;
 
 typedef struct probe {
-    POINT pos; 
+    molsurfPOINT pos; 
 	int a1, a2, a3;        /* atoms associated with probe */
 	int c1, c2, c3;		/* circles associated with probe */
 	REAL_T height;          /* height of probe above base plane */
@@ -97,7 +98,7 @@ typedef struct probe {
 /************* edge data structures ************/
 
 typedef struct vertex { 
-	POINT pos; 
+	molsurfPOINT pos; 
 	int iatom;      /* atom associated with vertex */
     int iprobe;   /* probe associated with vertex */
 	REAL_T beta;   /* concave triangle angle */
@@ -113,8 +114,8 @@ typedef struct circle {
     int torus;
 	int atom_or_probe_num;		/* concave = probe  convex = atom */
 	REAL_T rad;
-	POINT center;
-	POINT axis;
+	molsurfPOINT center;
+	molsurfPOINT axis;
 } CIRCLE;
 
 /************* face data structures ************/
@@ -212,7 +213,7 @@ typedef struct cusp_group {
    become real cusps, depending on the non_axial cusps that it intersects */
 
 typedef struct cusp_pair {
-	POINT circle_center, circle_axis, vert1, vert2;
+	molsurfPOINT circle_center, circle_axis, vert1, vert2;
 	REAL_T circle_rad;
 	int cycle1, cycle2, cycle3;
 	int cusp1, cusp2;		/*  cusps that intersect at new_cusp */

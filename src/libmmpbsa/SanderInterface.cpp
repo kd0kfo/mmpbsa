@@ -34,7 +34,7 @@ mmpbsa::SanderInterface::~SanderInterface() {
 //be provided here.
 //Copied from str_util.cpp under the terms of the GNU Lesser General Public License.
 //See http://boinc.berkeley.edu or http://www.gnu.org for details.
-#if !defined(HAVE_STRLCPY)
+#if !defined(HAVE_STRLCPY) && !defined(__MINGW_WIN32__)
 size_t strlcpy(char *dst, const char *src, size_t size) {
     size_t ret = strlen(src);
 
@@ -103,6 +103,133 @@ int parse_command_line(char* p, char** argv) {
 
 #endif
 
+
+#if (defined(_WIN32) || defined(__MINGW_WIN32__)) && !defined(__USE_BOINC__)
+//win_fopen(), suspend_or_resume_threads(...) and windows_error_string() have been created based on the code
+//from the BOINC project under the terms of the Lesser GNU Public License.
+//See http://boinc.berkeley.edu or http://gnu.org for details.
+HANDLE win_fopen(const char* path, const char* mode)
+{
+    SECURITY_ATTRIBUTES sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.nLength = sizeof(sa);
+	sa.bInheritHandle = TRUE;
+
+	if (!strcmp(mode, "r")) {
+		return CreateFile(
+			path,
+			GENERIC_READ,
+			FILE_SHARE_READ,
+			&sa,
+			OPEN_EXISTING,
+			0, 0
+		);
+	} else if (!strcmp(mode, "w")) {
+		return CreateFile(
+			path,
+			GENERIC_WRITE,
+			FILE_SHARE_WRITE,
+			&sa,
+			OPEN_ALWAYS,
+			0, 0
+		);
+	} else if (!strcmp(mode, "a")) {
+		HANDLE hAppend = CreateFile(
+			path,
+			GENERIC_WRITE,
+			FILE_SHARE_WRITE,
+			&sa,
+			OPEN_ALWAYS,
+			0, 0
+		);
+        SetFilePointer(hAppend, 0, NULL, FILE_END);
+        return hAppend;
+	} else {
+		return 0;
+	}
+}
+
+// get message for last error
+//
+char* windows_error_string(char* pszBuf, int iSize) {
+    DWORD dwRet;
+    LPSTR lpszTemp = NULL;
+
+    dwRet = FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_ARGUMENT_ARRAY,
+        NULL,
+        GetLastError(),
+        LANG_NEUTRAL,
+        (LPSTR)&lpszTemp,
+        0,
+        NULL
+    );
+
+    // supplied buffer is not long enough
+    if ( !dwRet || ( (long)iSize < (long)dwRet+14 ) ) {
+        pszBuf[0] = '\0';
+    } else {
+        lpszTemp[lstrlenA(lpszTemp)-2] = '\0';  //remove cr and newline character
+        sprintf ( pszBuf, "%s (0x%x)", lpszTemp, GetLastError() );
+    }
+
+    if ( lpszTemp ) {
+        LocalFree((HLOCAL) lpszTemp );
+    }
+
+    return pszBuf;
+}
+
+// Suspend or resume the threads in a given process.
+// The only way to do this on Windows is to enumerate
+// all the threads in the entire system,
+// and find those belonging to the process (ugh!!)
+//
+
+// OpenThread
+typedef HANDLE (WINAPI *tOT)(DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwThreadId);
+
+int suspend_or_resume_threads(DWORD pid, bool resume) {
+    HANDLE threads, thread;
+    HMODULE hKernel32Lib = NULL;
+    THREADENTRY32 te = {0};
+    tOT pOT = NULL;
+
+    // Dynamically link to the proper function pointers.
+    hKernel32Lib = GetModuleHandleA("kernel32.dll");
+    pOT = (tOT) GetProcAddress( hKernel32Lib, "OpenThread" );
+
+    if (!pOT) {
+        return -1;
+    }
+
+    threads = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (threads == INVALID_HANDLE_VALUE) return -1;
+
+    te.dwSize = sizeof(THREADENTRY32);
+    if (!Thread32First(threads, &te)) {
+        CloseHandle(threads);
+        return -1;
+    }
+
+    do {
+        if (te.th32OwnerProcessID == pid) {
+            thread = pOT(THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
+            resume ?  ResumeThread(thread) : SuspendThread(thread);
+            CloseHandle(thread);
+        }
+    } while (Thread32Next(threads, &te));
+
+    CloseHandle (threads);
+
+    return 0;
+}
+
+
+#endif
+
 int mmpbsa::SanderInterface::start(const double& start_time) {
     using std::string;
     this->starting_cpu = start_time;
@@ -128,7 +255,7 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
 
     
 
-#ifdef _WIN32
+#if defined(_WIN32)
     PROCESS_INFORMATION process_info;
     STARTUPINFO startup_info;
     string command;
@@ -140,16 +267,15 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
     // pass std handles to app
     //
     startup_info.dwFlags = STARTF_USESTDHANDLES;
-	if (stdout_filename != "") {
-		mmpbsa_io::resolve_filename(stdout_filename, stdout_path);
-		startup_info.hStdOutput = win_fopen(stdout_filename.c_str(), "a");
+	if (stdout_path != "") {
+		startup_info.hStdOutput = win_fopen(stdout_path.c_str(), "a");
 	}
     else {
-        startup_info.hStdError = win_fopen(STDERR_FILE, "a");
+        startup_info.hStdError = win_fopen("stderr.txt", "a");
     }
 
     if (!CreateProcess(
-        app_path,
+        application,
         (LPSTR)command.c_str(),
         NULL,
         NULL,
@@ -248,7 +374,7 @@ void mmpbsa::SanderInterface::kill() {
 
 void mmpbsa::SanderInterface::stop() {
 #ifdef _WIN32
-    suspend_or_resume_threads(pid, 0, false);
+    suspend_or_resume_threads(pid, false);
 #else
     ::kill(pid, SIGSTOP);
 #endif
@@ -257,7 +383,7 @@ void mmpbsa::SanderInterface::stop() {
 
 void mmpbsa::SanderInterface::resume() {
 #ifdef _WIN32
-    suspend_or_resume_threads(pid, 0, true);
+    suspend_or_resume_threads(pid, true);
 #else
     ::kill(pid, SIGCONT);
 #endif
@@ -268,7 +394,8 @@ void mmpbsa::SanderInterface::resume() {
 #ifndef __USE_BOINC__
 //These are needed for start() below. However, if BOINC is not used, it must
 //be provided here.
-//Copied from str_util.cpp under the terms of the GNU Lesser General Public License.
+//Copied from str_util.cpp from the BOINC project under the terms of the
+//GNU Lesser General Public License.
 //See http://boinc.berkeley.edu or http://www.gnu.org for details.
 #ifndef _USING_FCGI_
 #ifndef _WIN32
@@ -296,7 +423,10 @@ double mmpbsa::SanderInterface::cpu_time()const
 {
 #ifdef _WIN32
     double x;
-    int retval = boinc_process_cpu_time(pid_handle, x);
+    int retval = 1;
+#ifdef __USE_BOINC__
+    retval = boinc_process_cpu_time(pid_handle, x);
+#endif
     if (retval) return wall_cpu_time;
     return x;
 #elif defined(__APPLE__)
