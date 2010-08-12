@@ -117,7 +117,7 @@ namespace mmpbsa_utils{
     std::string string;
     std::stringstream tokenStream;
     bool keepDelim;
-    ushort index;
+    size_t index;
 
   };
 

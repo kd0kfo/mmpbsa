@@ -72,7 +72,7 @@ public:
 
     //size_t is used because the data from the prmtop file *actually* represents
     //an index in an array. Those values will actually be used as indices of
-    //vectors and valarrays here. Therefore size_t is the logical, protable choice.
+    //vectors and valarrays here. Therefore size_t is the logical, portable choice.
     size_t natom;///< total number of atoms
     size_t ntypes;///< total number of distinct atom types
     size_t nbonh;///< number of bonds containing hydrogen
@@ -110,12 +110,6 @@ public:
     size_t nspm;///<     total number of molecules
     size_t nspsol;///<   the first solvent "molecule" (base 1 index)
 
-    //Pointers to arrays that are read from the prmtop file
-    //pointers are stored here in case the vectors are swapped around later
-    //between difference classes. These arrays are LARGE; the goal here is to
-    //save memory/time if that happens.
-    //
-    //mmpbsa_t type is used (defined in mmpbsa_utils) to adjust precision as needed.
     std::string titles;
     std::valarray<std::string> atom_names;
     std::valarray<mmpbsa_t> charges;
