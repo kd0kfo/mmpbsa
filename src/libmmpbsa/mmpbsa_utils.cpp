@@ -100,7 +100,7 @@ Coord * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
 }
 
 mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
-        const std::map<std::string,mmpbsa_t>& radiusMap)
+       std::map<std::string,mmpbsa_t>& radiusMap)
             throw (mmpbsa::MMPBSAException)
 {
     using std::string;
@@ -117,7 +117,7 @@ mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
 
     //A direct name match is preferred. Otherwise test for untrimmed keys and/or ambiguities.
     if(radiusMap.find(atomName) != radiusMap.end())
-        return radiusMap.at(atomName);
+        return radiusMap[atomName];
     
     //Not found by atomName. Check atom name only entries
     std::vector<mmpbsa_t> possibleMatches;

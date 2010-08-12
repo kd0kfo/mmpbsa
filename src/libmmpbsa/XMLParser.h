@@ -11,9 +11,7 @@
 #include <fstream>
 #include <string>
 #include <map>
-#include "libxml/parser.h"//include libxml2 in Includes path.
-#include "libxml/tree.h"
-#include "libxml/xmlstring.h"
+#include "libxml/globals.h"//include libxml2 in Includes path.
 
 #include "mmpbsa_exceptions.h"
 #include "mmpbsa_io.h"

@@ -2,7 +2,7 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to 1 if you have the `floor' function. */
-/* #undef HAVE_FLOOR */
+#define HAVE_FLOOR 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -15,10 +15,10 @@
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `pow' function. */
-/* #undef HAVE_POW */
+#define HAVE_POW 1
 
 /* Define to 1 if you have the `sqrt' function. */
-/* #undef HAVE_SQRT */
+#define HAVE_SQRT 1
 
 /* Define to 1 if stdbool.h conforms to C99. */
 #define HAVE_STDBOOL_H 1
@@ -75,10 +75,10 @@
 #define VERSION "0.5.1"
 
 /* Define to use the BOINC library */
-#define __USE_BOINC__ 1
+/* #undef __USE_BOINC__ */
 
 /* Define to create the graphics application. Requires BOINC and GL */
-#define __USE_GRAPHICS__ 1
+/* #undef __USE_GRAPHICS__ */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */

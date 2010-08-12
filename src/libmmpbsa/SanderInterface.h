@@ -19,6 +19,12 @@
 #include "filesys.h"
 #include "error_numbers.h"
 #include "util.h"
+
+#if defined(_WIN32) || defined(__MINGW_WIN32__)
+#include "boinc_win.h"
+#include "win_util.h"
+#endif
+
 #define HAVE_STRCASESTR 1
 #include "str_replace.h"
 #include "str_util.h"
@@ -29,12 +35,20 @@
 #define ERR_FOPEN -108
 #endif
 
-#ifndef _WIN32
+#ifdef __MINGW_WIN32__
+#include <windows.h>
+#include <winbase.h>
+#include <tlhelp32.h>
+#endif
+
+#if !defined(_WIN32)
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <signal.h>
 #endif
+
+
 
 namespace mmpbsa{
 
@@ -105,8 +119,12 @@ public:
      * 
      * @return
      */
+#if defined(_WIN32) || defined(__MINGW_WIN32__)
+    const DWORD& getPID()const{return pid;}
+#else
     const int& getPID()const{return pid;}
-
+#endif
+    
     /**
      * Returns the total amount of time (in seconds) it took for the Sander
      * process to finish. This should only be called after the Sander process
@@ -150,11 +168,19 @@ public:
     bool completed;
     
 private:
-    int pid;
     double wall_cpu_time;
     double starting_cpu;
     double final_cpu_time;
     bool suspended;
+
+#if defined(_WIN32) || defined(__MINGW_WIN32__)
+    HANDLE pid_handle;
+    DWORD pid;
+    HANDLE thread_handle;
+    struct _stat last_stat;
+#else
+    int pid;
+#endif
 };
 
 

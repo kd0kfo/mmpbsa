@@ -107,7 +107,7 @@ FinDiffMethod mmpbsa::MeadInterface::createFDM(const std::valarray<mmpbsa_t>& co
 }
 
 mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
-        const FinDiffMethod& fdm, const std::map<std::string,mmpbsa_t>& radii,
+        const FinDiffMethod& fdm, std::map<std::string,mmpbsa_t>& radii,
         const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
         const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException)
 {
@@ -121,7 +121,7 @@ mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const mmpbsa::EmpEnerFun& efun, co
 }
 
 mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
-        const FinDiffMethod& fdm, const std::map<std::string,mmpbsa_t>& radii,
+        const FinDiffMethod& fdm, std::map<std::string,mmpbsa_t>& radii,
         const std::map<std::string,std::string>& residueMap,
         const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius) throw (mmpbsa::MeadException)
 {
