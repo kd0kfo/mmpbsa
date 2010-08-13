@@ -14,16 +14,18 @@
 
 #include "mmpbsa_utils.h"
 
+#if defined(_WIN32) || defined(__MINGW_WIN32__)
+#include <windows.h>
+#include <winbase.h>
+#include "boinc_win.h"
+#include "win_util.h"
+#endif
+
 #ifdef __USE_BOINC__
 #include "boinc_api.h"
 #include "filesys.h"
 #include "error_numbers.h"
 #include "util.h"
-
-#if defined(_WIN32) || defined(__MINGW_WIN32__)
-#include "boinc_win.h"
-#include "win_util.h"
-#endif
 
 #define HAVE_STRCASESTR 1
 #include "str_replace.h"
