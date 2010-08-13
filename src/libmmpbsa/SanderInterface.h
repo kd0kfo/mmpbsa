@@ -17,11 +17,15 @@
 #if defined(_WIN32) || defined(__MINGW_WIN32__)
 #include <windows.h>
 #include <winbase.h>
+#include <tlhelp32.h>
+#endif
+
+#ifdef __USE_BOINC__
+#if defined(_WIN32) || defined(__MINGW_WIN32__)
 #include "boinc_win.h"
 #include "win_util.h"
 #endif
 
-#ifdef __USE_BOINC__
 #include "boinc_api.h"
 #include "filesys.h"
 #include "error_numbers.h"
@@ -31,6 +35,7 @@
 #include "str_replace.h"
 #include "str_util.h"
 #else
+extern size_t strlcpy(char *dst, const char *src, size_t size);
 #define ERR_FORK -147
 #define PROCESS_IDLE_PRIORITY 19
 #define ERR_EXEC -148

@@ -3464,11 +3464,11 @@ else
 echo "${ECHO_T}Not using BOINC" >&6
 fi;
 if test x$with_boinc != x; then
-   BOINC_CPPFLAGS="-I$with_boinc/client -I$with_boinc/api -I$with_boinc/lib -I$with_boinc"
+   BOINC_CPPFLAGS="-I$with_boinc/include/"
 
    BOINC_LIBS="-lboinc_api -lboinc -lpthread"
 
-   BOINC_LDFLAGS="-L$with_boinc/api -L$with_boinc/lib"
+   BOINC_LDFLAGS="-L$with_boinc/lib"
 
    cat >>confdefs.h <<\_ACEOF
 #define __USE_BOINC__ 1
@@ -4629,7 +4629,8 @@ _ACEOF
 
 
 
-for ac_func in floor pow sqrt
+
+for ac_func in floor pow sqrt strlcpy
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5

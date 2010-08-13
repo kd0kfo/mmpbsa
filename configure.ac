@@ -27,9 +27,9 @@ fi
 
 AC_ARG_WITH([boinc],AS_HELP_STRING([--with-boinc@<:@=dir@:>@],[Include boinc under specified path @<:@Default=no@:>@]),with_boinc=${withval},AC_MSG_RESULT(Not using BOINC))
 if test x$with_boinc != x; then
-   AC_SUBST(BOINC_CPPFLAGS,"-I$with_boinc/client -I$with_boinc/api -I$with_boinc/lib -I$with_boinc")
+   AC_SUBST(BOINC_CPPFLAGS,"-I$with_boinc/include/")
    AC_SUBST(BOINC_LIBS,"-lboinc_api -lboinc -lpthread")
-   AC_SUBST(BOINC_LDFLAGS,"-L$with_boinc/api -L$with_boinc/lib")
+   AC_SUBST(BOINC_LDFLAGS,"-L$with_boinc/lib")
    AC_DEFINE([__USE_BOINC__],[1])   
 fi
 
@@ -55,7 +55,7 @@ AC_TYPE_SIZE_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([floor pow sqrt])
+AC_CHECK_FUNCS([floor pow sqrt strlcpy])
 
 AC_CONFIG_FILES([Makefile
 		 src/libmmpbsa/Makefile

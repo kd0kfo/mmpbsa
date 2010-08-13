@@ -4,10 +4,6 @@ mmpbsa_utils::XMLParser::XMLParser() {
     head = 0;
 }
 
-mmpbsa_utils::XMLParser::XMLParser(const mmpbsa_utils::XMLParser& orig) {
-    head = orig.head;
-}
-
 mmpbsa_utils::XMLParser::XMLParser(const std::string& rootName, const std::map<std::string,std::string>& docMap)
 {
     using std::string;
@@ -122,7 +118,7 @@ std::pair<std::string,std::string> mmpbsa_utils::XMLParser::parseLine(const std:
     string line = mmpbsa_utils::trimString(_line);
     if(line.size() == 0)
         return returnMe;
-    if(line[0] == '?')
+    if(line.size() >= 2 && line[1] == '?')//don't care about the ?xml line.
         return returnMe;
     if(line[0] != '<' || line.find_first_of('>') == string::npos)
     {

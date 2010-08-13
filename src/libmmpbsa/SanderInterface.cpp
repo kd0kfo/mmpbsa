@@ -34,19 +34,6 @@ mmpbsa::SanderInterface::~SanderInterface() {
 //be provided here.
 //Copied from str_util.cpp under the terms of the GNU Lesser General Public License.
 //See http://boinc.berkeley.edu or http://www.gnu.org for details.
-#if !defined(HAVE_STRLCPY) && !defined(__MINGW_WIN32__)
-size_t strlcpy(char *dst, const char *src, size_t size) {
-    size_t ret = strlen(src);
-
-    if (size) {
-        size_t len = (ret >= size) ? size-1 : ret;
-        memcpy(dst, src, len);
-        dst[len] = '\0';
-    }
-
-    return ret;
-}
-#endif
 
 #define NOT_IN_TOKEN                0
 #define IN_SINGLE_QUOTED_TOKEN      1

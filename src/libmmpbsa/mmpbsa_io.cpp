@@ -322,12 +322,11 @@ int mmpbsa_io::resolve_filename(const std::string& unresolvedFilename, std::stri
 #endif
 }
 
-#ifndef __USE_BOINC__
+#if !defined(HAVE_STRLCPY) && !defined(__USE_BOINC__)
 //These are needed for start() below. However, if BOINC is not used, it must
 //be provided here.
 //Copied from str_util.cpp under the terms of the GNU Lesser General Public License.
 //See http://boinc.berkeley.edu or http://www.gnu.org for details.
-#if !defined(HAVE_STRLCPY)
 size_t strlcpy(char *dst, const char *src, size_t size) {
     size_t ret = strlen(src);
 
@@ -339,7 +338,6 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
 
     return ret;
 }
-#endif
 #endif
 
 int mmpbsa_io::resolve_filename(const char* unresolvedFilename, char* resolvedFilename, int length)
