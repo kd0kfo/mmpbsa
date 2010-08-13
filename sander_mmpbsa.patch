@@ -1,0 +1,15 @@
+--- /u/amber/amber11/src/sander/new_time.f	2010-04-26 07:21:23 -0500
++++ /u/win32_prereqs/sander_new_time.f.modified	2010-08-12 10:45:06 -0500
+@@ -934,6 +934,12 @@
+   total_sec_per_ns = 1000.0d0 * total_elapsed_time / ( dble(current_step) * time_step)
+   total_ns_per_day = 86400.0d0 / total_sec_per_ns
+ 
++  !Output progress for MD/MMPBSA Monitor
++  open(400,file='progress.dat')
++  write(400,'(i9,3x,i9)')current_step,steps_remaining
++  close(400)
++
++
+   write (write_unit,8088)
+   write (write_unit,'(a)') &
+                   '| Current Timing Info'

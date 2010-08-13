@@ -1,9 +1,12 @@
-MMPBSA has been setup to use GNU Autotools. Configure and install-sh files are provided. However, if these no not work, one can run "./setup" to recreate those files based on the specific platform, if autotools is installed. Instructions to use configure and make are provided below.
+MMPBSA has been setup to use GNU build tools. Configure and install-sh files are provided. However, if these do not work, one can run "./setup" to recreate those files based on the specific platform, if autotools is installed. Instructions to use configure and make are provided below.
 
 MMPBSA requires MEAD and libxml2, both of which are free software which may be found online. 
 
 Building MMPBSA will create a library with all of the objects and functions needed for mmpbsa functions. "make install" will install this library in the directory tree specified by PREFIX provided to configure. Additionally, a program is built to perform the calculations.
 
+Molecular dynamics is performed by a modified version of Sander which must be stored in the path of MMPBSA as "moldyn". There is patch file "sander_mmpbsa.patch" which should be used to modify sander to work with MMPBSA. Simply run "patch < sander_mmpbsa.patch" in the Sander source directory and rebuild sander.
+
+MMPBSA may be built to run on a BOINC grid (without requiring further modification to Sander). Simply run configure with the option "--with-boinc=<dir>", where <dir> is the path to the BOINC API install. A separate graphics application, mmpbsa_graphics, has been made to produce graphics during calculation in BOINC. This can be compiled optionally with the flag "--with-graphics=<dir>", where <dir> is an optional path to GL header files.
 
 Installation Instructions
 *************************

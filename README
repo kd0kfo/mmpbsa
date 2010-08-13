@@ -4,7 +4,7 @@ This project is available from a git directory, whose location is TBA. To obtain
 git clone git://TBA
 
 Then a development log may be found by running
-git log (which is periodically dumped into ChangeLog)
+git log (which is generally dumped into ChangeLog)
 
 For help on installation see INSTALL.
 

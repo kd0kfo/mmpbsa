@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT([mmpbsa], [0.5.1], [David.Coss@stjude.org])
+AC_INIT([mmpbsa], [0.5.2], [David.Coss@stjude.org])
 AC_CONFIG_SRCDIR([src/libmmpbsa/])
 AC_CONFIG_SRCDIR([src/])
 AM_CONFIG_HEADER([config.h])
@@ -22,12 +22,12 @@ AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Statically]),
 AC_SUBST(CUSTOM_LDFLAGS,"-static")
 AC_SUBST(CUSTOM_LIBS,"-lpthread")],)
 
-AC_ARG_WITH([mead],AS_HELP_STRING([--with-mead],[Include MEAD library]),with_mead=${withval},AC_MSG_RESULT(Assuming mead is installed in system paths))
+AC_ARG_WITH([mead],AS_HELP_STRING([--with-mead@<:@=dir@:>@],[Include MEAD library @<:@Default=PREFIX/include@:>@]),with_mead=${withval},AC_MSG_RESULT(Assuming mead is installed in system paths))
 if test x$with_mead != x; then
    AC_SUBST(MEAD_PATH,$with_mead)
 fi
 
-AC_ARG_WITH([boinc],AS_HELP_STRING([--with-boinc],[Include boinc under specified path]),with_boinc=${withval},AC_MSG_RESULT(Not using BOINC))
+AC_ARG_WITH([boinc],AS_HELP_STRING([--with-boinc@<:@=dir@:>@],[Include boinc under specified path @<:@Default=no@:>@]),with_boinc=${withval},AC_MSG_RESULT(Not using BOINC))
 if test x$with_boinc != x; then
    AC_SUBST(BOINC_CPPFLAGS,"-I$with_boinc/client -I$with_boinc/api -I$with_boinc/lib -I$with_boinc")
    AC_SUBST(BOINC_LIBS,"-lboinc_api -lboinc -lpthread")
@@ -35,7 +35,7 @@ if test x$with_boinc != x; then
    AC_DEFINE([__USE_BOINC__],[1])   
 fi
 
-AC_ARG_WITH([graphics],AS_HELP_STRING([--with-graphics(=GL include path)],[Include the graphics app. Requires BOINC and GL.]),
+AC_ARG_WITH([graphics],AS_HELP_STRING([--with-graphics@<:@=dir@:>@],[Include the graphics app. Requires BOINC and GL. @<:@Default=no@:>@]),
 [AC_MSG_RESULT(Using Graphics $with_graphics)
 AC_SUBST(GRAPHICS_CPPFLAGS,"-DAPP_GRAPHICS -I$with_graphics")
 AC_SUBST(GRAPHICS_LIBS,"-lboinc_graphics2 -lGL -lglut -ljpeg -lX11")
