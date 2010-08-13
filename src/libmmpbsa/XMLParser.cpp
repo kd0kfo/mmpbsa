@@ -1,97 +1,208 @@
 #include "XMLParser.h"
 
 mmpbsa_utils::XMLParser::XMLParser() {
-    doc = 0;
     head = 0;
 }
 
 mmpbsa_utils::XMLParser::XMLParser(const mmpbsa_utils::XMLParser& orig) {
-    doc = orig.doc;
     head = orig.head;
 }
 
 mmpbsa_utils::XMLParser::XMLParser(const std::string& rootName, const std::map<std::string,std::string>& docMap)
 {
     using std::string;
-    doc = xmlNewDoc(BAD_CAST "1.0");
-    head = xmlNewNode(NULL, BAD_CAST rootName.c_str());
-    xmlDocSetRootElement(doc, head);
+    head = new XMLNode(rootName,"");
     
+    XMLNode* currNode = 0;
     for(std::map<string,string>::const_iterator it = docMap.begin();it != docMap.end();it++)
-        xmlNewChild(head,NULL,BAD_CAST it->first.c_str(),BAD_CAST it->second.c_str());
+    {
+        if(currNode == 0)
+        {
+            currNode = new XMLNode(it->first,it->second);
+            head->children = currNode;
+        }
+        else
+        {
+            currNode->replaceSiblings(new XMLNode(it->first,it->second));
+            currNode = currNode->siblings;
+        }
+    }
 }
 
 mmpbsa_utils::XMLParser::XMLParser(const std::map<std::string,std::string>& docMap)
 {
     using std::string;
-    if(!doc)
-    {
-        doc = xmlNewDoc(BAD_CAST "1.0");
-        if(!head)
-            delete head;
-        head = xmlNewNode(NULL, BAD_CAST "xml_doc");
-        xmlDocSetRootElement(doc, head);
-    }
+    head = new XMLNode("NULL","");
 
+    XMLNode* currNode = 0;
     for(std::map<string,string>::const_iterator it = docMap.begin();it != docMap.end();it++)
-        xmlNewChild(head,NULL,BAD_CAST it->first.c_str(),BAD_CAST it->second.c_str());
+    {
+        if(currNode == 0)
+        {
+            currNode = new XMLNode(it->first,it->second);
+            head->children = currNode;
+        }
+        else
+        {
+            currNode->replaceSiblings(new XMLNode(it->first,it->second));
+            currNode = currNode->siblings;
+        }
+    }
 }
 
 
 mmpbsa_utils::XMLParser::~XMLParser() {
-    xmlFreeDoc(doc);
-    xmlCleanupParser();
+    delete head;
 }
 
-
-void mmpbsa_utils::XMLParser::parse(const std::string& xmlFile)
+void mmpbsa_utils::XMLParser::parse(const std::string& xmlFilename) throw (mmpbsa::XMLParserException)
 {
-    this->doc = xmlReadFile(xmlFile.c_str(), NULL, 0);
-    if (doc == NULL) {
-        char error[256];
-        sprintf(error, "Failed to parse %s\n", xmlFile.c_str());
+    delete head;
+    std::fstream xmlFile(xmlFilename.c_str(),std::ios::in);
+    if(!xmlFile.good())
+    {
+        std::string error = "Could not open xml file: " + xmlFilename;
         throw mmpbsa::XMLParserException(error,mmpbsa::FILE_READ_ERROR);
     }
-    this->head = xmlDocGetRootElement(doc);
-}
 
-void mmpbsa_utils::XMLParser::write(const char* fileName)
-{
-    xmlSaveFormatFileEnc(fileName, doc, "UTF-8", 1);
-}
+    using mmpbsa_io::getNextLine;
+    using mmpbsa_utils::trimString;
+    using std::string;
+    using std::pair;
+    using mmpbsa_utils::XMLNode;
 
-std::map<std::string,std::string> mmpbsa_utils::XMLParser::getChildren() const
-{
-    return XMLParser::mapNode(this->head);
-}
+    bool isClosedTag = false;
+    pair<string,string> currLine = parseLine(getNextLine(xmlFile),isClosedTag);
 
-
-std::map<std::string,std::string> mmpbsa_utils::XMLParser::mapNode(const xmlNodePtr& theNode)
-{
-    std::map<std::string,std::string> returnMe;
-    std::pair<std::string,std::string> currPair;
-
-    for(xmlNodePtr currNode = theNode->children;currNode;currNode = currNode->next)
+    head = new XMLNode(currLine.first,currLine.second);
+    XMLNode* currNode = head;
+    if(isClosedTag)
+        currNode = 0;
+    while(!xmlFile.eof())
     {
-
-        if(currNode->type == ::XML_ELEMENT_NODE)
+        currLine = parseLine(getNextLine(xmlFile),isClosedTag);
+        if(currLine.first.size() > 0)
         {
-            currPair.first = (char*) currNode->name;
-            if(currNode->children && currNode->children->type == ::XML_TEXT_NODE)
-                currPair.second = (char*) currNode->children->content;
-            returnMe.insert(currPair);
-                
+            if(currLine.first == currNode->getName())
+            {
+                currNode = currNode->parent;//in this case, we're closing what was until now an unclosed tag.
+                continue;
+            }
+            XMLNode* newNode = new XMLNode(currLine.first,currLine.second);
+            if(currNode == 0)
+            {
+                std::string error = "XML Error in " + xmlFilename +
+                        ": Missing top level tag. " + head->getName() + "should "
+                        "not have a sibling without a parent.";
+                throw mmpbsa::XMLParserException(error,mmpbsa::BAD_XML_TAG);
+            }
+            currNode->insertChild(newNode);
+            if(!isClosedTag)
+                currNode = newNode;
         }
-        else if(currNode->type == ::XML_TEXT_NODE)
-            returnMe[(char*) currNode->content] = "";
+        else
+        {
+            if(currLine.second.size() == 0)
+                continue;
+            currNode->setText(currNode->getText() + currLine.second);
+        }
     }
+    if(currNode != 0)
+    {
+        std::string error = xmlFilename + " is a malformed XML file. Missing an end tag "
+                "to go with " + head->getName();
+        throw mmpbsa::XMLParserException(error,mmpbsa::BAD_XML_TAG);
+    }
+}
+
+std::pair<std::string,std::string> mmpbsa_utils::XMLParser::parseLine(const std::string& _line, bool& isClosedTag) throw (mmpbsa::XMLParserException)
+{
+    std::pair<std::string,std::string> returnMe("","");
+    using std::string;
+    string line = mmpbsa_utils::trimString(_line);
+    if(line.size() == 0)
+        return returnMe;
+    if(line[0] == '?')
+        return returnMe;
+    if(line[0] != '<' || line.find_first_of('>') == string::npos)
+    {
+        returnMe.second = line;
+        isClosedTag = false;
+        return returnMe;
+    }
+
+    size_t tagEnd = line.find_first_of('>');
+    returnMe.first = line.substr(1,tagEnd-1);
+    line.erase(0,tagEnd+1);
+    if(returnMe.first[returnMe.first.size()-1] == '/' || returnMe.first[0] == '/')
+    {
+        isClosedTag = true;
+        returnMe.first.erase(0,1);
+        return returnMe;
+    }
+
+    size_t endTagPos = line.find_first_of('<');
+    if(endTagPos == string::npos)
+    {
+        isClosedTag = false;
+        return returnMe;
+    }
+
+    returnMe.second = line.substr(0,endTagPos);
+    endTagPos = line.find_first_of('/',endTagPos);
+    line = line.substr(endTagPos+1);
+    line.erase(line.end()-1);
+    if(line.size() > 0 && line != returnMe.first)
+    {
+        string error = "XML Parser does not yet support multiple tags on one line.\n"
+                + _line;
+        throw mmpbsa::XMLParserException(error,mmpbsa::BAD_XML_TAG);
+    }
+
+    isClosedTag = true;
+    return returnMe;
+}
+
+void mmpbsa_utils::XMLParser::write(const char* fileName)const
+{
+    std::fstream outfile(fileName,std::ios::out);
+    if(!outfile.good())
+    {
+        char error[256];
+        sprintf(error,"Could not open: %s",fileName);
+        throw mmpbsa::XMLParserException(error,mmpbsa::FILE_READ_ERROR);
+    }
+    outfile << toString();
+    outfile.close();
+}
+
+std::string mmpbsa_utils::XMLParser::toString()const
+{
+    if(head == 0)
+        return "";
+    return head->toString();
+}
+
+std::map<std::string,std::string> mmpbsa_utils::XMLParser::mapNode(XMLNode const * const theNode) throw (mmpbsa::XMLParserException)
+{
+    if(theNode == 0)
+        throw mmpbsa::XMLParserException("Null XMLNode pointer provided to "
+                "mapNode",mmpbsa::DATA_FORMAT_ERROR);
+    
+    std::map<std::string,std::string> returnMe;
+    if(theNode->children == 0)
+        return returnMe;
+    
+    for(XMLNode* currNode = theNode->children;currNode != 0;currNode = currNode->siblings)
+        returnMe[currNode->getName()] = currNode->getText();
+
     return returnMe;
 }
 
 std::string mmpbsa_utils::XMLParser::mainTag()
 {
     if(this->head)
-        return (char*) this->head->name;
+        return this->head->getName();
 
     return "";
 }

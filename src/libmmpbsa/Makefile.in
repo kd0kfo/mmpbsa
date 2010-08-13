@@ -67,9 +67,9 @@ am_libmmpbsa_a_OBJECTS = libmmpbsa_a-EmpEnerFun.$(OBJEXT) \
 	libmmpbsa_a-mmpbsa_exceptions.$(OBJEXT) \
 	libmmpbsa_a-mmpbsa_utils_templates.$(OBJEXT) \
 	libmmpbsa_a-mmpbsa_utils.$(OBJEXT) \
+	libmmpbsa_a-XMLParser.$(OBJEXT) libmmpbsa_a-XMLNode.$(OBJEXT) \
 	libmmpbsa_a-mmpbsa_io.$(OBJEXT) \
-	libmmpbsa_a-StringTokenizer.$(OBJEXT) \
-	libmmpbsa_a-XMLParser.$(OBJEXT)
+	libmmpbsa_a-StringTokenizer.$(OBJEXT)
 libmmpbsa_a_OBJECTS = $(am_libmmpbsa_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -141,9 +141,6 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 VERSION = @VERSION@
-XML2_CONFIG = @XML2_CONFIG@
-XML_CPPFLAGS = @XML_CPPFLAGS@
-XML_LIBS = @XML_LIBS@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_RANLIB = @ac_ct_RANLIB@
@@ -180,9 +177,9 @@ target_alias = @target_alias@
 lib_LIBRARIES = libmmpbsa.a
 libmmpbsa_adir = $(libdir)
 libmmpbsa_a_CPPFLAGS = $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ -I../ $(BOINC_CPPFLAGS)
-libmmpbsa_a_SOURCES = EmpEnerFun.cpp EnergyInfo.cpp SanderInterface.cpp MeadInterface.cpp SanderParm.cpp mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp mmpbsa_utils.cpp mmpbsa_io.cpp StringTokenizer.cpp XMLParser.cpp
+libmmpbsa_a_SOURCES = EmpEnerFun.cpp EnergyInfo.cpp SanderInterface.cpp MeadInterface.cpp SanderParm.cpp mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp StringTokenizer.cpp 
 libmmpbsa_a_includedir = $(includedir)/libmmpbsa
-libmmpbsa_a_include_HEADERS = EmpEnerFun.h EnergyInfo.h SanderInterface.h MeadInterface.h SanderParm.h mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h StringTokenizer.h XMLParser.h
+libmmpbsa_a_include_HEADERS = EmpEnerFun.h EnergyInfo.h SanderInterface.h MeadInterface.h SanderParm.h mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h StringTokenizer.h XMLParser.h XMLNode.h
 all: all-am
 
 .SUFFIXES:
@@ -262,6 +259,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-SanderInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-SanderParm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-StringTokenizer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-XMLNode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-XMLParser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-mmpbsa_exceptions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-mmpbsa_io.Po@am__quote@
@@ -394,6 +392,34 @@ libmmpbsa_a-mmpbsa_utils.obj: mmpbsa_utils.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-mmpbsa_utils.obj `if test -f 'mmpbsa_utils.cpp'; then $(CYGPATH_W) 'mmpbsa_utils.cpp'; else $(CYGPATH_W) '$(srcdir)/mmpbsa_utils.cpp'; fi`
 
+libmmpbsa_a-XMLParser.o: XMLParser.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-XMLParser.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo" -c -o libmmpbsa_a-XMLParser.o `test -f 'XMLParser.cpp' || echo '$(srcdir)/'`XMLParser.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo" "$(DEPDIR)/libmmpbsa_a-XMLParser.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='XMLParser.cpp' object='libmmpbsa_a-XMLParser.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-XMLParser.o `test -f 'XMLParser.cpp' || echo '$(srcdir)/'`XMLParser.cpp
+
+libmmpbsa_a-XMLParser.obj: XMLParser.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-XMLParser.obj -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo" -c -o libmmpbsa_a-XMLParser.obj `if test -f 'XMLParser.cpp'; then $(CYGPATH_W) 'XMLParser.cpp'; else $(CYGPATH_W) '$(srcdir)/XMLParser.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo" "$(DEPDIR)/libmmpbsa_a-XMLParser.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='XMLParser.cpp' object='libmmpbsa_a-XMLParser.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-XMLParser.obj `if test -f 'XMLParser.cpp'; then $(CYGPATH_W) 'XMLParser.cpp'; else $(CYGPATH_W) '$(srcdir)/XMLParser.cpp'; fi`
+
+libmmpbsa_a-XMLNode.o: XMLNode.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-XMLNode.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-XMLNode.Tpo" -c -o libmmpbsa_a-XMLNode.o `test -f 'XMLNode.cpp' || echo '$(srcdir)/'`XMLNode.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-XMLNode.Tpo" "$(DEPDIR)/libmmpbsa_a-XMLNode.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-XMLNode.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='XMLNode.cpp' object='libmmpbsa_a-XMLNode.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-XMLNode.o `test -f 'XMLNode.cpp' || echo '$(srcdir)/'`XMLNode.cpp
+
+libmmpbsa_a-XMLNode.obj: XMLNode.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-XMLNode.obj -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-XMLNode.Tpo" -c -o libmmpbsa_a-XMLNode.obj `if test -f 'XMLNode.cpp'; then $(CYGPATH_W) 'XMLNode.cpp'; else $(CYGPATH_W) '$(srcdir)/XMLNode.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-XMLNode.Tpo" "$(DEPDIR)/libmmpbsa_a-XMLNode.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-XMLNode.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='XMLNode.cpp' object='libmmpbsa_a-XMLNode.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-XMLNode.obj `if test -f 'XMLNode.cpp'; then $(CYGPATH_W) 'XMLNode.cpp'; else $(CYGPATH_W) '$(srcdir)/XMLNode.cpp'; fi`
+
 libmmpbsa_a-mmpbsa_io.o: mmpbsa_io.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-mmpbsa_io.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-mmpbsa_io.Tpo" -c -o libmmpbsa_a-mmpbsa_io.o `test -f 'mmpbsa_io.cpp' || echo '$(srcdir)/'`mmpbsa_io.cpp; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-mmpbsa_io.Tpo" "$(DEPDIR)/libmmpbsa_a-mmpbsa_io.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-mmpbsa_io.Tpo"; exit 1; fi
@@ -421,20 +447,6 @@ libmmpbsa_a-StringTokenizer.obj: StringTokenizer.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StringTokenizer.cpp' object='libmmpbsa_a-StringTokenizer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-StringTokenizer.obj `if test -f 'StringTokenizer.cpp'; then $(CYGPATH_W) 'StringTokenizer.cpp'; else $(CYGPATH_W) '$(srcdir)/StringTokenizer.cpp'; fi`
-
-libmmpbsa_a-XMLParser.o: XMLParser.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-XMLParser.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo" -c -o libmmpbsa_a-XMLParser.o `test -f 'XMLParser.cpp' || echo '$(srcdir)/'`XMLParser.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo" "$(DEPDIR)/libmmpbsa_a-XMLParser.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='XMLParser.cpp' object='libmmpbsa_a-XMLParser.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-XMLParser.o `test -f 'XMLParser.cpp' || echo '$(srcdir)/'`XMLParser.cpp
-
-libmmpbsa_a-XMLParser.obj: XMLParser.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-XMLParser.obj -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo" -c -o libmmpbsa_a-XMLParser.obj `if test -f 'XMLParser.cpp'; then $(CYGPATH_W) 'XMLParser.cpp'; else $(CYGPATH_W) '$(srcdir)/XMLParser.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo" "$(DEPDIR)/libmmpbsa_a-XMLParser.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-XMLParser.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='XMLParser.cpp' object='libmmpbsa_a-XMLParser.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-XMLParser.obj `if test -f 'XMLParser.cpp'; then $(CYGPATH_W) 'XMLParser.cpp'; else $(CYGPATH_W) '$(srcdir)/XMLParser.cpp'; fi`
 uninstall-info-am:
 install-libmmpbsa_a_includeHEADERS: $(libmmpbsa_a_include_HEADERS)
 	@$(NORMAL_INSTALL)

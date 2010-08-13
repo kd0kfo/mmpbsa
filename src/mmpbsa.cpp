@@ -608,7 +608,8 @@ MMPBSAState& MMPBSAState::operator=(const MMPBSAState& orig)
 
 bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
 {
-    mmpbsa_utils::XMLParser xmlDoc;
+    using mmpbsa_utils::XMLParser;
+    XMLParser xmlDoc;
     if(restartState.checkpointFilename.size() == 0)
         return false;
 
@@ -625,7 +626,7 @@ bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
         else
             throw xpe;
     }
-    std::map<std::string,std::string> checkMap = xmlDoc.getChildren();
+    std::map<std::string,std::string> checkMap = XMLParser::mapNode(xmlDoc.getHead());
 
     bool usedAllParameters = true;
     std::string tag = "";
@@ -683,7 +684,8 @@ bool restart_mmpbsa(MMPBSAState& restartState)
     if(restartState.checkpointFilename.size() == 0)
         return false;
 
-    mmpbsa_utils::XMLParser xmlDoc;
+    using mmpbsa_utils::XMLParser;
+    XMLParser xmlDoc;
     try{
         xmlDoc.parse(restartState.checkpointFilename);
     }
@@ -694,7 +696,7 @@ bool restart_mmpbsa(MMPBSAState& restartState)
         else
             throw xpe;
     }
-    std::map<std::string,std::string> checkMap = xmlDoc.getChildren();
+    std::map<std::string,std::string> checkMap = XMLParser::mapNode(xmlDoc.getHead());
 
     bool usedAllParameters = true;
     std::string tag = "";
@@ -911,20 +913,20 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
             throw xpe;
     }
 
-    xmlNodePtr head = queueXML.getHead();
-    if(!head)
+    const mmpbsa_utils::XMLNode * head = queueXML.getHead();
+    if(head == 0)
         return returnMe;
 
-    if(xmlStrEqual(head->name,(xmlChar*)"grid_queue"))
+    if(head->getName() == "grid_queue")
         head = head->children;
 
     int queuePosition = 0;
-    for(xmlNodePtr sibling = head;sibling;sibling = sibling->next)
+    for(const mmpbsa_utils::XMLNode* sibling = head;sibling;sibling = sibling->siblings)
     {
         MMPBSAState nodeState;
         mmpbsa::SanderInterface si;
         std::map<std::string,std::string> tags = XMLParser::mapNode(sibling);
-        if(xmlStrEqual(sibling->name,(xmlChar*)"mmpbsa"))
+        if(sibling->getName() == "mmpbsa")
         {
             mmpbsa::MeadInterface mi;
             parseParameter(tags,nodeState,si);
@@ -934,7 +936,7 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
             nodeState.placeInQueue = queuePosition++;
             returnMe.push_back(nodeState);
         }
-        else if(xmlStrEqual(sibling->name,(xmlChar*)"molecular_dynamics"))
+        else if(sibling->getName() == "molecular_dynamics")
         {
             parseParameter(tags,nodeState,si);
             nodeState.currentSI = si;
@@ -951,32 +953,31 @@ void sampleQueue(const std::string& filename)
 {
     using std::map;
     using mmpbsa_utils::XMLParser;
+    using mmpbsa_utils::XMLNode;
 
-    map<std::string,std::string> queueMap;
-    queueMap["mdin"] = "sander_input.in";
-    queueMap["mdout"] = "sander_output.out";
-    queueMap["restart"] = "sander_restart.rst";
-    queueMap["inpcrd"] = "sander_input_coordinates.inpcrd";
-    queueMap["prmtop"] = "sander_prmtop_file.prmtop";
-    queueMap["mdcrd"] = "sander_snapshot_file.mdcrd";
-    queueMap["checkpoint"] = "checkpoint_file_name.xml";
-    XMLParser sanderXML("molecular_dynamics",queueMap);
+    XMLNode* sanderXML = new XMLNode("molecular_dynamics");
+    sanderXML->insertChild("mdin","sander_input.in");
+    sanderXML->insertChild("mdout","sander_output.out");
+    sanderXML->insertChild("restart","sander_restart.rst");
+    sanderXML->insertChild("inpcrd","sander_input_coordinates.inpcrd");
+    sanderXML->insertChild("prmtop","sander_prmtop_file.prmtop");
+    sanderXML->insertChild("mdcrd","sander_snapshot_file.mdcrd");
+    sanderXML->insertChild("checkpoint","checkpoint_file_name.xml");
 
-    queueMap.clear();
-
-    queueMap["prmtop"] = "sander_prmtop_file.prmtop";
-    queueMap["mdcrd"] = "sander_snapshot_file.mdcrd";
-    queueMap["radii"] = "DelPhi_radii_file.siz";
-    queueMap["mmpbsa_out"] = "mmpbsa-result-output.out";
-    queueMap["snap_list"] = "1,3";
-    queueMap["checkpoint"] = "checkpoint_file_name.xml";
-    XMLParser mmpbsaXML("mmpbsa",queueMap);
-    queueMap.clear();
-
-    xmlAddNextSibling(sanderXML.getHead(),mmpbsaXML.getHead());
-    XMLParser theDoc("grid_queue",queueMap);
-    ::xmlAddChild(theDoc.getHead(),sanderXML.getHead());
-    theDoc.write(filename);
+    XMLNode* mmpbsaXML = new XMLNode("mmpbsa");
+    mmpbsaXML->insertChild("prmtop","sander_prmtop_file.prmtop");
+    mmpbsaXML->insertChild("mdcrd","sander_snapshot_file.mdcrd");
+    mmpbsaXML->insertChild("radii","DelPhi_radii_file.siz");
+    mmpbsaXML->insertChild("mmpbsa_out","mmpbsa-result-output.out");
+    mmpbsaXML->insertChild("snap_list","1,3");
+    mmpbsaXML->insertChild("checkpoint","checkpoint_file_name.xml");
+    
+    XMLNode* theDoc = new XMLNode("grid_queue");
+    theDoc->insertChild(sanderXML);
+    theDoc->insertChild(mmpbsaXML);
+    
+    XMLParser writeMe(theDoc);
+    writeMe.write(filename);
 }
 
 void updateMMPBSAProgress(MMPBSAState& currState,const double& increment)

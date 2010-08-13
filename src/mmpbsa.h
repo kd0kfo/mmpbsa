@@ -16,7 +16,7 @@
 #include "libmmpbsa/EmpEnerFun.h"
 #include "libmmpbsa/MeadInterface.h"
 #include "libmmpbsa/XMLParser.h"
-#include "libxml/tree.h"//include libxml2 in Includes path.
+#include "libmmpbsa/XMLNode.h"
 #include "libmmpbsa/SanderInterface.h"
 
 #include "MEAD/FinDiffMethod.h"

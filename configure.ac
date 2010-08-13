@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT([mmpbsa], [0.5.2], [David.Coss@stjude.org])
+AC_INIT([mmpbsa], [0.6], [David.Coss@stjude.org])
 AC_CONFIG_SRCDIR([src/libmmpbsa/])
 AC_CONFIG_SRCDIR([src/])
 AM_CONFIG_HEADER([config.h])
@@ -14,8 +14,6 @@ AH_TEMPLATE([__USE_GRAPHICS__],[Define to create the graphics application. Requi
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_RANLIB
-
-AM_PATH_XML2(2.6.0)
 
 AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Statically]),
 [AC_MSG_RESULT(Compiling MMPBSA statically)

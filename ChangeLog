@@ -1,7 +1,83 @@
-Latest Changes:
-Added a flag to configure ("--enable-static") that will compile MMPBSA statically.
+Latest  Change:
+Moved away from the dependency on libxml2. This was a tremendous
+pain in windows. At the same time, only a very small portion
+of the whole library was being used. Therefore, a new independent
+XML Parser was made for libmmpbsa.
 
 Previous Git Log:
+commit b911231c73c721a56e1e8f4811da2448c4d0dd27
+Merge: 3a5287c a46ac58
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Aug 13 08:30:06 2010 -0500
+
+    Merge /mnt/u-drive/DCOSS/mmpbsa
+
+commit 3a5287cff809d8957f4935e11699e3ae1285a2f0
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Aug 13 08:28:56 2010 -0500
+
+    Updated information files (ie INSTALL) in light of the addition
+    of boinc and sander.
+    
+    Added patch file to modify sander for the use with SanderInterface.
+
+commit a46ac58d90170d8e0867018e20988bd8818f36f8
+Author: David Coss (XP VM) <David.Coss@stjude.org>
+Date:   Fri Aug 13 08:27:14 2010 -0500
+
+    Added missed windows boinc header file includes.
+
+commit 57562dae5613fabc52a4a2a8872fe4cdd380f998
+Merge: 712c4a1 849f156
+Author: David Coss <David.Coss@stjude.org>
+Date:   Thu Aug 12 08:35:45 2010 -0500
+
+    Merge /mnt/u-drive/DCOSS/mmpbsa
+
+commit 849f156fb4deb02abf331bc000b50ef567e92b26
+Author: unknown <dcoss@.stjude.sjcrh.local>
+Date:   Thu Aug 12 08:28:06 2010 -0500
+
+    Changes made for successful compilation in Windows XP (without BOINC).
+    Should be *merged* with previous commit.
+
+commit 712c4a1ddc62ad74c6cc9438e67da4f6e8788b7d
+Author: David Coss <David.Coss@stjude.org>
+Date:   Thu Aug 12 08:25:48 2010 -0500
+
+    Preparing for windows build.
+
+commit 2e43ab0d450013f10a5dd34baf90cd1fc3733547
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Aug 10 09:27:17 2010 -0500
+
+    Added documentation.
+
+commit d83dd49d9434b835afcb7a223bcd8962628e0f27
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Aug 9 15:18:54 2010 -0500
+
+    Added a flag to configure ("--enable-static") that will compile
+    MMPBSA statically.
+
+commit 97a57cac152ebfe16ffebfa23c28410ca5c4b665
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Aug 9 08:08:05 2010 -0500
+
+    Forgot the graphics files...
+
+commit 08e8801ff2b3a169549e8b9bab8fe5bb6bf06746
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Aug 6 15:35:05 2010 -0500
+
+    Integrated Graphics into MMPBSA/MD. Requires BOINC. Currently, the
+    graphics app displays a the CPU time elapsed by the program and the
+    overall progress. Also, a representation of Alanine bounces around
+    the screen. This is create based on coordinates in a float array;
+    therefore, other molecules can be quickly created. The molecule can
+    be rotated and zoomed using the left and right mouse buttons,
+    respectively.
+
 commit 24f4e237fdd784340c26ec3ef9ac4c09dfb90b44
 Author: David Coss <David.Coss@stjude.org>
 Date:   Fri Aug 6 07:58:55 2010 -0500
