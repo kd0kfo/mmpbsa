@@ -104,7 +104,7 @@ int parse_command_line(char* p, char** argv) {
 #endif
 
 
-#if (defined(_WIN32) || defined(__MINGW_WIN32__)) && !defined(__USE_BOINC__)
+#if defined(_WIN32) || defined(__MINGW_WIN32__)
 //win_fopen(), suspend_or_resume_threads(...) and windows_error_string() have been created based on the code
 //from the BOINC project under the terms of the Lesser GNU Public License.
 //See http://boinc.berkeley.edu or http://gnu.org for details.
@@ -149,6 +149,8 @@ HANDLE win_fopen(const char* path, const char* mode)
 	}
 }
 
+#ifndef __USE_BOINC__
+//provided by boinc/lib/str_util.cpp
 // get message for last error
 //
 char* windows_error_string(char* pszBuf, int iSize) {
@@ -182,6 +184,7 @@ char* windows_error_string(char* pszBuf, int iSize) {
     return pszBuf;
 }
 
+//provided by boinc/lib/win_util.cpp
 // Suspend or resume the threads in a given process.
 // The only way to do this on Windows is to enumerate
 // all the threads in the entire system,
@@ -226,7 +229,7 @@ int suspend_or_resume_threads(DWORD pid, bool resume) {
 
     return 0;
 }
-
+#endif//use boinc
 
 #endif
 

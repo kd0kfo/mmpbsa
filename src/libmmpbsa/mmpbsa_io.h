@@ -27,6 +27,9 @@
 #include "SanderParm.h"
 
 #ifdef __USE_BOINC__
+#if defined(_WIN32) || defined(__MINGW_WIN32__)
+#include "boinc_win.h"
+#endif
 #include "boinc_api.h"
 #endif
 
