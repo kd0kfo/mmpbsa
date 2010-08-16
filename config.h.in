@@ -82,6 +82,9 @@
 /* Define to create the graphics application. Requires BOINC and GL */
 #undef __USE_GRAPHICS__
 
+/* Define to use the JPEG library */
+#undef __USE_JPEGLIB__
+
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 

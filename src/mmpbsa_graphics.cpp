@@ -58,6 +58,7 @@
 #endif
 
 #include "mmpbsa_graphics.h"
+#include "mmpbsa_gutil.h"
 
 //mmpbsa::SanderParm * parminfo;
 size_t natoms;

@@ -6,6 +6,6 @@ mmpbsa_DEPENDENCIES = libmmpbsa
 mmpbsa_SOURCES = mmpbsa.cpp
 
 mmpbsa_graphics_CPPFLAGS = $(BOINC_CPPFLAGS) $(GRAPHICS_CPPFLAGS)
-mmpbsa_graphics_LDFLAGS = $(BOINC_LDFLAGS) $(GRAPHICS_LDFLAGS) $(CUSTOM_LDFLAGS)
-mmpbsa_graphics_LDADD = $(BOINC_LIBS) $(GRAPHICS_LIBS) $(CUSTOM_LIBS)
+mmpbsa_graphics_LDFLAGS = $(BOINC_LDFLAGS) $(GRAPHICS_LDFLAGS)
+mmpbsa_graphics_LDADD = $(BOINC_LIBS) $(GRAPHICS_LIBS)
 mmpbsa_graphics_SOURCES = mmpbsa_graphics.cpp

@@ -10,10 +10,14 @@ AM_INIT_AUTOMAKE
 
 AH_TEMPLATE([__USE_BOINC__],[Define to use the BOINC library])
 AH_TEMPLATE([__USE_GRAPHICS__],[Define to create the graphics application. Requires BOINC and GL])
+AH_TEMPLATE([__USE_JPEGLIB__],[Define to use the JPEG library])
+
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_RANLIB
+
+
 
 AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Statically]),
 [AC_MSG_RESULT(Compiling MMPBSA statically)
@@ -28,7 +32,7 @@ fi
 AC_ARG_WITH([boinc],AS_HELP_STRING([--with-boinc@<:@=dir@:>@],[Include boinc under specified path @<:@Default=no@:>@]),with_boinc=${withval},AC_MSG_RESULT(Not using BOINC))
 if test x$with_boinc != x; then
    AC_SUBST(BOINC_CPPFLAGS,"-I$with_boinc/include/")
-   AC_SUBST(BOINC_LIBS,"-lboinc_api -lboinc -lpthread")
+   AC_SUBST(BOINC_LIBS,"-lboinc_api -lboinc")
    AC_SUBST(BOINC_LDFLAGS,"-L$with_boinc/lib")
    AC_DEFINE([__USE_BOINC__],[1])   
 fi
@@ -36,12 +40,11 @@ fi
 AC_ARG_WITH([graphics],AS_HELP_STRING([--with-graphics@<:@=dir@:>@],[Include the graphics app. Requires BOINC and GL. @<:@Default=no@:>@]),
 [AC_MSG_RESULT(Using Graphics $with_graphics)
 AC_SUBST(GRAPHICS_CPPFLAGS,"-DAPP_GRAPHICS -I$with_graphics")
-AC_SUBST(GRAPHICS_LIBS,"-lboinc_graphics2 -lGL -lglut -ljpeg -lX11")
+AC_SUBST(GRAPHICS_LIBS,"-lboinc_graphics2 -lGL -lglut -lX11")
 AC_SUBST(GRAPHICS_LDFLAGS,"-L/usr/X11R6/lib")
 AC_DEFINE([__USE_GRAPHICS__],[1])
  ],
 AC_MSG_RESULT(Not creating a graphics application))
-
 
 # Checks for libraries.
 

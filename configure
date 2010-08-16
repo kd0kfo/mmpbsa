@@ -1779,6 +1779,9 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
+
+
+
 # Checks for programs.
 ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -3429,6 +3432,8 @@ else
 fi
 
 
+
+
 # Check whether --enable-static or --disable-static was given.
 if test "${enable_static+set}" = set; then
   enableval="$enable_static"
@@ -3466,7 +3471,7 @@ fi;
 if test x$with_boinc != x; then
    BOINC_CPPFLAGS="-I$with_boinc/include/"
 
-   BOINC_LIBS="-lboinc_api -lboinc -lpthread"
+   BOINC_LIBS="-lboinc_api -lboinc"
 
    BOINC_LDFLAGS="-L$with_boinc/lib"
 
@@ -3484,7 +3489,7 @@ if test "${with_graphics+set}" = set; then
 echo "${ECHO_T}Using Graphics $with_graphics" >&6
 GRAPHICS_CPPFLAGS="-DAPP_GRAPHICS -I$with_graphics"
 
-GRAPHICS_LIBS="-lboinc_graphics2 -lGL -lglut -ljpeg -lX11"
+GRAPHICS_LIBS="-lboinc_graphics2 -lGL -lglut -lX11"
 
 GRAPHICS_LDFLAGS="-L/usr/X11R6/lib"
 
@@ -3497,7 +3502,6 @@ else
   echo "$as_me:$LINENO: result: Not creating a graphics application" >&5
 echo "${ECHO_T}Not creating a graphics application" >&6
 fi;
-
 
 # Checks for libraries.
 
