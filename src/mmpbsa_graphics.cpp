@@ -6,7 +6,11 @@
 
 #ifdef __USE_GRAPHICS__
 
-// This file is part of BOINC.
+// This file largely barrows from uc2_graphics.cpp from BOINC, with changes
+// made to incorporate molecule representations. The following
+// is the terms of copying that code, which was taken from the beginning of
+// the file:
+//
 // http://boinc.berkeley.edu
 // Copyright (C) 2008 University of California
 //
@@ -31,7 +35,7 @@
 // - handle mouse input (in this case, to zoom and rotate)
 // - draw text and 3D objects using OpenGL
 #ifdef _WIN32
-#include "boinc_win.h"
+#include "BOINC/boinc_win.h"
 #else
 #include <math.h>
 #endif
@@ -39,24 +43,21 @@
 #include "gl.h"
 #include "glu.h"
 
+//BOINC stuff
+#include "BOINC/parse.h"
+#include "BOINC/util.h"
+#include "BOINC/gutil.h"
+#include "BOINC/boinc_gl.h"
+#include "BOINC/app_ipc.h"
+#include "BOINC/boinc_api.h"
+#include "BOINC/graphics2.h"
+#include "BOINC/txf_util.h"
+#include "BOINC/diagnostics.h"
+#ifdef __APPLE__
+#include "BOINC/mac/app_icon.h"
+#endif
 
-#include "parse.h"
-#include "util.h"
-#include "gutil.h"
-#include "boinc_gl.h"
-#include "app_ipc.h"
-#include "boinc_api.h"
-#include "graphics2.h"
-#include "txf_util.h"
-#include "diagnostics.h"
 #include "mmpbsa_graphics.h"
-
-
-
-
-//#ifdef __APPLE__
-//#include "mac/app_icon.h"
-//#endif
 
 //mmpbsa::SanderParm * parminfo;
 size_t natoms;
