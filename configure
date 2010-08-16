@@ -3489,7 +3489,7 @@ if test "${with_graphics+set}" = set; then
 echo "${ECHO_T}Using Graphics $with_graphics" >&6
 GRAPHICS_CPPFLAGS="-DAPP_GRAPHICS -I$with_graphics"
 
-GRAPHICS_LIBS="-lboinc_graphics2 -lGL -lglut -lX11"
+GRAPHICS_LIBS="-lboinc_graphics2 -lopengl32 -lglu32 -lgdi32"
 
 GRAPHICS_LDFLAGS="-L/usr/X11R6/lib"
 

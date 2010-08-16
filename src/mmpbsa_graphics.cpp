@@ -46,7 +46,7 @@
 //BOINC stuff
 #include "BOINC/parse.h"
 #include "BOINC/util.h"
-#include "BOINC/gutil.h"
+//#include "BOINC/gutil.h"
 #include "BOINC/boinc_gl.h"
 #include "BOINC/app_ipc.h"
 #include "BOINC/boinc_api.h"

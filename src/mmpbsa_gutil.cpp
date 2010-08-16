@@ -25,6 +25,12 @@
 //#include "config.h"
 //#endif
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef __USE_GRAPHICS__
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,7 +38,7 @@
 #include <setjmp.h>
 
 #ifdef _WIN32
-
+#include "BOINC/boinc_win.h"
 #ifdef __USE_JPEGLIB__
 #ifndef SANS_JPEGLIB
 #ifdef __cplusplus
@@ -74,10 +80,12 @@ extern "C"{
 
 #endif
 
-#include "boinc_gl.h"
+#include "gl.h"
 
-#include "filesys.h"
-#include "util.h"
+//BOINC Stuff
+#include "BOINC/boinc_gl.h"
+#include "BOINC/filesys.h"
+#include "BOINC/util.h"
 
 #include "mmpbsa_gutil.h"
 
@@ -924,4 +932,6 @@ void print_text(const char* string) {
 	glCallLists((GLsizei)strlen(string), GL_UNSIGNED_BYTE, string);
 	glPopAttrib();
 }
+
+#endif //USE GRAPHICS
 

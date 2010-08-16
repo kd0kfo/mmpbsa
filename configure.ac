@@ -40,7 +40,7 @@ fi
 AC_ARG_WITH([graphics],AS_HELP_STRING([--with-graphics@<:@=dir@:>@],[Include the graphics app. Requires BOINC and GL. @<:@Default=no@:>@]),
 [AC_MSG_RESULT(Using Graphics $with_graphics)
 AC_SUBST(GRAPHICS_CPPFLAGS,"-DAPP_GRAPHICS -I$with_graphics")
-AC_SUBST(GRAPHICS_LIBS,"-lboinc_graphics2 -lGL -lglut -lX11")
+AC_SUBST(GRAPHICS_LIBS,"-lboinc_graphics2 -lopengl32 -lglu32 -lgdi32")
 AC_SUBST(GRAPHICS_LDFLAGS,"-L/usr/X11R6/lib")
 AC_DEFINE([__USE_GRAPHICS__],[1])
  ],

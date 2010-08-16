@@ -41,7 +41,7 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-mkinstalldirs = $(install_sh) -d
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
@@ -51,7 +51,8 @@ am_mmpbsa_OBJECTS = mmpbsa-mmpbsa.$(OBJEXT)
 mmpbsa_OBJECTS = $(am_mmpbsa_OBJECTS)
 am__DEPENDENCIES_1 =
 am_mmpbsa_graphics_OBJECTS =  \
-	mmpbsa_graphics-mmpbsa_graphics.$(OBJEXT)
+	mmpbsa_graphics-mmpbsa_graphics.$(OBJEXT) \
+	mmpbsa_graphics-mmpbsa_gutil.$(OBJEXT)
 mmpbsa_graphics_OBJECTS = $(am_mmpbsa_graphics_OBJECTS)
 mmpbsa_graphics_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
@@ -164,7 +165,7 @@ mmpbsa_SOURCES = mmpbsa.cpp
 mmpbsa_graphics_CPPFLAGS = $(BOINC_CPPFLAGS) $(GRAPHICS_CPPFLAGS)
 mmpbsa_graphics_LDFLAGS = $(BOINC_LDFLAGS) $(GRAPHICS_LDFLAGS)
 mmpbsa_graphics_LDADD = $(BOINC_LIBS) $(GRAPHICS_LIBS)
-mmpbsa_graphics_SOURCES = mmpbsa_graphics.cpp
+mmpbsa_graphics_SOURCES = mmpbsa_graphics.cpp mmpbsa_gutil.cpp
 all: all-am
 
 .SUFFIXES:
@@ -236,6 +237,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmpbsa-mmpbsa.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmpbsa_graphics-mmpbsa_graphics.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmpbsa_graphics-mmpbsa_gutil.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -278,6 +280,20 @@ mmpbsa_graphics-mmpbsa_graphics.obj: mmpbsa_graphics.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mmpbsa_graphics.cpp' object='mmpbsa_graphics-mmpbsa_graphics.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_graphics_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mmpbsa_graphics-mmpbsa_graphics.obj `if test -f 'mmpbsa_graphics.cpp'; then $(CYGPATH_W) 'mmpbsa_graphics.cpp'; else $(CYGPATH_W) '$(srcdir)/mmpbsa_graphics.cpp'; fi`
+
+mmpbsa_graphics-mmpbsa_gutil.o: mmpbsa_gutil.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_graphics_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mmpbsa_graphics-mmpbsa_gutil.o -MD -MP -MF "$(DEPDIR)/mmpbsa_graphics-mmpbsa_gutil.Tpo" -c -o mmpbsa_graphics-mmpbsa_gutil.o `test -f 'mmpbsa_gutil.cpp' || echo '$(srcdir)/'`mmpbsa_gutil.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/mmpbsa_graphics-mmpbsa_gutil.Tpo" "$(DEPDIR)/mmpbsa_graphics-mmpbsa_gutil.Po"; else rm -f "$(DEPDIR)/mmpbsa_graphics-mmpbsa_gutil.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mmpbsa_gutil.cpp' object='mmpbsa_graphics-mmpbsa_gutil.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_graphics_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mmpbsa_graphics-mmpbsa_gutil.o `test -f 'mmpbsa_gutil.cpp' || echo '$(srcdir)/'`mmpbsa_gutil.cpp
+
+mmpbsa_graphics-mmpbsa_gutil.obj: mmpbsa_gutil.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_graphics_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mmpbsa_graphics-mmpbsa_gutil.obj -MD -MP -MF "$(DEPDIR)/mmpbsa_graphics-mmpbsa_gutil.Tpo" -c -o mmpbsa_graphics-mmpbsa_gutil.obj `if test -f 'mmpbsa_gutil.cpp'; then $(CYGPATH_W) 'mmpbsa_gutil.cpp'; else $(CYGPATH_W) '$(srcdir)/mmpbsa_gutil.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/mmpbsa_graphics-mmpbsa_gutil.Tpo" "$(DEPDIR)/mmpbsa_graphics-mmpbsa_gutil.Po"; else rm -f "$(DEPDIR)/mmpbsa_graphics-mmpbsa_gutil.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mmpbsa_gutil.cpp' object='mmpbsa_graphics-mmpbsa_gutil.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_graphics_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mmpbsa_graphics-mmpbsa_gutil.obj `if test -f 'mmpbsa_gutil.cpp'; then $(CYGPATH_W) 'mmpbsa_gutil.cpp'; else $(CYGPATH_W) '$(srcdir)/mmpbsa_gutil.cpp'; fi`
 uninstall-info-am:
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
