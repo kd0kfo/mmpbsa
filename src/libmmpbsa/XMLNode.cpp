@@ -91,10 +91,10 @@ std::string mmpbsa_utils::XMLNode::toString(const std::string& offset) const
     if(children != 0)
     {
         returnMe += "\n" + children->toString( (parent == 0) ? offset : offset + offset )
-                + "\n";
+                + "\n"+offset;
     }
     
-    returnMe += offset+"</" + name + ">";
+    returnMe += "</" + name + ">";
     if(siblings != 0)
         returnMe += "\n" + siblings->toString(offset);
     

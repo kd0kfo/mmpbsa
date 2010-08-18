@@ -81,6 +81,7 @@ extern "C"{
 #endif
 
 #include "gl.h"
+#include "glu.h"
 
 //BOINC Stuff
 #include "BOINC/boinc_gl.h"

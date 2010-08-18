@@ -1238,6 +1238,34 @@ mmpbsa::EMap& mmpbsa::EMap::operator-=(const mmpbsa::EMap& rhs)
     return *this;
 }
 
+mmpbsa_utils::XMLNode* mmpbsa::EMap::toXML(const std::string& name)const
+{
+    mmpbsa_utils::XMLNode* theNode = new mmpbsa_utils::XMLNode(name);
+    char value[20];
+
+    sprintf(value,MMPBSA_FORMAT,bond);
+    theNode->insertChild("BOND",value);
+    sprintf(value,MMPBSA_FORMAT,angle);
+    theNode->insertChild("ANGLE",value);
+    sprintf(value,MMPBSA_FORMAT,dihed);
+    theNode->insertChild("DIHED",value);
+    sprintf(value,MMPBSA_FORMAT,vdw14);
+    theNode->insertChild("VDW14",value);
+    sprintf(value,MMPBSA_FORMAT,ele14);
+    theNode->insertChild("ELE14",value);
+    sprintf(value,MMPBSA_FORMAT,vacele);
+    theNode->insertChild("VACELE",value);
+    sprintf(value,MMPBSA_FORMAT,vdwaals);
+    theNode->insertChild("VDWAALS",value);
+    sprintf(value,MMPBSA_FORMAT,elstat_solv);
+    theNode->insertChild("PBSOL",value);
+    sprintf(value,MMPBSA_FORMAT,sasol);
+    theNode->insertChild("SASOL",value);
+    sprintf(value,MMPBSA_FORMAT,area);
+    theNode->insertChild("AREA",value);
+
+    return theNode;
+}
 
 mmpbsa::BondWalker::BondWalker(mmpbsa::EmpEnerFun const * efun)
 {
@@ -1329,3 +1357,5 @@ void mmpbsa::BondWalker::recwalk(std::vector<size_t>& list, const size_t& atom,
     }
 
 }
+
+

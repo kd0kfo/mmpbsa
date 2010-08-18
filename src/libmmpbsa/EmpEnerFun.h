@@ -16,6 +16,8 @@
 #include "mmpbsa_utils.h"
 #include "mmpbsa_io.h"
 #include "SanderParm.h"
+#include "XMLNode.h"
+#include "XMLParser.h"
 
 namespace mmpbsa{
 
@@ -338,6 +340,8 @@ public:
     EMap& operator-=(const EMap& rhs);
 
     friend std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite);
+
+    mmpbsa_utils::XMLNode* toXML(const std::string& name = "energy")const;
 
 protected:
     mmpbsa_t bond;

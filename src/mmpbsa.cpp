@@ -101,11 +101,9 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     using std::map;
     using namespace mmpbsa;
 
-    std::fstream outputFile;
     if(!currState.outputFilename.size())
-        currState.outputFilename = "mmpbsa-output.txt";
-    outputFile.open(currState.outputFilename.c_str(),std::ios::out | std::ios::app);
-
+        currState.outputFilename = "mmpbsa-output.xml";
+    
     //load and check the parmtop file.
     mmpbsa::SanderParm * sp = new mmpbsa::SanderParm;
     sp->raw_read_amber_parm(currState.prmtopFilename);
@@ -193,6 +191,8 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             }
     size_t snapcounter = (currState.currentSnap) ? currState.currentSnap - 1 : 0;//snapcounter will be incremented below
 
+    mmpbsa_utils::XMLNode* outputXML = new mmpbsa_utils::XMLNode("mmpbsa_energy");
+
     //Walk through the snapshots. This is where MMPBSA is actually done.
     while(!trajFile.eof())
     {
@@ -221,12 +221,24 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         {
             if(e.getErrType() == UNEXPECTED_EOF)
             {
-              std::cerr << "End of Snapshots Reached" << std::endl;
-              return 0;
+                std::cerr << "End of Snapshots Reached" << std::endl;
+                std::fstream outputFile(currState.outputFilename.c_str(), std::ios::out);
+                if (!outputFile.good())
+                    throw mmpbsa::MMPBSAException("Could not write to: " +
+                        currState.outputFilename, mmpbsa::FILE_READ_ERROR);
+
+                outputFile << outputXML->toString();
+                outputFile.close();
+                delete outputXML;
+                return 0;
             }
         }
 
         //process snapshot.
+        char strSnapNumber[16];
+        sprintf(strSnapNumber,"%d",snapcounter);//Node used to output energy data
+        mmpbsa_utils::XMLNode* snapshotXML = new mmpbsa_utils::XMLNode("snapshot");
+        snapshotXML->insertChild("ID",strSnapNumber);
         size_t complexCoordIndex = 0;
         size_t receptorCoordIndex = 0;
         size_t ligandCoordIndex = 0;
@@ -260,7 +272,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         {
             EMap complexEMap = MeadInterface::full_EMap(complexEFun,complexSnap,fdm,
                     *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
-            outputFile << "COMPLEX" << endl << complexEMap << endl;
+            snapshotXML->insertChild(complexEMap.toXML("COMPLEX"));
             currState.currentMolecule = MMPBSAState::RECEPTOR;
             currState.currentSnap = snapcounter;
             ::updateMMPBSAProgress(currState,0.33333333);
@@ -271,7 +283,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         {
             EMap receptorEMap = MeadInterface::full_EMap(receptorEFun,receptorSnap,fdm,
                     *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
-            outputFile << "RECEPTOR" << endl << receptorEMap << endl;
+            snapshotXML->insertChild(receptorEMap.toXML("RECEPTOR"));
             currState.currentMolecule = MMPBSAState::LIGAND;
             currState.currentSnap = snapcounter;
             ::updateMMPBSAProgress(currState,0.333333);
@@ -282,18 +294,26 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         {
             EMap ligandEMap = MeadInterface::full_EMap(ligandEFun,ligandSnap,fdm,
                     *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
-            outputFile << "LIGAND" << endl << ligandEMap << endl << endl;
+            snapshotXML->insertChild(ligandEMap.toXML("LIGAND"));
             currState.currentMolecule = MMPBSAState::END_OF_MOLECULES;
             ::updateMMPBSAProgress(currState,0.3333333);
         }
         checkpoint_mmpbsa(currState);
         currState.currentMolecule = MMPBSAState::COMPLEX;//Reset current molecule
+        outputXML->insertChild(snapshotXML);
     }//end of snapshot loop
 
     currState.fractionDone = 1.0;
     checkpoint_mmpbsa(currState);
 
     trajFile.close();
+
+    std::fstream outputFile(currState.outputFilename.c_str(),std::ios::out);
+    if(!outputFile.good())
+        throw mmpbsa::MMPBSAException("Could not write to: "+
+                currState.outputFilename,mmpbsa::FILE_READ_ERROR);
+    
+    
     delete sp;
     return 0;
 }
