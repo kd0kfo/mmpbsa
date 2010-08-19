@@ -1,8 +1,5 @@
 Latest  Change:
-Moved away from the dependency on libxml2. This was a tremendous
-pain in windows. At the same time, only a very small portion
-of the whole library was being used. Therefore, a new independent
-XML Parser was made for libmmpbsa.
+Moved EMap to its own cpp/h files since it was growing decently.
 
 Previous Git Log:
 commit b911231c73c721a56e1e8f4811da2448c4d0dd27

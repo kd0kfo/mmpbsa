@@ -1,6 +1,5 @@
 #include "mmpbsa.h"
 
-
 int main(int argc, char** argv)
 {
     try 
@@ -418,6 +417,10 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
         {
             std::cout << helpString() << std::endl;
             return 1;
+        }
+        else if(it->first == "version")
+        {
+            std::cout << PACKAGE_STRING << std::endl;
         }
         else if (it->first == "trust_prmtop")
         {

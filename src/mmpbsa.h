@@ -14,6 +14,7 @@
 #include "libmmpbsa/mmpbsa_io.h"
 #include "libmmpbsa/EnergyInfo.h"
 #include "libmmpbsa/EmpEnerFun.h"
+#include "libmmpbsa/EMap.h"
 #include "libmmpbsa/MeadInterface.h"
 #include "libmmpbsa/XMLParser.h"
 #include "libmmpbsa/XMLNode.h"
