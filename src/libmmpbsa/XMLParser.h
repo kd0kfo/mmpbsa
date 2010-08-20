@@ -131,6 +131,7 @@ public:
      * @return Document Head
      */
     const XMLNode * getHead(){return head;}
+    XMLNode const * const getHead()const{return head;}
 
     /**
      * Returns the name of the head.

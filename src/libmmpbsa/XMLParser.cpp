@@ -53,7 +53,7 @@ mmpbsa_utils::XMLParser::~XMLParser() {
 
 void mmpbsa_utils::XMLParser::parse(const std::string& xmlFilename) throw (mmpbsa::XMLParserException)
 {
-    delete head;
+    delete head;head = 0;
     std::fstream xmlFile(xmlFilename.c_str(),std::ios::in);
     if(!xmlFile.good())
     {

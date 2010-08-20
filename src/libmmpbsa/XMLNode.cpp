@@ -23,6 +23,13 @@ size_t mmpbsa_utils::XMLNode::hasChildren()const
 {
     if(children == 0)
         return 0;
+    return children->hasSiblings() + 1;//one for children itself.
+}
+
+size_t mmpbsa_utils::XMLNode::hasRelatives()const
+{
+    if(children == 0)
+        return 0;
     mmpbsa_utils::XMLNode * currNode = children;
     size_t returnMe = children->hasSiblings()+1;
     while(currNode)
@@ -30,6 +37,7 @@ size_t mmpbsa_utils::XMLNode::hasChildren()const
         returnMe += currNode->hasChildren();
         currNode = currNode->siblings;
     }
+    return returnMe;
 }
 
 size_t mmpbsa_utils::XMLNode::hasSiblings()const

@@ -62,11 +62,19 @@ public:
     void setName(const std::string& newName){name = newName;}
 
     /**
-     * Returns the number of children.
+     * Returns the number of children the that particular node.
+     * For a full depth count of all branches off of this node, see
+     * hasRelatives()
      *
      * @return size_t number of children of the node.
      */
     size_t hasChildren()const;
+
+    /**
+     * Returns a count of all decendents
+     * @return 
+     */
+    size_t hasRelatives()const;
 
     /**
      * Returns the number of siblings of the node.

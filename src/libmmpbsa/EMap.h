@@ -75,8 +75,23 @@ public:
 
     friend std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite);
     friend EMap abs(const mmpbsa::EMap& obj);
+    friend EMap sqrt(const mmpbsa::EMap& obj);
 
+    /**
+     * Creates an XML document node using the energy data. The name of the data
+     * in captial letters is the name of each energy data tag.
+     * 
+     * @param name -- optional std::string title for the XMLNode (default = "energy")
+     * @return
+     */
     mmpbsa_utils::XMLNode* toXML(const std::string& name = "energy")const;
+
+    /**
+     * Creates an EMap object based on the given XML Node.
+     * 
+     * @param xmlEnergy
+     * @return
+     */
     static EMap loadXML(const mmpbsa_utils::XMLNode* xmlEnergy);
 
 protected:

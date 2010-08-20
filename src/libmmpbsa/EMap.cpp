@@ -86,6 +86,23 @@ mmpbsa::EMap abs(const mmpbsa::EMap& obj)
     return returnMe;
 }
 
+mmpbsa::EMap sqrt(const mmpbsa::EMap& obj)
+{
+    mmpbsa::EMap returnMe = obj;
+    returnMe.angle = std::sqrt(returnMe.angle);
+    returnMe.area = std::sqrt(returnMe.area);
+    returnMe.bond = std::sqrt(returnMe.bond);
+    returnMe.dihed = std::sqrt(returnMe.dihed);
+    returnMe.ele14 = std::sqrt(returnMe.ele14);
+    returnMe.elstat_solv = std::sqrt(returnMe.elstat_solv);
+    returnMe.sasol = std::sqrt(returnMe.sasol);
+    returnMe.vacele = std::sqrt(returnMe.vacele);
+    returnMe.vdw14 = std::sqrt(returnMe.vdw14);
+    returnMe.vdwaals = std::sqrt(returnMe.vdwaals);
+
+    return returnMe;
+}
+
 }
 
 mmpbsa::EMap& mmpbsa::EMap::operator=(const mmpbsa::EMap& rhs)
@@ -237,15 +254,15 @@ mmpbsa::EMap& mmpbsa::EMap::operator/=(const mmpbsa_t& rhs)
 
 bool mmpbsa::EMap::operator>(const mmpbsa::EMap& rhs)const
 {
-    return bond > rhs.bond &&
-            angle > rhs.angle &&
-            dihed > rhs.dihed &&
-            vdw14 > rhs.vdw14 &&
-            ele14 > rhs.ele14 &&
-            vdwaals > rhs.vdwaals &&
-            vacele > rhs.vacele &&
-            elstat_solv > rhs.elstat_solv &&
-            area > rhs.area &&
+    return bond > rhs.bond ||
+            angle > rhs.angle ||
+            dihed > rhs.dihed ||
+            vdw14 > rhs.vdw14 ||
+            ele14 > rhs.ele14 ||
+            vdwaals > rhs.vdwaals ||
+            vacele > rhs.vacele ||
+            elstat_solv > rhs.elstat_solv ||
+            area > rhs.area ||
             sasol > rhs.sasol;
 }
 
@@ -295,68 +312,72 @@ mmpbsa_utils::XMLNode* mmpbsa::EMap::toXML(const std::string& name)const
 
 mmpbsa::EMap mmpbsa::EMap::loadXML(const mmpbsa_utils::XMLNode* xmlEnergy)
 {
+
     mmpbsa::EMap returnMe;
-    std::string data_type;
+    if(xmlEnergy == 0)
+        return returnMe;
+    std::string data_type,data;
     for(const mmpbsa_utils::XMLNode* it = xmlEnergy->children;it != 0;it = it->siblings)
     {
         data_type = it->getName();
+        data = it->getText();
         if(data_type == "BOND")
         {
-            sscanf(data_type.c_str(), MMPBSA_FORMAT, returnMe.bond);
+            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.bond));
             continue;
         }
 
         if(data_type == "ANGLE")
         {
-            sscanf(data_type.c_str(), MMPBSA_FORMAT, returnMe.angle);
+            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.angle));
             continue;
         }
 
         if(data_type == "DIHED")
         {
-            sscanf(data_type.c_str(), MMPBSA_FORMAT, returnMe.dihed);
+            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.dihed));
             continue;
         }
 
         if(data_type == "VDW14")
         {
-            sscanf(data_type.c_str(), MMPBSA_FORMAT, returnMe.vdw14);
+            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.vdw14));
             continue;
         }
 
         if(data_type == "ELE14")
         {
-            sscanf(data_type.c_str(), MMPBSA_FORMAT, returnMe.ele14);
+            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.ele14));
             continue;
         }
 
         if(data_type == "VACELE")
         {
-            sscanf(data_type.c_str(), MMPBSA_FORMAT, returnMe.vacele);
+            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.vacele));
             continue;
         }
 
         if(data_type == "VDWAALS")
         {
-            sscanf(data_type.c_str(), MMPBSA_FORMAT, returnMe.vdwaals);
+            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.vdwaals));
             continue;
         }
 
         if(data_type == "PBSOL")
         {
-            sscanf(data_type.c_str(), MMPBSA_FORMAT, returnMe.elstat_solv);
+            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.elstat_solv));
             continue;
         }
 
         if(data_type == "SASOL")
         {
-            sscanf(data_type.c_str(), MMPBSA_FORMAT, returnMe.sasol);
+            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.sasol));
             continue;
         }
 
         if(data_type == "AREA")
         {
-            sscanf(data_type.c_str(), MMPBSA_FORMAT, returnMe.area);
+            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.area));
             continue;
         }
 
