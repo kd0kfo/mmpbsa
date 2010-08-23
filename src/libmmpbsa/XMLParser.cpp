@@ -111,14 +111,13 @@ void mmpbsa_utils::XMLParser::parse(const std::string& xmlFilename) throw (mmpbs
     }
 }
 
-std::pair<std::string,std::string> mmpbsa_utils::XMLParser::parseLine(const std::string& _line, bool& isClosedTag) throw (mmpbsa::XMLParserException)
+std::pair<std::string,std::string> mmpbsa_utils::XMLParser::parseLine(const std::string& _line,
+        bool& isClosedTag) throw (mmpbsa::XMLParserException)
 {
     std::pair<std::string,std::string> returnMe("","");
     using std::string;
     string line = mmpbsa_utils::trimString(_line);
     if(line.size() == 0)
-        return returnMe;
-    if(line.size() >= 2 && line[1] == '?')//don't care about the ?xml line.
         return returnMe;
     if(line[0] != '<' || line.find_first_of('>') == string::npos)
     {
@@ -130,6 +129,9 @@ std::pair<std::string,std::string> mmpbsa_utils::XMLParser::parseLine(const std:
     size_t tagEnd = line.find_first_of('>');
     returnMe.first = line.substr(1,tagEnd-1);
     line.erase(0,tagEnd+1);
+    if(line[0] == '?')
+        return std::pair<string,string>("","");
+
     if(returnMe.first[returnMe.first.size()-1] == '/' || returnMe.first[0] == '/')
     {
         isClosedTag = true;
