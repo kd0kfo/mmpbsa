@@ -4,6 +4,7 @@
  * Created by David Coss <David.Coss@stjude.org> 2010
  */
 #include <stdexcept>
+#include <sstream>
 
 #ifndef MMPBSA_EXCEPTIONS_H
 #define	MMPBSA_EXCEPTIONS_H
@@ -33,6 +34,7 @@ class MMPBSAException : public std::runtime_error
          * @param error
          */
     MMPBSAException( const std::string& error) : runtime_error(error) {errorType = UNKNOWN_ERROR;}
+
     /**
      * Creates an exception, with a specified error type.
      *
@@ -40,7 +42,7 @@ class MMPBSAException : public std::runtime_error
      * @param errorType
      */
     MMPBSAException(const std::string& error, const MMPBSAErrorTypes& errorType) : runtime_error(error){this->errorType = errorType;}
-    
+    MMPBSAException(const std::ostringstream& error, const MMPBSAErrorTypes& errorType) : runtime_error(error.str()){this->errorType = errorType;}
     /**
      * Returns the error type, corresponding to the error types listed below.
      * These should be returned if the exception is caught and the program
@@ -64,6 +66,8 @@ public:
     SanderIOException(const std::string& error) : MMPBSAException( error){}
     
     SanderIOException(const std::string& error, const MMPBSAErrorTypes& errorType)
+        : MMPBSAException(error,errorType){}
+    SanderIOException(const std::ostringstream& error,const MMPBSAErrorTypes& errorType)
         : MMPBSAException(error,errorType){}
 
     const char* identifier(){return "SanderIO Error";}

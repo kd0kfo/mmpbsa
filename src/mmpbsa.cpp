@@ -76,7 +76,7 @@ int main(int argc, char** argv)
         }
 #ifdef __USE_BOINC__
         if(retval)
-            fprintf(stderr,"BOINC Error: %s\n",boincerror(retval));
+            std::cerr "BOINC Error: " << boincerror(retval) << std::endl;
         boinc_finish(retval);
 #endif
         return retval;
@@ -184,7 +184,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             {
                 if(e.getErrType() == UNEXPECTED_EOF)
                 {
-                  fprintf(stdout,"End of Snapshots Reached\n");
+                  std::cout << "End of Snapshots Reached" << std::endl;
                   return 0;
                 }
             }
@@ -203,16 +203,16 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
                 if(!mmpbsa_utils::contains(currState.snapList,snapcounter))
                 {
                     mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
-                    fprintf(stdout,"Skipping Snapshot #%d\n",snapcounter);
+                    std::cout << "Skipping Snapshot #" << snapcounter << std::endl;
                     continue;
                 }
         
             if(get_next_snap(trajFile, snapshot, sp->natom,isPeriodic))
-                fprintf(stdout,"Running Snapshot #%d\n",snapcounter);
+                std::cout << "Running Snapshot #" << snapcounter << std::endl;
             else
             {
-                char error[256];
-                sprintf(error,"Error in loading snapshot #%d",++snapcounter);
+                std::ostringstream error;
+                error << "Error in loading snapshot #"  << ++snapcounter << std::endl;
                 throw MMPBSAException(error,BROKEN_TRAJECTORY_FILE);
             }
         }
@@ -234,10 +234,10 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         }
 
         //process snapshot.
-        char strSnapNumber[16];
-        sprintf(strSnapNumber,"%d",snapcounter);//Node used to output energy data
+        std::ostringstream strSnapNumber;
+        strSnapNumber << snapcounter;//Node used to output energy data
         mmpbsa_utils::XMLNode* snapshotXML = new mmpbsa_utils::XMLNode("snapshot");
-        snapshotXML->insertChild("ID",strSnapNumber);
+        snapshotXML->insertChild("ID",strSnapNumber.str());
         size_t complexCoordIndex = 0;
         size_t receptorCoordIndex = 0;
         size_t ligandCoordIndex = 0;
@@ -334,7 +334,12 @@ int sander_run(MMPBSAState& currState,mmpbsa::SanderInterface& si)
         {
             if(status)
             {
-                fprintf(stderr,"Sander(%d) had a problem: 0x%x\n",si.getPID(),status);
+                std::cerr << "Sander(" << si.getPID()
+                        << ") had a problem: ";
+                std::cerr.setf(std::ios::hex);
+                std::cerr << status;//show status in hex.
+                std::cerr.setf(std::ios::dec);
+                std::cerr << std::endl;
                 return EXIT_CHILD_FAILED;
             }
             break;
@@ -390,28 +395,24 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
     {
         if (it->second.find("=") != std::string::npos)
         {
-            char error[256];
-            sprintf(error, "Multiple occurance of \"=\" in parameter: %s=%s\n", it->first.c_str(),it->second.c_str());
+            std::ostringstream error;
+            error << "Multiple occurance of \"=\" in parameter: "
+                    << it->first << "=" << it->second << std::endl;
             throw mmpbsa::MMPBSAException(error, mmpbsa::COMMAND_LINE_ERROR);
         }
 
+        std::istringstream buff(it->second);
         if (it->first == "istrength")
         {
-            mmpbsa_t fValue = 0;
-            sscanf(it->second.c_str(), MMPBSA_FORMAT, &fValue);
-            mi.istrength = mmpbsa_t(fValue);
+            buff >> MMPBSA_FORMAT >> mi.istrength;
         } 
         else if (it->first == "surf_offset")
         {
-            mmpbsa_t fValue = 0;
-            sscanf(it->second.c_str(), MMPBSA_FORMAT, &fValue);
-            mi.surf_offset = mmpbsa_t(fValue);
+            buff >> MMPBSA_FORMAT >> mi.surf_offset;
         } 
         else if (it->first == "surf_tension")
         {
-            mmpbsa_t fValue = 0;
-            sscanf(it->second.c_str(), MMPBSA_FORMAT, &fValue);
-            mi.surf_tension = mmpbsa_t(fValue);
+            buff >> MMPBSA_FORMAT >> mi.surf_tension;
         }
         else if (it->first == "help" || it->first == "h")
         {
@@ -440,8 +441,9 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
     {
         if (it->second.find("=") != string::npos)
         {
-            char error[256];
-            sprintf(error, "Multiple occurance of \"=\" in parameter: %s=%s\n", it->first.c_str(),it->second.c_str());
+            std::ostringstream error;
+            error << "Multiple occurance of \"=\" in parameter: " <<
+                    it->first << " = " << it->second << std::endl;
             throw mmpbsa::MMPBSAException(error, mmpbsa::COMMAND_LINE_ERROR);
         }
 
@@ -503,7 +505,8 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
         }
         else if(it->first == "weight")
         {
-            sscanf(it->second.c_str(),"%f",&currState.weight);
+            std::istringstream buff(it->second);
+            buff >> currState.weight;
         }
 
     }
@@ -517,8 +520,8 @@ int loadListArg(const std::string& values,std::vector<size_t>& array, const size
     int currValue = 0;
     while(valTokens.hasMoreTokens())
     {
-        std::string curr = valTokens.nextToken();
-        sscanf(curr.c_str(),"%d",&currValue);
+        std::istringstream curr(valTokens.nextToken());
+        curr >> currValue;
         array.push_back(size_t(currValue) - offset);
     }
     return 0;
@@ -643,7 +646,7 @@ bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
     }
     catch(mmpbsa::XMLParserException xpe)
     {
-        fprintf(stderr,"Did not open %s\n",restartState.checkpointFilename.c_str());
+        std::cerr << "Did not open " << restartState.checkpointFilename << std::endl;
         if(xpe.getErrType() == mmpbsa::FILE_READ_ERROR)
             return false;
         else
@@ -658,34 +661,35 @@ bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
             it != checkMap.end();it++)
     {
         tag = it->first;
+        std::istringstream buff(it->second);
         //chain to load parameters into correct variables.
         if(tag == "pid")
         {
             int newPID = 0;
-            sscanf(it->second.c_str(),"%d",&newPID);
+            buff >> newPID;
             si.setPID(newPID);
         }
         else if(tag == "cpu_time")
         {
-            sscanf(it->second.c_str(),"%le",&cpu_time);
+            buff >> std::scientific >> cpu_time;
         }
         else if(tag == "start_time")
         {
-            sscanf(it->second.c_str(),"%le",&start_time);
+            buff >> std::scientific >> start_time;
         }
         else if(tag == "runtime")
         {
-            sscanf(it->second.c_str(),"%le",&runtime);
+            buff >> std::scientific >> runtime;
         }
         else if(tag == "finished")
         {
             int newPID = 0;
-            sscanf(it->second.c_str(),"%d",&newPID);
+            buff >> newPID;
             si.completed = newPID;
         }
         else if(tag == "queue_position")
         {
-            sscanf(it->second.c_str(),"%d",&(restartState.placeInQueue));
+            buff >> restartState.placeInQueue;
         }
         else
         {
@@ -727,11 +731,12 @@ bool restart_mmpbsa(MMPBSAState& restartState)
             it != checkMap.end();it++)
     {
         tag = it->first;
+        std::istringstream buff(it->second);
         //chain to load parameters into correct variables.
         if(tag == "current_molecule")
         {
             int currMol = 0;
-            sscanf(it->second.c_str(),"%d",&currMol);
+            buff >> currMol;
             switch(currMol)
             {
                 case MMPBSAState::COMPLEX:
@@ -751,15 +756,15 @@ bool restart_mmpbsa(MMPBSAState& restartState)
         }//end "current_molecule" case
         else if(tag == "current_snap")
         {
-            sscanf(it->second.c_str(),"%d",&(restartState.currentSnap));
+            buff >> restartState.currentSnap;
         }//end "current_snap" case
         else if(tag == "checkpoint_counter")
         {
-            sscanf(it->second.c_str(),"%d",&(restartState.checkpointCounter));
+            buff >> restartState.checkpointCounter;
         }
         else if(tag == "queue_position")
         {
-            sscanf(it->second.c_str(),"%d",&(restartState.placeInQueue));
+            buff >> restartState.placeInQueue;
         }
         else
         {
@@ -775,28 +780,26 @@ void checkpoint_sander(MMPBSAState& saveState, mmpbsa::SanderInterface& si)
     if(sanderProgress.good())
     {
         double completed,remaining;
-        char buff[256];
-        sanderProgress.getline(buff,256);
-        sscanf(buff,"%lf %lf",&completed,&remaining);
+        sanderProgress >> completed >> remaining;
         saveState.fractionDone = completed/(completed+remaining);
         sanderProgress.close();
     }
     std::map<std::string,std::string> checkMap;
-    char buff[16];
-    sprintf(buff,"%d",si.getPID());
-    checkMap["pid"] = buff;
-    sprintf(buff,"%le",si.start_time());
-    checkMap["start_time"] = buff;
-    sprintf(buff,"%le",si.cpu_time());
-    checkMap["cpu_time"] = buff;
-    sprintf(buff,"%le",si.netRuntime());
-    checkMap["runtime"] = buff;
-    sprintf(buff,"%d",si.completed);
-    checkMap["finished"] = buff;
-    sprintf(buff,"%d",saveState.placeInQueue);
-    checkMap["queue_position"] = buff;
-    sprintf(buff,"%lf",saveState.fractionDone);
-    checkMap["stage_fraction_done"] = buff;
+    std::ostringstream buff;
+    buff << si.getPID();
+    checkMap["pid"] = buff.str();
+    buff.str("");buff << si.start_time();
+    checkMap["start_time"] = buff.str();
+    buff.str("");buff << si.cpu_time();
+    checkMap["cpu_time"] = buff.str();
+    buff.str("");buff << si.netRuntime();
+    checkMap["runtime"] = buff.str();
+    buff.str("");buff << si.completed;
+    checkMap["finished"] = buff.str();
+    buff.str("");buff << saveState.placeInQueue;
+    checkMap["queue_position"] = buff.str();
+    buff.str("");buff << saveState.fractionDone;
+    checkMap["stage_fraction_done"] = buff.str();
     mmpbsa_utils::XMLParser xmlDoc("moldyn_state",checkMap);
     checkpoint_out(saveState,xmlDoc);
 }
@@ -805,15 +808,15 @@ void checkpoint_mmpbsa(MMPBSAState& saveState)
 {
     
     std::map<std::string,std::string> checkMap;
-    char buff[16];
-    sprintf(buff,"%d",saveState.currentMolecule);
-    checkMap["current_molecule"] = buff;
-    sprintf(buff,"%d",saveState.currentSnap);
-    checkMap["current_snap"] = buff;
-    sprintf(buff,"%d",saveState.checkpointCounter);
-    checkMap["checkpoint_counter"] = buff;
-    sprintf(buff,"%d",saveState.placeInQueue);
-    checkMap["queue_position"] = buff;
+    std::ostringstream buff;
+    buff << saveState.currentMolecule;
+    checkMap["current_molecule"] = buff.str();
+    buff.str("");buff << saveState.currentSnap;
+    checkMap["current_snap"] = buff.str();
+    buff.str("");buff << saveState.checkpointCounter;
+    checkMap["checkpoint_counter"] = buff.str();
+    buff.str("");buff << saveState.placeInQueue;
+    checkMap["queue_position"] = buff.str();
     mmpbsa_utils::XMLParser xmlDoc("mmpbsa_state",checkMap);
     checkpoint_out(saveState,xmlDoc);
 }
@@ -845,12 +848,12 @@ int mmpbsa_boinc_init()
     options.backwards_compatible_graphics = true;
     gshmem =(MMPBSA_SHMEM*)boinc_graphics_make_shmem("mmpbsa",sizeof(MMPBSA_SHMEM));
     if(!gshmem)
-        fprintf(stderr,"Could not create shared memory for mmpbsa.\n");
+        std::cerr << "Could not create shared memory for mmpbsa." << std::endl;
     update_gshmem();
     boinc_register_timer_callback(update_gshmem);
 #endif
 
-    fprintf(stderr, "mmpbsa started\n");
+    std::cerr << "mmpbsa started\n" << std::endl;
     return boinc_init_options(&options);
 #endif
 }
@@ -929,7 +932,7 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
     }
     catch(mmpbsa::XMLParserException xpe)
     {
-        fprintf(stderr,"Did not open %s\n",xmlFilename.c_str());
+        std::cerr << "Did not open "<< xmlFilename << std::endl;
         if(xpe.getErrType() == mmpbsa::FILE_READ_ERROR)
             return returnMe;
         else

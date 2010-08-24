@@ -55,9 +55,10 @@ template <class T> std::vector<T> mmpbsa_utils::take(const std::valarray<T>& lar
         {
             if(subsetIndices[i] > largerArray.size())
             {
-                char * error;
-                sprintf(error,"An index (%d) to be used in taking from the larger array exceeds "
-                        "the size (%d) of the larger array.",subsetIndices[i],largerArray.size());
+                std::ostringstream error;
+                error << "An index (" << subsetIndices[i] << ") to be used in "
+                        "taking from the larger array exceeds "
+                        "the size (" << largerArray.size() << ") of the larger array.";
                 throw mmpbsa::MMPBSAException(error,mmpbsa::INVALID_ARRAY_SIZE);
             }
             returnMe.push_back(largerArray[subsetIndices[i]]);
@@ -167,10 +168,10 @@ template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<std::v
     for(size_t i = 1;i<toBeZipped.size();i++)
         if(toBeZipped[i].size() != newSize)
         {
-            char * error;
-            sprintf(error,"When using mmpbsa_utils::zip, all arrays "
-                    "must have the same length. Here the expected length was %d,"
-                    " but one array had a length of %d",newSize,toBeZipped[i].size());
+            std::ostringstream error;
+            error << "When using mmpbsa_utils::zip, all arrays "
+                    "must have the same length. Here the expected length was "
+                    << newSize << ", but one array had a length of " << toBeZipped[i].size();
             throw mmpbsa::MMPBSAException(error,mmpbsa::INVALID_ARRAY_SIZE);
         }
 
@@ -229,9 +230,9 @@ template<class T> T* mmpbsa_utils::cross_product(const T* A, const T* B,const si
 
     if(dim != 3)
     {
-        char* error;
-        sprintf(error,"mmpbsa_utils::cross_product currently only works on 3 dimensional vectors."
-                "Here, a %d-dimensional vector was given.",dim);
+        std::ostringstream error;
+        error << "mmpbsa_utils::cross_product currently only works on 3 dimensional vectors."
+                "Here, a " << dim << "-dimensional vector was given.";
         throw mmpbsa::MMPBSAException(error,mmpbsa::DATA_FORMAT_ERROR);
     }
 

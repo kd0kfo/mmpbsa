@@ -2,6 +2,7 @@
 #define EMAP_H
 
 #include <valarray>
+#include <sstream>
 #include "mmpbsa_utils.h"
 #include "EmpEnerFun.h"
 

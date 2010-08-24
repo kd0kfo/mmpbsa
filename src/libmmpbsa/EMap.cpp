@@ -284,28 +284,28 @@ bool mmpbsa::EMap::operator==(const mmpbsa::EMap& rhs)const
 mmpbsa_utils::XMLNode* mmpbsa::EMap::toXML(const std::string& name)const
 {
     mmpbsa_utils::XMLNode* theNode = new mmpbsa_utils::XMLNode(name);
-    char value[20];
 
-    sprintf(value,MMPBSA_FORMAT,bond);
-    theNode->insertChild("BOND",value);
-    sprintf(value,MMPBSA_FORMAT,angle);
-    theNode->insertChild("ANGLE",value);
-    sprintf(value,MMPBSA_FORMAT,dihed);
-    theNode->insertChild("DIHED",value);
-    sprintf(value,MMPBSA_FORMAT,vdw14);
-    theNode->insertChild("VDW14",value);
-    sprintf(value,MMPBSA_FORMAT,ele14);
-    theNode->insertChild("ELE14",value);
-    sprintf(value,MMPBSA_FORMAT,vacele);
-    theNode->insertChild("VACELE",value);
-    sprintf(value,MMPBSA_FORMAT,vdwaals);
-    theNode->insertChild("VDWAALS",value);
-    sprintf(value,MMPBSA_FORMAT,elstat_solv);
-    theNode->insertChild("PBSOL",value);
-    sprintf(value,MMPBSA_FORMAT,sasol);
-    theNode->insertChild("SASOL",value);
-    sprintf(value,MMPBSA_FORMAT,area);
-    theNode->insertChild("AREA",value);
+    std::ostringstream value;
+    value << MMPBSA_FORMAT << bond;
+    theNode->insertChild("BOND",value.str());value.str("");
+    value << MMPBSA_FORMAT << angle;
+    theNode->insertChild("ANGLE",value.str());value.str("");
+    value << MMPBSA_FORMAT << dihed;
+    theNode->insertChild("DIHED",value.str());value.str("");
+    value << MMPBSA_FORMAT << vdw14;
+    theNode->insertChild("VDW14",value.str());value.str("");
+    value << MMPBSA_FORMAT << ele14;
+    theNode->insertChild("ELE14",value.str());value.str("");
+    value << MMPBSA_FORMAT << vacele;
+    theNode->insertChild("VACELE",value.str());value.str("");
+    value << MMPBSA_FORMAT << vdwaals;
+    theNode->insertChild("VDWAALS",value.str());value.str("");
+    value << MMPBSA_FORMAT << elstat_solv;
+    theNode->insertChild("PBSOL",value.str());value.str("");
+    value << MMPBSA_FORMAT << sasol;
+    theNode->insertChild("SASOL",value.str());value.str("");
+    value << MMPBSA_FORMAT << area;
+    theNode->insertChild("AREA",value.str());
 
     return theNode;
 }
@@ -320,69 +320,69 @@ mmpbsa::EMap mmpbsa::EMap::loadXML(const mmpbsa_utils::XMLNode* xmlEnergy)
     for(const mmpbsa_utils::XMLNode* it = xmlEnergy->children;it != 0;it = it->siblings)
     {
         data_type = it->getName();
-        data = it->getText();
+        std::istringstream data(it->getText());
         if(data_type == "BOND")
         {
-            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.bond));
+            data >> MMPBSA_FORMAT >> returnMe.bond;
             continue;
         }
 
         if(data_type == "ANGLE")
         {
-            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.angle));
+            data >> MMPBSA_FORMAT >> returnMe.angle;
             continue;
         }
 
         if(data_type == "DIHED")
         {
-            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.dihed));
+            data >> MMPBSA_FORMAT >> returnMe.dihed;
             continue;
         }
 
         if(data_type == "VDW14")
         {
-            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.vdw14));
+            data >> MMPBSA_FORMAT >> returnMe.vdw14;
             continue;
         }
 
         if(data_type == "ELE14")
         {
-            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.ele14));
+            data >> MMPBSA_FORMAT >> returnMe.ele14;
             continue;
         }
 
         if(data_type == "VACELE")
         {
-            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.vacele));
+            data >> MMPBSA_FORMAT >> returnMe.vacele;
             continue;
         }
 
         if(data_type == "VDWAALS")
         {
-            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.vdwaals));
+            data >> MMPBSA_FORMAT >> returnMe.vdwaals;
             continue;
         }
 
         if(data_type == "PBSOL")
         {
-            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.elstat_solv));
+            data >> MMPBSA_FORMAT >> returnMe.elstat_solv;
             continue;
         }
 
         if(data_type == "SASOL")
         {
-            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.sasol));
+            data >> MMPBSA_FORMAT >> returnMe.sasol;
             continue;
         }
 
         if(data_type == "AREA")
         {
-            sscanf(data.c_str(), MMPBSA_FORMAT, &(returnMe.area));
+            data >> MMPBSA_FORMAT >> returnMe.area;
             continue;
         }
 
-        fprintf(stderr,"Emap::loadXML was given an unknown data type (%s), which"
-                "will be ignored.",data_type.c_str());
+        std::cerr << "Emap::loadXML was given an unknown data type (" <<
+                data_type << "), which will be ignored.";
     }
 
     return returnMe;

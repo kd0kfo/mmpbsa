@@ -148,10 +148,10 @@ mmpbsa::EmpEnerFun::EmpEnerFun(mmpbsa::SanderParm * newparminfo, const mmpbsa_t&
         valarray<size_t> molptrs = cumsum(parminfo->atoms_per_molecule);
         if (molptrs[molptrs.size() - 1] != natom)
         {
-            char * error;
+            std::ostringstream error;
             int lastSum = int(molptrs[molptrs.size()-1]);
-            sprintf(error,"The last column sum of atoms per molecule should equal "
-            "the number of atoms (%d) but instead it equaled %d",natom,lastSum);
+            error << "The last column sum of atoms per molecule should equal "
+            "the number of atoms (" << natom << ") but instead it equaled " << lastSum;
             throw MMPBSAException(error,DATA_FORMAT_ERROR);
         }
 
@@ -373,9 +373,9 @@ mmpbsa::EmpEnerFun mmpbsa::EmpEnerFun::stripEnerFun(const std::valarray<bool>& k
     
     if(keepers.size() != parminfo->natom)
     {
-        char* error;
-        sprintf(error,"Energy function has a size %d. The size of the array used"
-            "to strip the energy function is %d .",parminfo->natom,keepers.size());
+        std::ostringstream error;
+        error << "Energy function has a size " << parminfo->natom << ". The size of the array used"
+            "to strip the energy function is " << keepers.size() << " .";
         throw MMPBSAException(error,DATA_FORMAT_ERROR);
     }
 
@@ -729,19 +729,23 @@ mmpbsa_t mmpbsa::EmpEnerFun::dihedral_energy_calc(const std::valarray<mmpbsa_t>&
         
         if(std::abs(ct1) > 1.1)
         {
-            char* error;
-            sprintf(error,"dihedral routine fails on %d,%d,%d,%d: ct1 = %f\n",
-                    dihedralIndices[5*i],dihedralIndices[5*i+1],dihedralIndices[5*i+2],dihedralIndices[5*i+3],dihedralIndices[5*i+4],ct1);
+            std::ostringstream error;
+            error << "dihedral routine fails on ";
+            for(int concatIndices = 5*i;concatIndices<5*i+4;concatIndices++)
+                    error << dihedralIndices[concatIndices] << ", ";
+            error << dihedralIndices[5*i+4] << ": ct1 = " << ct1;
             throw mmpbsa::MMPBSAException(error,mmpbsa::DATA_FORMAT_ERROR);
         }
 
         if(ct1 > 1)
         {
             ap0 = 0;
-            std::cerr << "Warning: In dihedral"<< dihedralIndices[5*i]<< " " << 
-                    dihedralIndices[5*i+1]<< " " << dihedralIndices[5*i+2] << 
-                    " " << dihedralIndices[5*i+3] << " " << dihedralIndices[5*i+4] << 
-                    " cos comes to " << ct1 << ", taking arccos as " << 0 << std::endl;
+            std::cerr << "Warning: In dihedral";
+            for(int concatIndices = 5*i;concatIndices < 5*i+4;concatIndices++)
+                std::cerr << dihedralIndices[concatIndices] << " ";
+            std::cerr << dihedralIndices[5*i+4]
+                    <<" cosine comes to " << ct1
+                    << ". By default, arccos is set to zero." << std::endl;
         }
         else if(ct1 < -1)
         {
@@ -975,7 +979,7 @@ template <class M> void mmpbsa::EmpEnerFun::internalConvert(
         }
         if(dangleOnce && !dangleAlways && dangleWarn)
         {
-            fprintf(stderr,"Dangler found at %d\n",i);
+            std::cerr << "Dangler found at " << i << std::endl;
         }
 
         if(!dangleAlways)
@@ -1051,7 +1055,7 @@ template <class M> void mmpbsa::EmpEnerFun::updatePhiMasks(std::valarray<bool>& 
         }
         if(dangleOnce && !dangleAlways && dangleWarn)
         {
-            fprintf(stderr,"Dangler found at %d\n",i);
+            std::cerr << "Dangler found at " << i << std::endl;
         }
 
         if(!dangleAlways)
@@ -1123,10 +1127,11 @@ void mmpbsa::BondWalker::init()
     }
     if(bondPairs.max() > parminfo->natom)
     {
-        char error[256];
-        sprintf(error,"An atom index of %d in the bonds pairs exceed the "
-                "maximum value of %d.",bondPairs.max(),parminfo->natom);
-        fprintf(stderr,"Max inc: %d, max without: %d\n",parminfo->bonds_inc_hydrogen.max(),parminfo->bonds_without_hydrogen.max());
+        std::ostringstream error;
+        error << "An atom index of " << bondPairs.max() << " in the bonds pairs exceed the "
+                "maximum value of " << parminfo->natom << ".";
+        std::cerr << "Max inc: " << parminfo->bonds_inc_hydrogen.max()
+                << ", max without: " << parminfo->bonds_without_hydrogen.max() << std::endl;
         throw MMPBSAException(error,DATA_FORMAT_ERROR);
     }
 

@@ -104,8 +104,9 @@ void mmpbsa::EnergyInfo::get_first_energyinfo(const char* fileName)
 
 bool mmpbsa::EnergyInfo::loadEnergyValue(const std::string& identifier,const std::string& value)
 {
-    float dblValue = 0;
-    sscanf(value.c_str(),MMPBSA_FORMAT,&dblValue);
+    mmpbsa_t dblValue = 0;
+    std::istringstream buff(value);
+    buff >> MMPBSA_FORMAT >> dblValue;
     return loadEnergyValue(identifier,dblValue);
 }
 
@@ -376,10 +377,11 @@ float mmpbsa::get_minimized_energy(std::fstream& mdout) throw (SanderIOException
     mmpbsa_utils::StringTokenizer tokens(currentLine);
     tokens.nextToken();//NSTEP
     string strEnergy = tokens.nextToken();
-    float fEnergy = 0;
-    sscanf(strEnergy.c_str(),MMPBSA_FORMAT,&fEnergy);
+    mmpbsa_t energy = 0;
+    std::istringstream buff(strEnergy);
+    buff >> MMPBSA_FORMAT >> energy;
 
-    return fEnergy;
+    return energy;
 
 }
 
@@ -387,9 +389,9 @@ void mmpbsa::EnergyInfo::setEnergyData(const std::valarray<mmpbsa_t>& newData)
 {
     if(newData.size() != this->total_parameters)
     {
-        char error[256];
-        sprintf(error,"EnergyInfo needs %d data values, but %d were provided.",
-                this->total_parameters,newData.size());
+        std::ostringstream error;
+        error << "EnergyInfo needs " << this->total_parameters <<
+                " data values, but " << newData.size() << " were provided.";
         throw MMPBSAException(error,INVALID_ARRAY_SIZE);
     }
     if(energydata.size() != this->total_parameters)

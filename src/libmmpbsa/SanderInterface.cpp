@@ -239,10 +239,7 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
         command_line += " -x " + mdcrdFilename;
 
 
-    fprintf(stdout, "%s running with arguments: %s\n",
-        application, command_line.c_str()
-    );
-
+    std::cout << application << " running with arguments: " << command_line << std::endl;
     
 
 #if defined(_WIN32)
@@ -289,7 +286,7 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
     int retval;
     
     pid = fork();
-    fprintf(stderr,"PID: %d\n",pid);
+    std::cerr << "PID: " << pid << std::endl;
     if (pid == -1)
     {
         perror("fork(): ");
@@ -311,13 +308,13 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
         	// construct argv
         // TODO: use malloc instead of stack var
         //
-        fprintf(stderr,"Generating arguments\n");
+        std::cerr << "Generating arguments" << std::endl;
         char* argvs[256];
         argvs[0] = application;
         char arglist[4096];
         strlcpy(arglist,command_line.c_str(),sizeof(arglist));
         int argc = parse_command_line(arglist,argvs+1);
-        fprintf(stderr,"Creating fork\n");
+        std::cerr << "Creating fork" << std::endl;
         setpriority(PRIO_PROCESS, 0, PROCESS_IDLE_PRIORITY);
         retval = execv(application,argvs);
         perror("execl() failed: ");

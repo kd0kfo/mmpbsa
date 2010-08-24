@@ -11,6 +11,7 @@
 #include <valarray>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "mmpbsa_utils.h"
 #include "mmpbsa_io.h"

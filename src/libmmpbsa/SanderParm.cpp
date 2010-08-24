@@ -366,8 +366,8 @@ void mmpbsa::SanderParm::raw_read_amber_parm(const std::string& file) throw (mmp
     }
     catch(mmpbsa::SanderIOException sioe)
     {
-        char buff[strlen(sioe.what())+20+file.size()];
-        sprintf(buff,"%s\nParmtop File = %s",sioe.what(),file.c_str());
+        std::ostringstream buff;
+        buff << sioe.what() << std::endl << "Parmtop File = " << file;
         throw mmpbsa::SanderIOException(buff,sioe.getErrType());
     }
     prmtopFile.close();
@@ -401,9 +401,9 @@ void mmpbsa::SanderParm::raw_read_amber_parm(std::fstream& prmtopFile) throw (mm
             if(prmtopFile.eof())//there was whitespace before EOF
                 return;
 
-            char flagLocation[256];
-            sprintf(flagLocation,"Parmtop file is malformed. %%FLAG is "
-                    "missing. Flag #%i",flagCounter);
+            std::ostringstream flagLocation;
+            flagLocation << "Parmtop file is malformed. %FLAG is "
+                    "missing. Flag #" << flagCounter;
             throw mmpbsa::SanderIOException(flagLocation,mmpbsa::BROKEN_PRMTOP_FILE);
         }
         else
@@ -415,9 +415,9 @@ void mmpbsa::SanderParm::raw_read_amber_parm(std::fstream& prmtopFile) throw (mm
         currentLine = getNextLine(prmtopFile);//should be FORMAT
         if(currentLine.substr(0,7) != "%FORMAT")
         {
-            char flagLocation[256];
-            sprintf(flagLocation,"Parmtop file is malformed. %%FORMAT is "
-                    "missing. Format #%i",flagCounter);
+            std::ostringstream flagLocation;
+            flagLocation << "Parmtop file is malformed. %FORMAT is "
+                    "missing. Format #" << flagCounter;
             throw mmpbsa::SanderIOException(flagLocation,mmpbsa::BROKEN_PRMTOP_FILE);
         }
         else
@@ -435,21 +435,23 @@ bool mmpbsa::SanderParm::sanityCheck() throw (mmpbsa::SanderIOException)
 
     bool thereIsAProblem = false;
 
-    char error[1024];
+    std::ostringstream error;
 
     if(natom == 0)
     {
-        fprintf(stderr,"WARNING: SanderParm had natom = 0, i.e. trivial "
+        std::cerr << "WARNING: SanderParm had natom = 0, i.e. trivial "
                 "SanderParm. Check to see if this was intentional, as the "
                 "program is continuing, albeit with the SanderParm object failing"
-                "the sanity check.\n");
+                "the sanity check." << std::endl;
         return false;
     }
 
     if(!rangeCheck(atom_type_indices,size_t(1),ntypes))
     {
-        sprintf(error,"Incorrect number of atom types. There should be %d types but "
-                "the data ranges from %d to %d .",ntypes,atom_type_indices.min(),atom_type_indices.max());
+        error << "Incorrect number of atom types. There should be "
+                << ntypes << " types but the data ranges from "
+                << atom_type_indices.min() 
+                << " to " << atom_type_indices.max() << ".";
         throw mmpbsa::SanderIOException(error,mmpbsa::INVALID_PRMTOP_DATA);
     }
 
@@ -457,14 +459,15 @@ bool mmpbsa::SanderParm::sanityCheck() throw (mmpbsa::SanderIOException)
     size_t maxParmIndex = size_t(0.5*ntypes*(ntypes+1));
     if(!rangeCheck(nonbonded_parm_indices,size_t(1),maxParmIndex))//nonbonded_parm_indices are positive here. The values that were negative in the prmtop file are indicated in the nonbonded_parm_mask
     {
-        sprintf(error,"Incorrect number of Non bonded parameter indices. "
-                "They should be between %d and %d",1,maxParmIndex);
+        error << "Incorrect number of Non bonded parameter indices. "
+                "They should be between 1 and " << maxParmIndex;
         throw mmpbsa::SanderIOException(error,mmpbsa::INVALID_PRMTOP_DATA);
     }
 
     if(nres > 0 && residue_pointers[0] != 1)
     {
-        sprintf(error,"The first residue pointer must equal one. Instead, it equals %d",residue_pointers[0]);
+        error << "The first residue pointer must equal one. Instead, it equals "
+                << residue_pointers[0];
         throw mmpbsa::SanderIOException(error,mmpbsa::INVALID_PRMTOP_DATA);
     }
 
@@ -523,7 +526,7 @@ bool mmpbsa::SanderParm::sanityCheck() throw (mmpbsa::SanderIOException)
     {
         if(number_excluded_atoms[i] < 0 || number_excluded_atoms[i] > natom-1)
         {
-            sprintf(error,"Number of excluded atoms must be between 0 and %d",natom-1);
+            error << "Number of excluded atoms must be between 0 and " << natom-1;
             throw mmpbsa::SanderIOException(error,mmpbsa::INVALID_PRMTOP_DATA);
         }
         for(size_t j = exclusionIndex;j<exclusionIndex+number_excluded_atoms[i];j++)
@@ -532,8 +535,9 @@ bool mmpbsa::SanderParm::sanityCheck() throw (mmpbsa::SanderIOException)
             if(currentExcludedAtom != 0 &&
                     !(currentExcludedAtom > i && currentExcludedAtom <= natom))
             {
-                sprintf(error,"For atom %d, excluded_atom_list element %d is "
-                        "not in the range %d to %d",i+1,currentExcludedAtom,i+2,natom);
+                error << "For atom " << i+1 << ", excluded_atom_list element "
+                        << currentExcludedAtom << " is not in the range "
+                        << i+2 << " to " << natom;
                 throw mmpbsa::SanderIOException(error,mmpbsa::INVALID_PRMTOP_DATA);
             }
         }
@@ -549,9 +553,9 @@ bool mmpbsa::SanderParm::sanityCheck() throw (mmpbsa::SanderIOException)
                     ,mmpbsa::BROKEN_PRMTOP_FILE);
         if(atoms_per_molecule.size() == 0 || atoms_per_molecule.sum() != natom)
         {
-            sprintf(error,"A solvent is being used. Therefore, one must "
+            error << "A solvent is being used. Therefore, one must "
                     "provide the number of atoms per molecule and it cannot exceed "
-                    "the total number of atoms (%d)",natom);
+                    "the total number of atoms (" << natom << ")";
             throw mmpbsa::SanderIOException(error,mmpbsa::INVALID_PRMTOP_DATA);
         }
 
@@ -823,13 +827,13 @@ template <class T> bool mmpbsa::SanderParm::bondCheck(const std::valarray<T>& ar
         const size_t& natoms, const size_t& nbonds, const size_t& ntypes,
         const size_t& atomsPerBond)
 {
-    char * error;
+    std::ostringstream error;
     size_t maxi = (natoms-1)*3;
     if(array.size() != nbonds*(atomsPerBond+1))
     {
-        std::string message("Incorrect number of bonds. Expected ");
-        sprintf(error,"%d",nbonds*(atomsPerBond+1));
-        throw mmpbsa::SanderIOException(message.append(error),
+        error << "Incorrect number of bonds. Expected "
+            << nbonds*(atomsPerBond+1);
+        throw mmpbsa::SanderIOException(error,
             mmpbsa::INVALID_PRMTOP_DATA);
     }
 
@@ -841,14 +845,16 @@ template <class T> bool mmpbsa::SanderParm::bondCheck(const std::valarray<T>& ar
             size_t absbnd = abs(array[j]);
             if(absbnd > maxi)
             {
-                sprintf(error,"Bond code %d exceeded max of %d. (i = %d, j = %d)",absbnd,maxi,i,j);
+                error << "Bond code " << absbnd << " exceeded max of "
+                        << maxi << ". (i = " << i << ", j = " << j << ")";
                 throw mmpbsa::SanderIOException(error,mmpbsa::INVALID_PRMTOP_DATA);
             }
         }
 
         if(array[i+atomsPerBond] > ntypes)
         {
-            sprintf(error,"Bond code of %d exceeded number of types (%d). (i = %d)",array[i+atomsPerBond],ntypes,i);
+            error << "Bond code of " << array[i+atomsPerBond] <<  " exceeded number of types "
+                    << "(" << ntypes << "). (i = " << i << ")";
             throw mmpbsa::SanderIOException(error,mmpbsa::INVALID_PRMTOP_DATA);
         }
     }
@@ -869,6 +875,12 @@ void mmpbsa::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
     //use the format to obtain the array dimensions (in the 2-D sense).
     size_t numberOfColumns = 0;
     size_t columnWidth = 0;
+    
+    //sanity check for the following sscanf. no buffer overflows here.
+    if(format.size() > 10 || *(format.begin()) != '(' || *(format.end()-1) != ')')
+    {
+        throw mmpbsa::SanderIOException("Improper format: "+format,mmpbsa::BROKEN_PRMTOP_FILE);
+    }
     sscanf(format.c_str(),"%*c%d%*c%d",&numberOfColumns,&columnWidth);
 
     if(!mmpbsa_io::loadValarray(prmtopFile,array,size,columnWidth,numberOfColumns))
@@ -889,6 +901,12 @@ template <class T> void mmpbsa::SanderParm::loadPrmtopData(std::fstream& prmtopF
     //use the format to obtain the array dimensions (in the 2-D sense).
     size_t numberOfColumns = 0;
     size_t columnWidth = 0;
+    
+    //sanity check for the following sscanf. no buffer overflows here.
+    if(format.size() > 10 || *(format.begin()) != '(' || *(format.end()-1) != ')')
+    {
+        throw mmpbsa::SanderIOException("Improper format: "+format,mmpbsa::BROKEN_PRMTOP_FILE);
+    }
     sscanf(format.c_str(),"%*c%d%*c%d",&numberOfColumns,&columnWidth);
 
     if(!mmpbsa_io::loadValarray(prmtopFile,array,size,columnWidth,numberOfColumns))
@@ -911,6 +929,11 @@ template <class T> void mmpbsa::SanderParm::loadPrmtopMaskedData(std::fstream& p
     //use the format to obtain the array dimensions (in the 2-D sense).
     size_t numberOfColumns = 0;
     size_t columnWidth = 0;
+    //sanity check for the following sscanf. no buffer overflows here.
+    if(format.size() > 10 || *(format.begin()) != '(' || *(format.end()-1) != ')')
+    {
+        throw mmpbsa::SanderIOException("Improper format: "+format,mmpbsa::BROKEN_PRMTOP_FILE);
+    }
     sscanf(format.c_str(),"%*c%d%*c%d",&numberOfColumns,&columnWidth);
 
     valarray<int> tmpArray(size);

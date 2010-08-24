@@ -5,9 +5,12 @@
 #include <iostream>
 #include <valarray>
 #include <fstream>
+#include <sstream>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+#else
+#define PACKAGE_STRING "MD/MMPBSA"
 #endif
 
 #include "libmmpbsa/mmpbsa_exceptions.h"

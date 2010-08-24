@@ -12,7 +12,8 @@ std::string mmpbsa_io::read_crds(std::fstream& crdFile, std::valarray<mmpbsa_t>&
     string strNatoms = getNextLine(crdFile);
     strNatoms =trimString(strNatoms);
     size_t natoms = 0;
-    sscanf(strNatoms.c_str(),"%d",&natoms);
+    std::istringstream buff(strNatoms);
+    buff >> natoms;
 
     if(!loadValarray(crdFile,crds,natoms*3,12,8))
         throw mmpbsa::SanderIOException("Coordinate file is too short.",mmpbsa::FILE_READ_ERROR);
@@ -33,48 +34,41 @@ void mmpbsa_io::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& c
     size_t natoms = size_t(crds.size()/3);
 
     std::fstream outFile(fileName,std::ios::out);
-    char* format = "%12.7f";//format of the coordinate data
-
+    
     if(!outFile.good())
     {
-        char error[256];
-        sprintf(error,"Could not open: %s",fileName);
+        std::ostringstream error;
+        error << "Could not open: " << fileName;
         throw mmpbsa::SanderIOException(error,mmpbsa::FILE_READ_ERROR);
     }
 
-    char strOutput[12];//used for outputting Fortran formatted strings with sprintf.
-
     outFile << title << std::endl;
-
-    sprintf(strOutput,"%5d",natoms);//number of atoms
-    outFile << strOutput << std::endl;
+    outFile << std::setprecision(5) << natoms << std::endl;
 
     size_t m;
     mmpbsa_t dblOutput;
     //save data in rows of 6
+    outFile << std::setprecision(7);
+    outFile.width(8);
     for(m = 0;m<crds.size() - 6;m+=6)
     {
         valarray<mmpbsa_t> row = crds[slice(m,6,1)];//m-th row
 
-        for(size_t i = 0;i<6;i++)
+        for(size_t i = 0;i<5;i++)
         {
-            dblOutput = row[i];
-            sprintf(strOutput,format,dblOutput);
-            outFile << strOutput;
+            outFile << row[i] << " ";
         }
-        outFile << std::endl;
+        outFile << row[5] << std::endl;//no need for " " after the last entry
     }
 
     //save the possibly incomplete last row.
     if(m<crds.size())
     {
-        for(m;m<crds.size();m++)
+        for(m;m<crds.size()-1;m++)
         {
-            dblOutput = crds[m];
-            sprintf(strOutput,format,dblOutput);
-            outFile << strOutput;
+            outFile << crds[m] << " ";
         }
-        outFile << std::endl;
+        outFile << crds[crds.size()-1] << std::endl;
     }
 
     outFile.close();
@@ -120,11 +114,10 @@ void mmpbsa_io::skip_next_snap(std::fstream& trajFile, const size_t& natoms, boo
         std::string currentLine = getNextLine(trajFile);//do not trim string. Spaces are part of formatted size.
         if(currentLine.size() % width )
         {
-            char* error;
-            sprintf(error,"Data file contains a short line. "
-                    "Lines must be at least 36 characters, but line #%d is only"
-                    "%d characters long.",lineIndex+1,currentLine.size());
-            std::cerr << error << std::endl;
+            std::cerr << "Data file contains a short line. "
+                    "Lines must be at least 36 characters, but line #" 
+                    << lineIndex+1 << " is only " << currentLine.size()
+                    << " characters long." << std::endl;
         }
 
         //tokenize line into data. put data into valarray.
@@ -173,18 +166,17 @@ template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
         string currentLine = getNextLine(dataFile);//do not trim string. Spaces are part of formatted size.
         if(currentLine.size() % width )
         {
-            char* error;
-            sprintf(error,"Data file contains a short line. "
-                    "Lines must be at least 36 characters, but line #%d is only"
-                    "%d characters long.",lineIndex+1,currentLine.size());
-            std::cerr << error << std::endl;
+            std::cerr << "Data file contains a short line. "
+                    "Lines must be at least 36 characters, but line #"
+                    << lineIndex+1 << " is only " << currentLine.size()
+                    << " characters long." << std::endl;
         }
 
         //tokenize line into data. put data into valarray.
         while(currentLine.size() >= width)
         {
-            string currentData = currentLine.substr(0,width);
-            sscanf(currentData.c_str(),MMPBSA_FORMAT,&fltCurrentData);
+            std::istringstream currentData(currentLine.substr(0,width));
+            currentData >> MMPBSA_FORMAT >> fltCurrentData;
             dataArray[dataIndex++] = T(fltCurrentData);
             currentLine.erase(0,width);
         }
@@ -228,11 +220,10 @@ template <> bool mmpbsa_io::loadValarray<std::string>(std::fstream& dataFile,
         string currentLine = getNextLine(dataFile);//do not trim string. Spaces are part of formatted size.
         if(currentLine.size() % width )
         {
-            char* error;
-            sprintf(error,"Data file contains a short line. "
-                    "Lines must be at least 36 characters, but line #%d is only"
-                    "%d characters long.",lineIndex+1,currentLine.size());
-            std::cerr << error << std::endl;
+            std::cerr << "Data file contains a short line. "
+                    "Lines must be at least 36 characters, but line #"
+                    << lineIndex+1 << " is only "
+                    << currentLine.size() <<  " characters long." << std::endl;
         }
 
         //tokenize line into data. put data into valarray.
@@ -276,8 +267,8 @@ void mmpbsa_io::read_siz_file(std::fstream& theFile,
             continue;
         if(currLine.size() < 9)//data begins after atomname(6chars) and residue name (3chars)
         {
-            char error[128];
-            sprintf(error,"Improperly formatted SIZ file: Short line at %d ",lineNumber);
+            std::ostringstream error;
+            error << "Improperly formatted SIZ file: Short line at " << lineNumber;
             throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_READ_ERROR);
         }
 
@@ -292,8 +283,8 @@ void mmpbsa_io::read_siz_file(std::fstream& theFile,
                 break;
         }
         residue = toUpperCase(trimString(currLine.substr(6,3)));
-        data = trimString(currLine.substr(9));
-        sscanf(data.c_str(),MMPBSA_FORMAT,&fData);
+        std::istringstream dataStream(trimString(currLine.substr(9)));
+        dataStream >> MMPBSA_FORMAT >> fData;
 
         radii[atomName] = fData;
         residues[atomName] = residue;

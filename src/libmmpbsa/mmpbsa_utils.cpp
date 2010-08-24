@@ -136,16 +136,15 @@ mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
         mmpbsa_t deeperSearch = lookup_radius(theAtom.erase(theAtom.size()-1),radiusMap);
         if(deeperSearch == -1)
         {
-            char error[256];
-            sprintf(error,"No radius found for '%s' in Radii Map",atomName.c_str());
+            std::string error = "No radius found for '%s' in Radii Map" + atomName;
             throw mmpbsa::MMPBSAException(error,mmpbsa::DATA_FORMAT_ERROR);
         }
         return deeperSearch;
     }
     if(possibleMatches.size() > 1)
     {
-        char error[256];
-        sprintf(error,"%d matches for '%s' in Radii Map",possibleMatches.size(), atomName.c_str());
+        std::ostringstream error;
+        error << possibleMatches.size() << " matches for '" << atomName << "' in Radii Map";
         throw mmpbsa::MMPBSAException(error,mmpbsa::DATA_FORMAT_ERROR);
     }
     
