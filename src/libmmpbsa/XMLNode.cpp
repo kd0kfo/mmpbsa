@@ -120,5 +120,8 @@ void foreach(mmpbsa_utils::XMLNode* beginning, mmpbsa_utils::XMLNode* end,
             throw mmpbsa::XMLParserException("foreach was given a null pointer.",mmpbsa::DATA_FORMAT_ERROR);
         
         function(currNode);
+        
     }
 }
+
+

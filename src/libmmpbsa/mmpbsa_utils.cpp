@@ -22,6 +22,14 @@ std::string mmpbsa_utils::toUpperCase(const std::string& bean)
     return returnMe;
 }
 
+std::string mmpbsa_utils::toLowerCase(const std::string& bean)
+{
+    std::string returnMe = bean;
+    for(size_t i = 0;i<bean.size();i++)
+        returnMe[i] = std::tolower(bean[i]);
+    return returnMe;
+}
+
 std::string mmpbsa_utils::trimString(const std::string& theString)
 {
     std::string bean = theString;

@@ -76,7 +76,7 @@ namespace mmpbsa_utils {
             throw (mmpbsa::MMPBSAException);
 
     std::string toUpperCase(const std::string& bean);
-
+    std::string toLowerCase(const std::string& bean);
     /**
      * Removes white space at the beginning and end of a string.
      * @param str

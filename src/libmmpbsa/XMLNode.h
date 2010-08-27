@@ -134,6 +134,7 @@ public:
     XMLNode* children;///<Pointer to the first child (not an array, cf destructor)
     XMLNode* siblings;///<Pointer to first sibling (not an array, cf destructor)
     XMLNode* end(){return 0;}///<To reproduce use of iterator.
+
     /**
      * Produces an XML document string based using the name and text content
      * values of the node and all of its siblings and children.
@@ -145,7 +146,16 @@ public:
      * @return string based on the XML document format.
      */
     std::string toString(const std::string& offset = "   ")const;
-    
+
+    /**
+     * Produces a pair containing the name and text of the XMLNode.
+     *
+     * @return std::pair<std::string,std::string>(name,text)
+     */
+    std::pair<std::string, std::string> toPair()const
+    {
+        return std::pair<std::string,std::string>(name,text);
+    }
 private:
     std::string text;
     std::string name;
