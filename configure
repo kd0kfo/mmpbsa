@@ -3476,7 +3476,7 @@ if test x$with_boinc != x; then
    BOINC_LDFLAGS="-L$with_boinc/lib"
 
    cat >>confdefs.h <<\_ACEOF
-#define __USE_BOINC__ 1
+#define USE_BOINC 1
 _ACEOF
 
 fi
@@ -3494,7 +3494,7 @@ GRAPHICS_LIBS="-lboinc_graphics2 -lopengl32 -lglu32 -lgdi32"
 GRAPHICS_LDFLAGS="-L/usr/X11R6/lib"
 
 cat >>confdefs.h <<\_ACEOF
-#define __USE_GRAPHICS__ 1
+#define USE_GRAPHICS 1
 _ACEOF
 
 

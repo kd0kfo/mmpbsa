@@ -74,17 +74,17 @@
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
-/* Version number of package */
-#define VERSION "0.6"
-
 /* Define to use the BOINC library */
-/* #undef __USE_BOINC__ */
+/* #undef USE_BOINC */
 
 /* Define to create the graphics application. Requires BOINC and GL */
-/* #undef __USE_GRAPHICS__ */
+/* #undef USE_GRAPHICS */
 
 /* Define to use the JPEG library */
-/* #undef __USE_JPEGLIB__ */
+/* #undef USE_JPEGLIB */
+
+/* Version number of package */
+#define VERSION "0.6"
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */

@@ -434,6 +434,7 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
 
 int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currState, mmpbsa::SanderInterface& si)
 {
+    using mmpbsa_utils::loadListArg;
     int returnMe = 0;
     currState.receptorStartPos.push_back(0);//in case these are not set manually by the use. This is the default.
     currState.ligandStartPos.push_back(1);
@@ -454,6 +455,7 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
             mmpbsa_io::resolve_filename(it->second, si.inpcrdFilename);
         } else if (it->first == "mdout") {
             mmpbsa_io::resolve_filename(it->second, si.mdoutFilename);
+            mmpbsa_io::resolve_filename(it->second, currState.outputFilename);
         } else if (it->first == "in" || it->first == "mdin") {
             mmpbsa_io::resolve_filename(it->second, si.mdinFilename);
         } else if (it->first == "rst" || it->first == "restart" || it->first == "restrt") {
@@ -511,20 +513,6 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
 
     }
     return returnMe;
-}
-
-int loadListArg(const std::string& values,std::vector<size_t>& array, const size_t& offset)
-{
-    using mmpbsa_utils::StringTokenizer;
-    StringTokenizer valTokens(values,",");
-    int currValue = 0;
-    while(valTokens.hasMoreTokens())
-    {
-        std::istringstream curr(valTokens.nextToken());
-        curr >> currValue;
-        array.push_back(size_t(currValue) - offset);
-    }
-    return 0;
 }
 
 std::string helpString()
@@ -943,7 +931,7 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
     if(head == 0)
         return returnMe;
 
-    if(head->getName() == "grid_queue")
+    if(head->getName() == MMPBSA_XML_TITLE)
         head = head->children;
 
     int queuePosition = 0;
@@ -998,7 +986,7 @@ void sampleQueue(const std::string& filename)
     mmpbsaXML->insertChild("snap_list","1,3");
     mmpbsaXML->insertChild("checkpoint","checkpoint_file_name.xml");
     
-    XMLNode* theDoc = new XMLNode("grid_queue");
+    XMLNode* theDoc = new XMLNode(MMPBSA_XML_TITLE);
     theDoc->insertChild(sanderXML);
     theDoc->insertChild(mmpbsaXML);
     

@@ -18,11 +18,12 @@
 #include <algorithm>
 
 #include "mmpbsa_exceptions.h"
+#include "StringTokenizer.h"
 
 //MEAD
 #include "MEAD/Coord.h"
 
-
+#define MMPBSA_XML_TITLE "grid_queue"
 #define MMPBSA_PI 3.14159265358979323846
 #define MMPBSA_FORMAT std::setprecision(5)
 #define DEFAULT_SCNB 2.0
@@ -36,6 +37,15 @@ typedef double mmpbsa_t;
 
 
 namespace mmpbsa_utils {
+
+    /**
+     * When a parameter has a list of variables (separated by commas), this method
+     * tokenizes that list and loades it into the array, in left to right order.
+     *
+     * @param values
+     * @param array
+     */
+    int loadListArg(const std::string& values,std::vector<size_t>& array, const size_t& offset = 0);
 
     /**
      * Return center of interaction beetween two atom coordinate sets.

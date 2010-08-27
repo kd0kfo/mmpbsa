@@ -133,7 +133,7 @@ public:
     XMLNode* parent;///<Parent of the node.
     XMLNode* children;///<Pointer to the first child (not an array, cf destructor)
     XMLNode* siblings;///<Pointer to first sibling (not an array, cf destructor)
-
+    XMLNode* end(){return 0;}///<To reproduce use of iterator.
     /**
      * Produces an XML document string based using the name and text content
      * values of the node and all of its siblings and children.
@@ -145,12 +145,25 @@ public:
      * @return string based on the XML document format.
      */
     std::string toString(const std::string& offset = "   ")const;
+    
 private:
     std::string text;
     std::string name;
 };
 
 }//end namespace mmpbsa_utils
+
+/**
+ * Performs the given function on all siblings from beginning until end (exclusive).
+ * Since the end point is exclusive, end can equal null, which will essentially
+ * iteratorate through all siblings.
+ * 
+ * @param beginning
+ * @param end
+ * @param function
+ */
+void foreach(mmpbsa_utils::XMLNode* beginning, mmpbsa_utils::XMLNode* end,
+        void function(mmpbsa_utils::XMLNode*));
 
 #endif	/* XMLNODE_H */
 

@@ -167,14 +167,7 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
 int parseFlag(std::string flag, MMPBSAState& currState, mmpbsa::MeadInterface& mi);
 int parseFlag(std::string flag, MMPBSAState& currState, mmpbsa::SanderInterface& si);
 
-/**
- * When a parameter has a list of variables (separated by commas), this method
- * tokenizes that list and loades it into the array, in left to right order.
- * 
- * @param values
- * @param array
- */
-int loadListArg(const std::string& values,std::vector<size_t>& array, const size_t& offset = 0);
+
 
 std::vector<MMPBSAState> getQueueFile(int argc,char** argv);
 

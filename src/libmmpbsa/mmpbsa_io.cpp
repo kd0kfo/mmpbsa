@@ -99,6 +99,27 @@ bool mmpbsa_io::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& s
     return returnMe;
 }
 
+size_t mmpbsa_io::count_snapshots(std::fstream& trajFile,const size_t& natoms, bool isPeriodic)
+{
+    get_traj_title(trajFile);
+    size_t snapcount = 0;
+    try
+    {
+        while(!trajFile.eof())
+        {
+            skip_next_snap(trajFile,natoms,isPeriodic);
+            snapcount++;
+        }
+    }
+    catch(mmpbsa::SanderIOException sioe)
+    {
+        if(sioe.getErrType() == mmpbsa::UNEXPECTED_EOF)
+            return snapcount;
+        throw sioe;
+    }
+    return snapcount;
+}
+
 void mmpbsa_io::skip_next_snap(std::fstream& trajFile, const size_t& natoms, bool isPeriodic)
 {
     //This might seem excessive just to skip, but I want to verify a snapshot is

@@ -1,5 +1,6 @@
 
 #include "XMLNode.h"
+#include "XMLParser.h"
 
 mmpbsa_utils::XMLNode::XMLNode() {
     parent = children = siblings = 0;
@@ -86,6 +87,7 @@ void mmpbsa_utils::XMLNode::insertChild(mmpbsa_utils::XMLNode* newChild)
     newChild->parent = this;
 }
 
+
 std::string mmpbsa_utils::XMLNode::toString(const std::string& offset) const
 {
     std::string returnMe = offset+"<" + name + ">";
@@ -109,3 +111,14 @@ std::string mmpbsa_utils::XMLNode::toString(const std::string& offset) const
     return returnMe;
 }
 
+void foreach(mmpbsa_utils::XMLNode* beginning, mmpbsa_utils::XMLNode* end,
+        void function(mmpbsa_utils::XMLNode*))
+{
+    for(mmpbsa_utils::XMLNode* currNode = beginning;currNode != end;currNode = currNode->siblings)
+    {
+        if(currNode == 0)
+            throw mmpbsa::XMLParserException("foreach was given a null pointer.",mmpbsa::DATA_FORMAT_ERROR);
+        
+        function(currNode);
+    }
+}

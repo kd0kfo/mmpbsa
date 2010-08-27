@@ -66,6 +66,16 @@ void write_crds(const char* fileName,const std::valarray<mmpbsa_t>& crds,
 std::string get_traj_title(std::fstream& trajFile);
 
 /**
+ * Counts the number of snap shots in the given file.
+ * 
+ * @param trajFile
+ * @param natoms
+ * @param isPeriodic
+ * @return
+ */
+size_t count_snapshots(std::fstream& trajFile,const size_t& natoms, bool isPeriodic);
+
+/**
  * Gets the next snapshot from the provided trajectory file. The snapshot data
  * is loaded into the provided snapshot valarray, overwriting data and resizing,
  * if necessary. True is returned in the snapshot is read. False otherwise, ie

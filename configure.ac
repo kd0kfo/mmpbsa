@@ -8,9 +8,9 @@ AC_CONFIG_SRCDIR([src/])
 AM_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE
 
-AH_TEMPLATE([__USE_BOINC__],[Define to use the BOINC library])
-AH_TEMPLATE([__USE_GRAPHICS__],[Define to create the graphics application. Requires BOINC and GL])
-AH_TEMPLATE([__USE_JPEGLIB__],[Define to use the JPEG library])
+AH_TEMPLATE([USE_BOINC],[Define to use the BOINC library])
+AH_TEMPLATE([USE_GRAPHICS],[Define to create the graphics application. Requires BOINC and GL])
+AH_TEMPLATE([USE_JPEGLIB],[Define to use the JPEG library])
 
 # Checks for programs.
 AC_PROG_CXX
@@ -34,7 +34,7 @@ if test x$with_boinc != x; then
    AC_SUBST(BOINC_CPPFLAGS,"-I$with_boinc/include/")
    AC_SUBST(BOINC_LIBS,"-lboinc_api -lboinc")
    AC_SUBST(BOINC_LDFLAGS,"-L$with_boinc/lib")
-   AC_DEFINE([__USE_BOINC__],[1])   
+   AC_DEFINE([USE_BOINC],[1])   
 fi
 
 AC_ARG_WITH([graphics],AS_HELP_STRING([--with-graphics@<:@=dir@:>@],[Include the graphics app. Requires BOINC and GL. @<:@Default=no@:>@]),
@@ -42,7 +42,7 @@ AC_ARG_WITH([graphics],AS_HELP_STRING([--with-graphics@<:@=dir@:>@],[Include the
 AC_SUBST(GRAPHICS_CPPFLAGS,"-DAPP_GRAPHICS -I$with_graphics")
 AC_SUBST(GRAPHICS_LIBS,"-lboinc_graphics2 -lopengl32 -lglu32 -lgdi32")
 AC_SUBST(GRAPHICS_LDFLAGS,"-L/usr/X11R6/lib")
-AC_DEFINE([__USE_GRAPHICS__],[1])
+AC_DEFINE([USE_GRAPHICS],[1])
  ],
 AC_MSG_RESULT(Not creating a graphics application))
 

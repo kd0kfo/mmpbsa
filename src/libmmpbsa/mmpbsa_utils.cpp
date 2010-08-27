@@ -1,5 +1,19 @@
 #include "mmpbsa_utils.h"
 
+int mmpbsa_utils::loadListArg(const std::string& values,std::vector<size_t>& array, const size_t& offset)
+{
+    using mmpbsa_utils::StringTokenizer;
+    StringTokenizer valTokens(values,",");
+    int currValue = 0;
+    while(valTokens.hasMoreTokens())
+    {
+        std::istringstream curr(valTokens.nextToken());
+        curr >> currValue;
+        array.push_back(size_t(currValue) - offset);
+    }
+    return 0;
+}
+
 std::string mmpbsa_utils::toUpperCase(const std::string& bean)
 {
     std::string returnMe = bean;
