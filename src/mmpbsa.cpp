@@ -102,6 +102,20 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
     if(!currState.outputFilename.size())
         currState.outputFilename = "mmpbsa-output.xml";
+
+    mmpbsa_utils::XMLParser previousEnergyData;
+    try{
+        previousEnergyData.parse(currState.outputFilename);
+    }
+    catch(mmpbsa::XMLParserException xmlpe)
+    {
+        if(xmlpe.getErrType() != mmpbsa::FILE_READ_ERROR)
+        {
+            std::cerr << "Previous energy data is corrupt. Overwritting." << std::endl;
+        }
+        previousEnergyData.setHead(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
+    }
+
     
     //load and check the parmtop file.
     mmpbsa::SanderParm * sp = new mmpbsa::SanderParm;
@@ -190,7 +204,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             }
     size_t snapcounter = (currState.currentSnap) ? currState.currentSnap - 1 : 0;//snapcounter will be incremented below
 
-    mmpbsa_utils::XMLNode* outputXML = new mmpbsa_utils::XMLNode("mmpbsa_energy");
+    mmpbsa_utils::XMLNode* outputXML = previousEnergyData.getHead();
 
     //Walk through the snapshots. This is where MMPBSA is actually done.
     while(!trajFile.eof())
@@ -220,15 +234,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         {
             if(e.getErrType() == UNEXPECTED_EOF)
             {
-                std::cerr << "End of Snapshots Reached" << std::endl;
-                std::fstream outputFile(currState.outputFilename.c_str(), std::ios::out);
-                if (!outputFile.good())
-                    throw mmpbsa::MMPBSAException("Could not write to: " +
-                        currState.outputFilename, mmpbsa::FILE_READ_ERROR);
-
-                outputFile << outputXML->toString();
-                outputFile.close();
-                delete outputXML;
+                previousEnergyData.write(currState.outputFilename);
                 return 0;
             }
         }
@@ -300,6 +306,8 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         checkpoint_mmpbsa(currState);
         currState.currentMolecule = MMPBSAState::COMPLEX;//Reset current molecule
         outputXML->insertChild(snapshotXML);
+
+        previousEnergyData.write(currState.outputFilename);
     }//end of snapshot loop
 
     currState.fractionDone = 1.0;
@@ -307,12 +315,9 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
     trajFile.close();
 
-    std::fstream outputFile(currState.outputFilename.c_str(),std::ios::out);
-    if(!outputFile.good())
-        throw mmpbsa::MMPBSAException("Could not write to: "+
-                currState.outputFilename,mmpbsa::FILE_READ_ERROR);
-    
-    
+    previousEnergyData.write(currState.outputFilename);
+
+
     delete sp;
     return 0;
 }

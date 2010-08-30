@@ -130,8 +130,9 @@ public:
      * 
      * @return Document Head
      */
-    const XMLNode * getHead(){return head;}
-    XMLNode const * const getHead()const{return head;}
+    XMLNode * getHead(){return head;}
+
+    void setHead(mmpbsa_utils::XMLNode* newHead){delete head;head = newHead;}
 
     /**
      * Returns the name of the head.
