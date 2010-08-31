@@ -131,7 +131,13 @@ public:
      * @return Document Head
      */
     XMLNode * getHead(){return head;}
+    const XMLNode * const getHead() const {return head;}
 
+    /**
+     * Replaces the head node of the XMLParser. Previous node is deleted.
+     * 
+     * @param newHead
+     */
     void setHead(mmpbsa_utils::XMLNode* newHead){delete head;head = newHead;}
 
     /**
