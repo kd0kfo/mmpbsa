@@ -20,16 +20,15 @@
 
 namespace mmpbsa{
 
-class EnergyInfo {
+class EnergyInfo : public std::valarray<mmpbsa_t> {
 public:
     /**
      * MD Energy Class.
      * Wraps the energy data, providing arithmetic over the set of energy data.
      * 
      */
-    EnergyInfo();
-    EnergyInfo(const EnergyInfo& orig);
-    virtual ~EnergyInfo();
+    EnergyInfo() : std::valarray<mmpbsa_t>(total_parameters,0){}
+    virtual ~EnergyInfo(){}
 
     /**
      * Loads first energy info from the provided mdout file.
@@ -58,32 +57,23 @@ public:
     bool loadEnergyValue(const std::string& identifier,const mmpbsa_t& value);
     bool loadEnergyValue(const std::string& identifier,const std::string& value);
 
-    const std::valarray<mmpbsa_t>& getEnergyData(){return energydata;}
+    
+//    //EnergyInfo& operator=(const EnergyInfo& rhs);
+//    EnergyInfo operator+(const EnergyInfo& rhs)const;
+//    void operator+=(const EnergyInfo& rhs);
+//    EnergyInfo operator-(const EnergyInfo& rhs)const;
+//    void operator-=(const EnergyInfo& rhs);
+//    EnergyInfo operator/(const EnergyInfo& rhs)const;
+//    void operator/=(const EnergyInfo& rhs);
+//    EnergyInfo operator/(const mmpbsa_t& rhs)const;
+//    void operator/=(const mmpbsa_t& rhs);
+//    EnergyInfo operator*(const EnergyInfo& rhs)const;
+//    void operator*=(const EnergyInfo& rhs);
+//
+    bool operator>(const EnergyInfo& rhs)const;
 
-    /**
-     * Copies the provided data array to the energy data object.
-     * Note: it is the user's resposibility to ensure the data is in the correct
-     * place in the array.
-     * 
-     * @param newData
-     */
-    void setEnergyData(const std::valarray<mmpbsa_t>& newData);
-
-    /**
-     * Clears the energy data
-     *
-     */
-    void clear();
-
-    EnergyInfo& operator=(const EnergyInfo& rhs);
-    EnergyInfo operator+(const EnergyInfo& rhs)const;
-    void operator+=(const EnergyInfo& rhs);
-    EnergyInfo operator-(const EnergyInfo& rhs)const;
-    void operator-=(const EnergyInfo& rhs);
-    EnergyInfo operator/(const EnergyInfo& rhs)const;
-    void operator/=(const EnergyInfo& rhs);
-
-
+    friend std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data);
+    friend std::fstream& operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data);
 
     /**
      * energy information from sander/dynlib.f:prntmd
@@ -128,9 +118,7 @@ public:
         total_parameters/*gives the total number of energy data types in the EnergyInfo class. For use with loops internally.*/
     };
 
-
-private:
-    std::valarray<mmpbsa_t> energydata;//keys correspond to above listed variables.
+    
 };
 
 class AveRmsEnerInfo
@@ -141,14 +129,6 @@ public:
     AveRmsEnerInfo(const EnergyInfo& avgs, const EnergyInfo& rmses);
 
     virtual ~AveRmsEnerInfo(){}
-
-    /**
-     * Loads first energy info from the provided mdout file.
-     *
-     * @param fileName
-     * @return
-     */
-    void get_first_energyinfo(const char* fileName);
 
     /**
      * Loads next energy info from the provided mdout file.
@@ -190,6 +170,8 @@ void mdout2enerinfos(std::fstream& mdout, std::valarray<EnergyInfo>& energyinfos
 float get_minimized_energy(std::fstream& mdout) throw (SanderIOException);
 
 };//end namespace mmpbsa
+
+mmpbsa::EnergyInfo sqrt(const mmpbsa::EnergyInfo& rhs);
 
 #endif	/* ENERGYINFO_H */
 

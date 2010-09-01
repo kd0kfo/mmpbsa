@@ -1,60 +1,115 @@
 #include "EnergyInfo.h"
 
-mmpbsa::EnergyInfo::EnergyInfo() {
-    energydata;
-    energydata.resize(total_parameters,0);
-}
-
-mmpbsa::EnergyInfo::EnergyInfo(const mmpbsa::EnergyInfo& orig) {
-    energydata = orig.energydata;
-}
-
-mmpbsa::EnergyInfo::~EnergyInfo() {
-}
-
-mmpbsa::EnergyInfo& mmpbsa::EnergyInfo::operator=(const mmpbsa::EnergyInfo& rhs)
+bool mmpbsa::EnergyInfo::operator>(const mmpbsa::EnergyInfo& rhs)const
 {
-    if (this == &rhs)
-        return *this;
+    if(rhs.size() != this->size())
+        return false;
+    for(size_t i = 0;i<this->size();i++)
+        if((*this)[i] <= rhs[i])
+            return false;
 
-    energydata = rhs.energydata;
-    return *this;
-
+    return true;
 }
 
-mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator+(const mmpbsa::EnergyInfo& rhs)const
+mmpbsa::EnergyInfo sqrt(const mmpbsa::EnergyInfo& rhs)
 {
-    EnergyInfo tmp;
-    tmp.energydata = energydata+rhs.energydata;
-    return tmp;
-}
-
-void mmpbsa::EnergyInfo::operator+=(const EnergyInfo& rhs)
-{
-    energydata += rhs.energydata;
-}
-mmpbsa::EnergyInfo mmpbsa:: EnergyInfo::operator-(const mmpbsa::EnergyInfo& rhs)const
-{
-    EnergyInfo tmp;
-    tmp.energydata = energydata-rhs.energydata;
-    return tmp;
-}
-
-void mmpbsa::EnergyInfo::operator-=(const mmpbsa::EnergyInfo& rhs)
-{
-    energydata -= rhs.energydata;
-}
-
-mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator/(const mmpbsa::EnergyInfo& rhs)const
-{
-    mmpbsa::EnergyInfo returnMe;
-    returnMe.energydata = energydata/rhs.energydata;
+    mmpbsa::EnergyInfo returnMe = sqrt(rhs);
     return returnMe;
 }
 
-void mmpbsa::EnergyInfo::operator/=(const mmpbsa::EnergyInfo& rhs)
+//mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator+(const mmpbsa::EnergyInfo& rhs)const
+//{
+//    EnergyInfo tmp = *this;
+//    tmp += rhs;
+//    return tmp;
+//}
+//
+//void mmpbsa::EnergyInfo::operator+=(const EnergyInfo& rhs)
+//{
+//    *this += rhs;
+//}
+//mmpbsa::EnergyInfo mmpbsa:: EnergyInfo::operator-(const mmpbsa::EnergyInfo& rhs)const
+//{
+//    EnergyInfo tmp = *this;
+//    tmp -= rhs;
+//    return tmp;
+//}
+//
+//void mmpbsa::EnergyInfo::operator-=(const mmpbsa::EnergyInfo& rhs)
+//{
+//    *this -= rhs;
+//}
+///**/
+//mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator/(const mmpbsa::EnergyInfo& rhs)const
+//{
+//    mmpbsa::EnergyInfo returnMe = *this;
+//    returnMe /= rhs;
+//    return returnMe;
+//}
+//
+//void mmpbsa::EnergyInfo::operator/=(const mmpbsa::EnergyInfo& rhs)
+//{
+//    *this /= rhs;
+//}
+//mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator/(const mmpbsa_t& rhs)const
+//{
+//    mmpbsa::EnergyInfo returnMe = *this;
+//    returnMe /= rhs;
+//    return returnMe;
+//}
+//
+//void mmpbsa::EnergyInfo::operator/=(const mmpbsa_t& rhs)
+//{
+//    *this /= rhs;
+//}
+///**/
+//
+//mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator*(const mmpbsa::EnergyInfo& rhs)const
+//{
+//    mmpbsa::EnergyInfo returnMe = *this;
+//    returnMe *= rhs;
+//    return returnMe;
+//}
+//
+//void mmpbsa::EnergyInfo::operator*=(const mmpbsa::EnergyInfo& rhs)
+//{
+//    *this /= rhs;
+//}
+
+std::fstream& mmpbsa::operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data)
 {
-    energydata /= rhs.energydata;
+    data.get_next_energyinfo(theStream);
+    return theStream;
+}
+
+std::ostream& mmpbsa::operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data)
+{
+    theStream << "NSTEP = " <<  data[EnergyInfo::nstep];
+    theStream << "  TIME(PS) = " << data[EnergyInfo::time];
+    theStream << "  TEMP(K) =  " << data[EnergyInfo::temp];
+    theStream << "  PRESS =    " <<data[EnergyInfo::press];
+    theStream << std::endl;
+    theStream << "Etot   = " << data[EnergyInfo::etot];
+    theStream << "  EKtot   =  " << data[EnergyInfo::ektot];
+    theStream << "  EPtot   =  " << data[EnergyInfo::eptot];
+    theStream << std::endl;
+    theStream << "BOND   =  " << data[EnergyInfo::bond];
+    theStream << "  ANGLE   =   " << data[EnergyInfo::angle];
+    theStream << "  DIHED   =   " << data[EnergyInfo::dihed];
+    theStream << std::endl;
+    theStream << "1-4 NB =  " << data[EnergyInfo::nb14];
+    theStream << "  1-4 EEL =   " << data[EnergyInfo::eel14];
+    theStream << "  VDWAALS    =  " << data[EnergyInfo::vdwaals];
+    theStream << std::endl;
+    theStream << "EELEC  =  "  << data[EnergyInfo::eelec];
+    theStream << "  EHBOND  =   "  << data[EnergyInfo::eelec];
+    theStream << "  RESTRAINT  =  "  << data[EnergyInfo::restraint];
+    theStream << std::endl;
+    theStream << "EAMBER (non-restraint)  =  " << data[EnergyInfo::nonconst_pot];
+    theStream << std::endl;
+    theStream << "Ewald error estimate:   " << data[EnergyInfo::ewalderr];
+
+    return theStream;
 }
 
 void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
@@ -67,11 +122,11 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
         throw SanderIOException("Cannot open mdout file.",FILE_READ_ERROR);
 
     string currentLine = getNextLine(mdoutFile);
-    while(currentLine.size() < 6 || currentLine.substr(1,5) != "NSTEP")//" NSTEP" begins a block of energy info
+    while(!mdoutFile.eof() && (currentLine.size() < 6 || currentLine.substr(1,5) != "NSTEP"))//" NSTEP" begins a block of energy info
         currentLine = getNextLine(mdoutFile);
     
     string token;
-    while(currentLine.substr(1,5) != "-----")
+    while(!mdoutFile.eof() && currentLine.substr(1,5) != "-----")
     {
         currentLine = trimString(currentLine);
         mmpbsa_utils::StringTokenizer tokens(currentLine);
@@ -79,16 +134,24 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
         {
             string identifier = tokens.nextToken();
             string tempString = tokens.nextToken();
+
             while(tempString != "=")
             {
                 identifier.append(" ").append(tempString);
-                tempString = tokens.nextToken();
+                if(*(identifier.end()-1) == ':')
+                {
+                    identifier.erase(identifier.end()-1);
+                    tempString = "=";
+                }
+                else
+                    tempString = tokens.nextToken();
             }
             string value = tokens.nextToken();
             if(!loadEnergyValue(identifier,value))
                 std::cerr << "Warning: Unknown energy type: " << identifier << std::endl;
         }
-        currentLine = getNextLine(mdoutFile);
+        if(!mdoutFile.eof())
+            currentLine = getNextLine(mdoutFile);
     }
 
 
@@ -112,6 +175,7 @@ bool mmpbsa::EnergyInfo::loadEnergyValue(const std::string& identifier,const std
 
 bool mmpbsa::EnergyInfo::loadEnergyValue(const std::string& identifier,const mmpbsa_t& value)
 {
+    EnergyInfo& energydata = *this;
     //ensure the energydata valarray is the correct size. If not, whatever is
     //there is lost. Not a problem, because in that case something is wrong anyways.
     if(energydata.size() != this->total_parameters)
@@ -195,11 +259,6 @@ bool mmpbsa::EnergyInfo::loadEnergyValue(const std::string& identifier,const mmp
     return true;
 }
 
-void mmpbsa::EnergyInfo::clear()
-{
-    energydata *= 0.0;
-}
-
 mmpbsa::AveRmsEnerInfo::AveRmsEnerInfo()
 {
     avg;
@@ -221,16 +280,13 @@ mmpbsa::AveRmsEnerInfo::AveRmsEnerInfo(const mmpbsa::EnergyInfo& avgs, const mmp
     //Directly copy avg and rms
     avg = avgs;
     rms = rmses;
-    relrms;
+    relrms.resize(avgs.size(),0.0);
 
     //Calculate relrms, according to relrms = rms/abs(avg)
-    const valarray<mmpbsa_t>& avgdata = avg.getEnergyData();
-    const valarray<mmpbsa_t>& rmsdata = rms.getEnergyData();
-    valarray<mmpbsa_t> relrmsData(0.0,avgdata.size());
-    relrmsData[0] = rmsdata[0];
-    for(int i = 1;i<avgdata.size();i++)
-        if(avgdata[i] != 0)
-            relrmsData[i] = rmsdata[i]/std::abs(avgdata[i]);
+    relrms[0] = rms[0];
+    for(int i = 1;i<avg.size();i++)
+        if(avg[i] != 0)
+            relrms[i] = rms[i]/std::abs(avg[i]);
 }
 
 mmpbsa::AveRmsEnerInfo& mmpbsa::AveRmsEnerInfo::operator=(const mmpbsa::AveRmsEnerInfo& rhs)
@@ -244,10 +300,6 @@ mmpbsa::AveRmsEnerInfo& mmpbsa::AveRmsEnerInfo::operator=(const mmpbsa::AveRmsEn
     return *this;
 }
 
-void mmpbsa::AveRmsEnerInfo::get_first_energyinfo(const char* fileName)
-{
-    1;
-}
 
     /**
  * Loads next energy info from the provided mdout file.
@@ -271,9 +323,9 @@ void mmpbsa::AveRmsEnerInfo::get_next_energyinfo(std::fstream& mdoutFile)
 }
 void mmpbsa::AveRmsEnerInfo::clear()
 {
-    avg.clear();
-    rms.clear();
-    relrms.clear();
+    avg *= 0.0;
+    rms *= 0.0;
+    relrms *= 0.0;
 }
 
 void mmpbsa::mdout2enerinfos(std::fstream& mdout, std::valarray<mmpbsa::EnergyInfo>& energyinfos,
@@ -332,7 +384,7 @@ void mmpbsa::mdout2enerinfos(std::fstream& mdout, std::valarray<mmpbsa::EnergyIn
         //decide what to do
         if(currentLine.size() < 6 && currentLine.substr(1,5) != "NSTEP")
         {
-            newEnergyInfo.clear();
+            newEnergyInfo *= 0.0;
             newEnergyInfo.get_next_energyinfo(mdout);
             energyinfos[energyinfoIndex++] = newEnergyInfo;
         }
@@ -385,17 +437,5 @@ float mmpbsa::get_minimized_energy(std::fstream& mdout) throw (SanderIOException
 
 }
 
-void mmpbsa::EnergyInfo::setEnergyData(const std::valarray<mmpbsa_t>& newData)
-{
-    if(newData.size() != this->total_parameters)
-    {
-        std::ostringstream error;
-        error << "EnergyInfo needs " << this->total_parameters <<
-                " data values, but " << newData.size() << " were provided.";
-        throw MMPBSAException(error,INVALID_ARRAY_SIZE);
-    }
-    if(energydata.size() != this->total_parameters)
-        energydata.resize(this->total_parameters);
-    energydata = newData;
-}
+
 

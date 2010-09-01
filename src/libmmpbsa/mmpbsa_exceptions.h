@@ -52,6 +52,7 @@ class MMPBSAException : public std::runtime_error
      */
     MMPBSAErrorTypes getErrType(){return errorType;}
 
+    friend std::ostream& operator<<(std::ostream& theStream,MMPBSAException& me);
 
     virtual const char* identifier(){return "General MMPBSA Error";}
 
