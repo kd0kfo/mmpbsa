@@ -5,76 +5,19 @@ bool mmpbsa::EnergyInfo::operator>(const mmpbsa::EnergyInfo& rhs)const
     if(rhs.size() != this->size())
         return false;
     for(size_t i = 0;i<this->size();i++)
-        if((*this)[i] <= rhs[i])
-            return false;
+        if((*this)[i] > rhs[i])
+            return true;
 
-    return true;
+    return false;
 }
 
 mmpbsa::EnergyInfo sqrt(const mmpbsa::EnergyInfo& rhs)
 {
-    mmpbsa::EnergyInfo returnMe = sqrt(rhs);
+    mmpbsa::EnergyInfo returnMe = rhs;
+    for(size_t i = 0;i<returnMe.size();i++)
+        returnMe[i] = sqrt(returnMe[i]);
     return returnMe;
 }
-
-//mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator+(const mmpbsa::EnergyInfo& rhs)const
-//{
-//    EnergyInfo tmp = *this;
-//    tmp += rhs;
-//    return tmp;
-//}
-//
-//void mmpbsa::EnergyInfo::operator+=(const EnergyInfo& rhs)
-//{
-//    *this += rhs;
-//}
-//mmpbsa::EnergyInfo mmpbsa:: EnergyInfo::operator-(const mmpbsa::EnergyInfo& rhs)const
-//{
-//    EnergyInfo tmp = *this;
-//    tmp -= rhs;
-//    return tmp;
-//}
-//
-//void mmpbsa::EnergyInfo::operator-=(const mmpbsa::EnergyInfo& rhs)
-//{
-//    *this -= rhs;
-//}
-///**/
-//mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator/(const mmpbsa::EnergyInfo& rhs)const
-//{
-//    mmpbsa::EnergyInfo returnMe = *this;
-//    returnMe /= rhs;
-//    return returnMe;
-//}
-//
-//void mmpbsa::EnergyInfo::operator/=(const mmpbsa::EnergyInfo& rhs)
-//{
-//    *this /= rhs;
-//}
-//mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator/(const mmpbsa_t& rhs)const
-//{
-//    mmpbsa::EnergyInfo returnMe = *this;
-//    returnMe /= rhs;
-//    return returnMe;
-//}
-//
-//void mmpbsa::EnergyInfo::operator/=(const mmpbsa_t& rhs)
-//{
-//    *this /= rhs;
-//}
-///**/
-//
-//mmpbsa::EnergyInfo mmpbsa::EnergyInfo::operator*(const mmpbsa::EnergyInfo& rhs)const
-//{
-//    mmpbsa::EnergyInfo returnMe = *this;
-//    returnMe *= rhs;
-//    return returnMe;
-//}
-//
-//void mmpbsa::EnergyInfo::operator*=(const mmpbsa::EnergyInfo& rhs)
-//{
-//    *this /= rhs;
-//}
 
 std::fstream& mmpbsa::operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data)
 {
@@ -84,6 +27,9 @@ std::fstream& mmpbsa::operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& da
 
 std::ostream& mmpbsa::operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data)
 {
+    if(data.size() != EnergyInfo::total_parameters)
+        throw MMPBSAException("Uninitialized EnergyInfo object in operator<<.",DATA_FORMAT_ERROR);
+    
     theStream << "NSTEP = " <<  data[EnergyInfo::nstep];
     theStream << "  TIME(PS) = " << data[EnergyInfo::time];
     theStream << "  TEMP(K) =  " << data[EnergyInfo::temp];

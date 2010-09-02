@@ -27,7 +27,7 @@ public:
      * Wraps the energy data, providing arithmetic over the set of energy data.
      * 
      */
-    EnergyInfo() : std::valarray<mmpbsa_t>(total_parameters,0){}
+    EnergyInfo() : std::valarray<mmpbsa_t>(0.0,total_parameters){}
     virtual ~EnergyInfo(){}
 
     /**
@@ -57,19 +57,14 @@ public:
     bool loadEnergyValue(const std::string& identifier,const mmpbsa_t& value);
     bool loadEnergyValue(const std::string& identifier,const std::string& value);
 
-    
-//    //EnergyInfo& operator=(const EnergyInfo& rhs);
-//    EnergyInfo operator+(const EnergyInfo& rhs)const;
-//    void operator+=(const EnergyInfo& rhs);
-//    EnergyInfo operator-(const EnergyInfo& rhs)const;
-//    void operator-=(const EnergyInfo& rhs);
-//    EnergyInfo operator/(const EnergyInfo& rhs)const;
-//    void operator/=(const EnergyInfo& rhs);
-//    EnergyInfo operator/(const mmpbsa_t& rhs)const;
-//    void operator/=(const mmpbsa_t& rhs);
-//    EnergyInfo operator*(const EnergyInfo& rhs)const;
-//    void operator*=(const EnergyInfo& rhs);
-//
+
+    /**
+     * Returns true if at least one element is greater than the corresponding
+     * element of rhs. Otherwise, false is returned.
+     * 
+     * @param rhs
+     * @return
+     */
     bool operator>(const EnergyInfo& rhs)const;
 
     friend std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data);
