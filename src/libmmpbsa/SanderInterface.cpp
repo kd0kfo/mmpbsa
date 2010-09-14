@@ -29,7 +29,7 @@ mmpbsa::SanderInterface::~SanderInterface() {
 }
 
 
-#ifndef __USE_BOINC__
+#ifndef USE_BOINC
 //These are needed for start() below. However, if BOINC is not used, it must
 //be provided here.
 //Copied from str_util.cpp under the terms of the GNU Lesser General Public License.
@@ -136,7 +136,7 @@ HANDLE win_fopen(const char* path, const char* mode)
 	}
 }
 
-#ifndef __USE_BOINC__
+#ifndef USE_BOINC
 //provided by boinc/lib/str_util.cpp
 // get message for last error
 //
@@ -234,6 +234,8 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
     
     std::string command_line = "-O -i " + mdinFilename + " -o  " + mdoutFilename
             + " -c " + inpcrdFilename + " -p " + prmtopFilename + " -r " + restartFilename;
+
+    std::cerr << command_line << std::endl;
 
     if(mdcrdFilename.size())
         command_line += " -x " + mdcrdFilename;
@@ -378,7 +380,7 @@ void mmpbsa::SanderInterface::resume() {
 }
 
 
-#ifndef __USE_BOINC__
+#ifndef USE_BOINC
 //These are needed for start() below. However, if BOINC is not used, it must
 //be provided here.
 //Copied from str_util.cpp from the BOINC project under the terms of the
@@ -411,7 +413,7 @@ double mmpbsa::SanderInterface::cpu_time()const
 #ifdef _WIN32
     double x;
     int retval = 1;
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
     retval = boinc_process_cpu_time(pid_handle, x);
 #endif
     if (retval) return wall_cpu_time;

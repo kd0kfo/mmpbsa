@@ -29,7 +29,7 @@
 #include "config.h"
 #endif
 
-#ifdef __USE_GRAPHICS__
+#ifdef USE_GRAPHICS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +39,7 @@
 
 #ifdef _WIN32
 #include "BOINC/boinc_win.h"
-#ifdef __USE_JPEGLIB__
+#ifdef USE_JPEGLIB
 #ifndef SANS_JPEGLIB
 #ifdef __cplusplus
 extern "C" {
@@ -70,7 +70,7 @@ extern "C" {
 #undef HAVE_STDLIB_H /* Avoid compiler warning (redefined in jconfig,h) */
 #endif
 
-#ifdef __USE_JPEGLIB__
+#ifdef USE_JPEGLIB
 #ifndef SANS_JPEGLIB
 extern "C"{
 #include <jpeglib.h>
@@ -776,7 +776,7 @@ int TEXTURE_DESC::CreateTextureJPG(const char* strFileName) {
 	return 0;
 }
 #endif
-#endif //__USE_JPEGLIB__
+#endif //USE_JPEGLIB
 
 #ifdef _WIN32
 int TEXTURE_DESC::CreateTextureBMP(const char* strFileName) {
@@ -883,7 +883,7 @@ int TEXTURE_DESC::load_image_file(const char* filename) {
     // for now, just try all the image types in turn
 
     present = true;
-#ifdef __USE_JPEGLIB__
+#ifdef USE_JPEGLIB
 #ifndef SANS_JPEGLIB
 	retval = CreateTextureJPG(filename);
     if (!retval) {

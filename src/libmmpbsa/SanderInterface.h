@@ -20,7 +20,7 @@
 #include <tlhelp32.h>
 #endif
 
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
 #if defined(_WIN32) || defined(__MINGW_WIN32__)
 #include "BOINC/boinc_win.h"
 #include "BOINC/win_util.h"

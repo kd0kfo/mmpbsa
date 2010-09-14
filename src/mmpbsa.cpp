@@ -74,9 +74,9 @@ int main(int argc, char** argv)
                 queuePosition++;
             }
         }
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
         if(retval)
-            std::cerr "BOINC Error: " << boincerror(retval) << std::endl;
+            std::cerr << "BOINC Error: " << boincerror(retval) << std::endl;
         boinc_finish(retval);
 #endif
         return retval;
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
     catch (mmpbsa::MMPBSAException e)
     {
         std::cerr << e.identifier() << ": " << e.what() << std::endl;
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
         boinc_finish(e.getErrType());
 #endif
         return e.getErrType();
@@ -349,7 +349,7 @@ int sander_run(MMPBSAState& currState,mmpbsa::SanderInterface& si)
             }
             break;
         }
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
         ::poll_boinc_messages(si);
         if(::boinc_time_to_checkpoint())
         {
@@ -523,7 +523,7 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
 std::string helpString()
 {
   std::string returnMe = "MMPBSA Calculations\n";
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
   returnMe += "Compiled with BOINC\n";
 #endif
 
@@ -650,6 +650,7 @@ bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
     bool usedAllParameters = true;
     std::string tag = "";
     double runtime,cpu_time,start_time;
+    runtime = cpu_time = start_time = 0;
     for(std::map<std::string,std::string>::iterator it = checkMap.begin();
             it != checkMap.end();it++)
     {
@@ -676,9 +677,7 @@ bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
         }
         else if(tag == "finished")
         {
-            int newPID = 0;
-            buff >> newPID;
-            si.completed = newPID;
+            buff >> si.completed;
         }
         else if(tag == "queue_position")
         {
@@ -820,7 +819,7 @@ void checkpoint_out(MMPBSAState& saveState,mmpbsa_utils::XMLParser& xmlDoc)
     saveState.checkpointCounter++;
     if(saveState.checkpointFilename != "")
         xmlDoc.write(saveState.checkpointFilename);
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
     boinc_checkpoint_completed();
 #endif
 }
@@ -828,7 +827,7 @@ void checkpoint_out(MMPBSAState& saveState,mmpbsa_utils::XMLParser& xmlDoc)
 
 int mmpbsa_boinc_init()
 {
-#ifndef __USE_BOINC__
+#ifndef USE_BOINC
     return 0;
 #else
     BOINC_OPTIONS options;
@@ -837,7 +836,7 @@ int mmpbsa_boinc_init()
     options.check_heartbeat = true;
     options.handle_process_control = true;
 
-#ifdef __USE_GRAPHICS__
+#ifdef USE_GRAPHICS
     options.backwards_compatible_graphics = true;
     gshmem =(MMPBSA_SHMEM*)boinc_graphics_make_shmem("mmpbsa",sizeof(MMPBSA_SHMEM));
     if(!gshmem)
@@ -854,7 +853,7 @@ int mmpbsa_boinc_init()
 void send_status_message(mmpbsa::SanderInterface& si, double frac_done, 
         double checkpoint_cpu_time)
 {
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
     double current_cpu_time =  si.start_time() + si.cpu_time();
     boinc_report_app_status(current_cpu_time,checkpoint_cpu_time,frac_done);
 #else
@@ -864,7 +863,7 @@ void send_status_message(mmpbsa::SanderInterface& si, double frac_done,
 
 void poll_boinc_messages(mmpbsa::SanderInterface& si)
 {
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
     BOINC_STATUS status;
     boinc_get_status(&status);
     if (status.no_heartbeat) {
@@ -1025,7 +1024,7 @@ double overallFractionDone()
 
 void report_boinc_progress()
 {
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
     ::netFractionDone = overallFractionDone();
     //boinc_fraction_done(completed/totalWeight);
     double cpu_time;
@@ -1039,7 +1038,7 @@ void report_boinc_progress()
 
 void update_gshmem()
 {
-#if defined(__USE_BOINC__) && defined(__USE_GRAPHICS__)
+#if defined(USE_BOINC) && defined(USE_GRAPHICS)
     if(!gshmem)
         return;
     gshmem->update_time = dtime();//without this, the graphics app will think we've died.

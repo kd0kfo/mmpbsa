@@ -4,7 +4,7 @@
 #include "config.h"
 #endif
 
-#ifdef __USE_GRAPHICS__
+#ifdef USE_GRAPHICS
 
 // This file largely barrows from uc2_graphics.cpp from BOINC, with changes
 // made to incorporate molecule representations. The following
@@ -346,7 +346,7 @@ static void parse_project_prefs(char* buf) {
 
 int main(int argc, char** argv)
 {
-#ifndef __USE_GRAPHICS__
+#ifndef USE_GRAPHICS
     std::cout << "Graphics application has not been build. Run ./configure --with-graphics to build graphics application. " << std::endl;
     return 0;
 #else
@@ -426,7 +426,7 @@ int main(int argc, char** argv)
     boinc_finish_diag();
 
 
-#endif //not __USE_GRAPHICS__
+#endif //not USE_GRAPHICS
 }
 
 

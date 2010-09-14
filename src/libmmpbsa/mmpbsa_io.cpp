@@ -326,7 +326,9 @@ int mmpbsa_io::fileopen(const char* filename, const std::ios::openmode& mode, st
 
 int mmpbsa_io::resolve_filename(const std::string& unresolvedFilename, std::string& resolvedFilename)
 {
-#ifdef __USE_BOINC__
+    std::cerr << unresolvedFilename.c_str() << " --> " << resolvedFilename << std::endl;
+    
+#ifdef USE_BOINC
       return boinc_resolve_filename_s(unresolvedFilename.c_str(),resolvedFilename);
 #else
     resolvedFilename = unresolvedFilename;
@@ -334,7 +336,7 @@ int mmpbsa_io::resolve_filename(const std::string& unresolvedFilename, std::stri
 #endif
 }
 
-#if !defined(HAVE_STRLCPY) && !defined(__USE_BOINC__)
+#if !defined(HAVE_STRLCPY) && !defined(USE_BOINC)
 //These are needed for start() below. However, if BOINC is not used, it must
 //be provided here.
 //Copied from str_util.cpp under the terms of the GNU Lesser General Public License.
@@ -354,7 +356,7 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
 
 int mmpbsa_io::resolve_filename(const char* unresolvedFilename, char* resolvedFilename, int length)
 {
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
     return boinc_resolve_filename(unresolvedFilename, resolvedFilename,
             length);
 #else

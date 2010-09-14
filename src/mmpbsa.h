@@ -25,11 +25,11 @@
 
 #include "MEAD/FinDiffMethod.h"
 
-#ifdef __USE_BOINC__
+#ifdef USE_BOINC
 #include "BOINC/boinc_api.h"
 #include "BOINC/str_util.h"
 
-#ifdef __USE_GRAPHICS__
+#ifdef USE_GRAPHICS
 #include "mmpbsa_graphics.h"
 #include "BOINC/graphics2.h"
 MMPBSA_SHMEM* gshmem;
