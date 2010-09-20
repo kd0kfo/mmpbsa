@@ -89,17 +89,21 @@ FinDiffMethod mmpbsa::MeadInterface::createFDM(const std::valarray<mmpbsa_t>& co
     }
 
     //add fine grid level
-    Coord * int_minmax = mmpbsa_utils::interaction_minmax(receptorCrds,ligandCrds);//order {min,max}
-    Coord intSize = int_minmax[1] - int_minmax[0];
-    float maxIntSize = max(max(intSize.x,intSize.y),intSize.z);
-    Coord intCenter = (int_minmax[1]+int_minmax[0])/2;
+    float * int_minmax = mmpbsa_utils::interaction_minmax(receptorCrds,ligandCrds);//order {min,max}
+    float intSize[3];
+    for(size_t i = 0;i<3;i++)
+        intSize[i] = int_minmax[3+i] - int_minmax[i];
+    float maxIntSize = max(max(intSize[0],intSize[1]),intSize[2]);
+    float intCenter[3];
+    for(size_t i = 0;i<3;i++)
+        intCenter[i] = (int_minmax[3+i]+int_minmax[i])/2;
     float fine_dim = maxIntSize/float(fine_grid_spacing) + float(fine_grid_spacing);
     int fine_grid_dim = int(floor(fine_dim) + 1);
     if(fine_grid_dim % 2 == 0)
         fine_grid_dim++;
 
     fdm.add_level(fine_grid_dim,fine_grid_spacing,ON_CENT_OF_INTR);
-    fdm.resolve(Coord(geoCenter[0],geoCenter[1],geoCenter[2]),intCenter);
+    fdm.resolve(Coord(geoCenter[0],geoCenter[1],geoCenter[2]),Coord(intCenter[0],intCenter[1],intCenter[2]));
 
     delete [] int_minmax;
     return fdm;

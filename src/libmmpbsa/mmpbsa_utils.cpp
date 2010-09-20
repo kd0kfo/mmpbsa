@@ -45,7 +45,7 @@ std::string mmpbsa_utils::trimString(const std::string& theString)
     return bean;
 }
 
-Coord * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
+float * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
         const std::valarray<mmpbsa_t>& bcrds, const mmpbsa_t& cutoff)
 {
     using std::valarray;
@@ -76,7 +76,7 @@ Coord * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
         }
 
     }
-    Coord max_corner,min_corner;
+    float max_corner[3],min_corner[3];
     bool seenFirstInteractor = false;
     for(size_t i = 0;i<aflags.size();i++)
     {
@@ -84,20 +84,17 @@ Coord * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
         {
             if(!seenFirstInteractor)
             {
-                max_corner.x = acrds[3*i];
-                max_corner.y = acrds[3*i+1];
-                max_corner.z = acrds[3*i+2];
-                min_corner = max_corner;
+                for(size_t j = 0;j<3;j++)
+                    min_corner[j] = max_corner[j] = acrds[3*i+j];
                 seenFirstInteractor = true;
             }
             else
             {
-                max_corner.x = max(acrds[3*i],mmpbsa_t(max_corner.x));
-                max_corner.y = max(acrds[3*i+1],mmpbsa_t(max_corner.y));
-                max_corner.z = max(acrds[3*i+2],mmpbsa_t(max_corner.z));
-                min_corner.x = min(acrds[3*i],mmpbsa_t(min_corner.x));
-                min_corner.y = min(acrds[3*i+1],mmpbsa_t(min_corner.y));
-                min_corner.z = min(acrds[3*i+2],mmpbsa_t(min_corner.z));
+                for(size_t j = 0;j<3;j++)
+                {
+                    max_corner[j] = max(acrds[3*i+j],mmpbsa_t(max_corner[j]));
+                    min_corner[j] = min(acrds[3*i+j],mmpbsa_t(min_corner[j]));
+                }
             }
         }
     }
@@ -106,18 +103,20 @@ Coord * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
     {
         if(bflags[i])
         {
-            max_corner.x = max(bcrds[3*i],mmpbsa_t(max_corner.x));
-            max_corner.y = max(bcrds[3*i+1],mmpbsa_t(max_corner.y));
-            max_corner.z = max(bcrds[3*i+2],mmpbsa_t(max_corner.z));
-            min_corner.x = min(bcrds[3*i],mmpbsa_t(min_corner.x));
-            min_corner.y = min(bcrds[3*i+1],mmpbsa_t(min_corner.y));
-            min_corner.z = min(bcrds[3*i+2],mmpbsa_t(min_corner.z));
+            for(size_t j = 0;j<3;j++)
+            {
+                max_corner[j] = max(bcrds[3*i+j],mmpbsa_t(max_corner[j]));
+                min_corner[j] = min(bcrds[3*i+j],mmpbsa_t(min_corner[j]));
+            }
         }
     }
 
-    Coord * returnMe = new Coord[2];
-    returnMe[0] = min_corner;
-    returnMe[1] = max_corner;
+    float * returnMe = new float[6];//x,y,z for min and max respectively
+    for(size_t i = 0;i<3;i++)
+    {
+        returnMe[i] = min_corner[i];
+        returnMe[i+3] = max_corner[i];
+    }
     return returnMe;
 }
 

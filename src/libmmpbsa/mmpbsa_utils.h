@@ -20,9 +20,6 @@
 #include "mmpbsa_exceptions.h"
 #include "StringTokenizer.h"
 
-//MEAD
-#include "MEAD/Coord.h"
-
 #define MMPBSA_XML_TITLE "grid_queue"
 #define MMPBSA_PI 3.14159265358979323846
 #define MMPBSA_FORMAT std::setprecision(5)
@@ -56,9 +53,10 @@ namespace mmpbsa_utils {
      * @param acrds
      * @param bcrds
      * @param cutoff
-     * @return
+     * @return 6-element float array, where the first 3 elements are the minimum
+     * coordinates and the last 3 elements are the maximum value coordinates
      */
-    Coord * interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
+    float * interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
             const std::valarray<mmpbsa_t>& bcrds, const mmpbsa_t& cutoff = 4.0);
 
     /**
