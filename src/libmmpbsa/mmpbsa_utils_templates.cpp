@@ -127,7 +127,7 @@ template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<T>& le
 template <class T> std::valarray<T> mmpbsa_utils::zip(const std::valarray<T>& left, const std::slice& leftSlice,
          const std::valarray<T>& right, const std::slice& rightSlice)
 {
-    int oldsize = leftSlice.size();
+    size_t oldsize = leftSlice.size();
     if(oldsize != rightSlice.size())
         throw mmpbsa::MMPBSAException("Cannot zip two slices of difference "
                 "sizes.",mmpbsa::DATA_FORMAT_ERROR);
@@ -151,7 +151,7 @@ template <class T> std::valarray<T> mmpbsa_utils::zip(const std::vector<T>& left
         throw mmpbsa::MMPBSAException("When using zip, the two arrays must have "
                 "the same size.",mmpbsa::DATA_FORMAT_ERROR);
 
-    int oldsize = left.size();
+    size_t oldsize = left.size();
     std::valarray<T> returnMe(2*oldsize);
     size_t returnMeIndex = 0;
     for(size_t i = 0;i<oldsize;i++)

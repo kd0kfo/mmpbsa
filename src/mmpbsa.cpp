@@ -376,7 +376,6 @@ std::map<std::string,std::string> parseArgs(int argc, char** argv)
     for(int i = 1;i<argc;i++)
     {
         string currArg = argv[i];
-        int retval = 0;
         if(currArg.substr(0,2) == "--")
             currArg.erase(currArg.begin(),currArg.begin()+2);
 
@@ -901,7 +900,7 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
     XMLParser queueXML;
     std::string xmlFilename = "";
     std::string arg,name,value;
-    for(size_t i = 1;i<argc;i++)
+    for(int i = 1;i<argc;i++)
     {
         arg = argv[i];
         if(arg.find("=") == std::string::npos)

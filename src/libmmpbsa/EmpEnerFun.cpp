@@ -25,8 +25,8 @@ mmpbsa::EmpEnerFun::EmpEnerFun(mmpbsa::SanderParm * newparminfo, const mmpbsa_t&
     end_solute_atoms = -1;//only needed when there is a solvent. Otherwise these values are -1 to indicate this is not the case.
     begin_solvent_atoms = -1;
 
-    const int& ntypes = parminfo->ntypes;
-    const int& natom = parminfo->natom;
+    const size_t& ntypes = parminfo->ntypes;
+    const size_t& natom = parminfo->natom;
     valarray<size_t> resptr = parminfo->residue_pointers - size_t(1); //sander file pointers are 1-indexed
     res_ranges.resize(2*resptr.size());
     res_ranges = get_res_ranges(resptr,natom); //ranges is of the type (min,max),(min,max),...
@@ -53,7 +53,7 @@ mmpbsa::EmpEnerFun::EmpEnerFun(mmpbsa::SanderParm * newparminfo, const mmpbsa_t&
             } /*/else {
                 LJHA[j+i*ntypes] = CHA[ico - 1];
                 LJHB[j+i*ntypes] = CHB[ico - 1];
-            }/* see above note about LJHA */
+            } see above note about LJHA */
         }
     }
 
@@ -731,7 +731,7 @@ mmpbsa_t mmpbsa::EmpEnerFun::dihedral_energy_calc(const std::valarray<mmpbsa_t>&
         {
             std::ostringstream error;
             error << "dihedral routine fails on ";
-            for(int concatIndices = 5*i;concatIndices<5*i+4;concatIndices++)
+            for(size_t concatIndices = 5*i;concatIndices<5*i+4;concatIndices++)
                     error << dihedralIndices[concatIndices] << ", ";
             error << dihedralIndices[5*i+4] << ": ct1 = " << ct1;
             throw mmpbsa::MMPBSAException(error,mmpbsa::DATA_FORMAT_ERROR);
@@ -741,7 +741,7 @@ mmpbsa_t mmpbsa::EmpEnerFun::dihedral_energy_calc(const std::valarray<mmpbsa_t>&
         {
             ap0 = 0;
             std::cerr << "Warning: In dihedral";
-            for(int concatIndices = 5*i;concatIndices < 5*i+4;concatIndices++)
+            for(size_t concatIndices = 5*i;concatIndices < 5*i+4;concatIndices++)
                 std::cerr << dihedralIndices[concatIndices] << " ";
             std::cerr << dihedralIndices[5*i+4]
                     <<" cosine comes to " << ct1
@@ -802,7 +802,7 @@ mmpbsa_t mmpbsa::EmpEnerFun::vdw14_energy_calc(const std::valarray<mmpbsa_t>& cr
 
     const size_t& ntypes = parminfo->ntypes;
     size_t numDihedrals = size_t(dihedralIndices.size()/5);
-    size_t d_i,d_k,d_l,d_m,type_i,type_l,flindex;
+    size_t d_i,d_l,d_m,type_i,type_l,flindex;
     mmpbsa_t rsqrd,a,b,inv_r6,inv_r12;
     mmpbsa_t totalEnergy = 0;
     bool imp_mask,igend_mask,period_mask,mask;
@@ -888,7 +888,7 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>&
     mmpbsa_t totalEnergy = 0;
     size_t natom = parminfo->natom;
     size_t ntypes = parminfo->ntypes;
-    size_t type,type_2,atom_id;
+    size_t type,type_2;
     mmpbsa_t x,y,z,rsqrd,a,b,atomEnergy;
     
     for(size_t i = 0;i<natom;i++)
@@ -1095,8 +1095,6 @@ mmpbsa::BondWalker::BondWalker(mmpbsa::EmpEnerFun const * efun)
 {
     enerfun = efun;
     initialized = false;
-    visited;
-    atom_bond_list;
 }
 
 void mmpbsa::BondWalker::init()

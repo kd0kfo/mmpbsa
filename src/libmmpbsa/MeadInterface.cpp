@@ -1,7 +1,6 @@
 #include "MeadInterface.h"
 
 mmpbsa::MeadInterface::MeadInterface() {
-    brad;
     brad["N"] = 1.550;
     brad["H"] = 1.200;
     brad["C"] = 1.700;

@@ -315,7 +315,7 @@ int mmpbsa::SanderInterface::start(const double& start_time) {
         argvs[0] = application;
         char arglist[4096];
         strlcpy(arglist,command_line.c_str(),sizeof(arglist));
-        int argc = parse_command_line(arglist,argvs+1);
+        parse_command_line(arglist,argvs+1);
         std::cerr << "Creating fork" << std::endl;
         setpriority(PRIO_PROCESS, 0, PROCESS_IDLE_PRIORITY);
         retval = execv(application,argvs);
@@ -341,7 +341,7 @@ bool mmpbsa::SanderInterface::poll(int& status) {
         }
     }
 #else
-    int wpid, stat;
+    int wpid;
     struct rusage ru;
 
     wpid = wait4(pid, &status, WNOHANG, &ru);

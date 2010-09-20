@@ -207,9 +207,6 @@ bool mmpbsa::EnergyInfo::loadEnergyValue(const std::string& identifier,const mmp
 
 mmpbsa::AveRmsEnerInfo::AveRmsEnerInfo()
 {
-    avg;
-    rms;
-    relrms;
 }
 
 mmpbsa::AveRmsEnerInfo::AveRmsEnerInfo(const mmpbsa::AveRmsEnerInfo& orig)
@@ -230,7 +227,7 @@ mmpbsa::AveRmsEnerInfo::AveRmsEnerInfo(const mmpbsa::EnergyInfo& avgs, const mmp
 
     //Calculate relrms, according to relrms = rms/abs(avg)
     relrms[0] = rms[0];
-    for(int i = 1;i<avg.size();i++)
+    for(size_t i = 1;i<avg.size();i++)
         if(avg[i] != 0)
             relrms[i] = rms[i]/std::abs(avg[i]);
 }
@@ -297,8 +294,8 @@ void mmpbsa::mdout2enerinfos(std::fstream& mdout, std::valarray<mmpbsa::EnergyIn
     //and then shlepping everything over to the valarray (which I want for arithmetic).
     mdout.seekg(0,std::ios::beg);
     string currentLine = "";
-    int numberOfEnergyInfos = 0;
-    int numberOfAvgEnergyInfos = 0;
+    size_t numberOfEnergyInfos = 0;
+    size_t numberOfAvgEnergyInfos = 0;
     while(!mdout.eof())
     {
         currentLine = getNextLine(mdout);

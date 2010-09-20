@@ -46,7 +46,6 @@ void mmpbsa_io::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& c
     outFile << std::setprecision(5) << natoms << std::endl;
 
     size_t m;
-    mmpbsa_t dblOutput;
     //save data in rows of 6
     outFile << std::setprecision(7);
     outFile.width(8);
@@ -64,7 +63,7 @@ void mmpbsa_io::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& c
     //save the possibly incomplete last row.
     if(m<crds.size())
     {
-        for(m;m<crds.size()-1;m++)
+        for(;m<crds.size()-1;m++)
         {
             outFile << crds[m] << " ";
         }
@@ -178,7 +177,7 @@ template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
     mmpbsa_t fltCurrentData;
     size_t dataIndex = 0;
 
-    for(dataIndex;dataIndex<arrayLength;)
+    for(;dataIndex<arrayLength;)
     {
         if(dataFile.eof())
             throw mmpbsa::SanderIOException("Data file ended in the middle of the "
@@ -232,7 +231,7 @@ template <> bool mmpbsa_io::loadValarray<std::string>(std::fstream& dataFile,
     size_t lineIndex = 0;
     size_t dataIndex = 0;
 
-    for(dataIndex;dataIndex<arrayLength;)
+    for(;dataIndex<arrayLength;)
     {
         if(dataFile.eof())
             throw mmpbsa::SanderIOException("Data file ended in the middle of the "

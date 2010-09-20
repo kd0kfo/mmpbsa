@@ -44,7 +44,6 @@ mmpbsa::SanderParm::SanderParm() {
     //between difference classes. These arrays are LARGE; the goal here is to
     //save memory/time if that happens.
     titles = "";
-    initializeArrays();
 }
 
 mmpbsa::SanderParm::SanderParm(const SanderParm& orig) {
@@ -305,51 +304,6 @@ mmpbsa::SanderParm& mmpbsa::SanderParm::operator=(const mmpbsa::SanderParm& orig
 
     return *this;
 }
-
-void mmpbsa::SanderParm::initializeArrays()
-{
-    atom_names;
-    charges;
-    masses;
-    atom_type_indices;
-    number_excluded_atoms;
-    nonbonded_parm_indices;
-    residue_labels;
-    residue_pointers;//pointer means location in the array
-       //not c++ pointer. This is an amber name from the prmtop file
-       //(cf %FLAG RESIDUE_POINTER)
-    bond_force_constants;
-    bond_equil_values;
-    angle_force_constants;
-    dihedral_force_constants;
-    angle_equil_values;
-    dihedral_periodicities;
-    dihedral_phases;
-    soltys;//solubility?
-    lennard_jones_acoefs;
-    lennard_jones_bcoefs;
-    bonds_inc_hydrogen;
-    bonds_without_hydrogen;
-    angles_inc_hydrogen;
-    angles_without_hydrogen;
-    dihedrals_inc_hydrogen;
-    dihedrals_without_hydrogen;
-    dihedral_h_mask;
-    dihedral_mask;
-    excluded_atoms_list;
-    hbond_acoefs;
-    hbond_bcoefs;
-    hbcuts;
-    amber_atom_types;
-    tree_chain_classifications;
-    join_array;
-    irotats;
-    radius_sets;
-    radii;
-    screen;
-    atoms_per_molecule;
-    box_dimensions;
-    }
 
 void mmpbsa::SanderParm::raw_read_amber_parm(const std::string& file) throw (mmpbsa::SanderIOException)
 {
@@ -873,8 +827,8 @@ void mmpbsa::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
         throw mmpbsa::SanderIOException("Cannot read from file. loadPrmtopData");
 
     //use the format to obtain the array dimensions (in the 2-D sense).
-    size_t numberOfColumns = 0;
-    size_t columnWidth = 0;
+    int numberOfColumns = 0;
+    int columnWidth = 0;
     
     //sanity check for the following sscanf. no buffer overflows here.
     if(format.size() > 10 || *(format.begin()) != '(' || *(format.end()-1) != ')')
@@ -883,7 +837,7 @@ void mmpbsa::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
     }
     sscanf(format.c_str(),"%*c%d%*c%d",&numberOfColumns,&columnWidth);
 
-    if(!mmpbsa_io::loadValarray(prmtopFile,array,size,columnWidth,numberOfColumns))
+    if(!mmpbsa_io::loadValarray(prmtopFile,array,size,size_t(columnWidth),size_t(numberOfColumns)))
         throw mmpbsa::SanderIOException("Could not load Parameter Data",mmpbsa::BROKEN_PRMTOP_FILE);
 
 }
@@ -899,8 +853,8 @@ template <class T> void mmpbsa::SanderParm::loadPrmtopData(std::fstream& prmtopF
         throw mmpbsa::SanderIOException("Cannot read from file. loadPrmtopData");
 
     //use the format to obtain the array dimensions (in the 2-D sense).
-    size_t numberOfColumns = 0;
-    size_t columnWidth = 0;
+    int numberOfColumns = 0;
+    int columnWidth = 0;
     
     //sanity check for the following sscanf. no buffer overflows here.
     if(format.size() > 10 || *(format.begin()) != '(' || *(format.end()-1) != ')')
@@ -909,7 +863,7 @@ template <class T> void mmpbsa::SanderParm::loadPrmtopData(std::fstream& prmtopF
     }
     sscanf(format.c_str(),"%*c%d%*c%d",&numberOfColumns,&columnWidth);
 
-    if(!mmpbsa_io::loadValarray(prmtopFile,array,size,columnWidth,numberOfColumns))
+    if(!mmpbsa_io::loadValarray(prmtopFile,array,size,size_t(columnWidth),size_t(numberOfColumns)))
         throw mmpbsa::SanderIOException("Could not load Parameter Data",mmpbsa::BROKEN_PRMTOP_FILE);
 
 }
@@ -927,8 +881,8 @@ template <class T> void mmpbsa::SanderParm::loadPrmtopMaskedData(std::fstream& p
         throw mmpbsa::SanderIOException("Cannot read from file. loadPrmtopData");
 
     //use the format to obtain the array dimensions (in the 2-D sense).
-    size_t numberOfColumns = 0;
-    size_t columnWidth = 0;
+    int numberOfColumns = 0;
+    int columnWidth = 0;
     //sanity check for the following sscanf. no buffer overflows here.
     if(format.size() > 10 || *(format.begin()) != '(' || *(format.end()-1) != ')')
     {
@@ -937,7 +891,7 @@ template <class T> void mmpbsa::SanderParm::loadPrmtopMaskedData(std::fstream& p
     sscanf(format.c_str(),"%*c%d%*c%d",&numberOfColumns,&columnWidth);
 
     valarray<int> tmpArray(size);
-    if(!mmpbsa_io::loadValarray(prmtopFile,tmpArray,size,columnWidth,numberOfColumns))
+    if(!mmpbsa_io::loadValarray(prmtopFile,tmpArray,size,size_t(columnWidth),size_t(numberOfColumns)))
         throw mmpbsa::SanderIOException("Could not load Parameter Data",mmpbsa::BROKEN_PRMTOP_FILE);
 
     if(maskArray.size() != size)

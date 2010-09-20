@@ -17,11 +17,11 @@ AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_RANLIB
 
+AC_SUBST(CUSTOM_CPPFLAGS,"-Wall")
 
-
-AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Statically]),
+AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Staticahlly]),
 [AC_MSG_RESULT(Compiling MMPBSA statically)
-AC_SUBST(CUSTOM_LDFLAGS,"-static")
+AC_SUBST(CUSTOM_LDFLAGS," -static ")
 AC_SUBST(CUSTOM_LIBS,"-lpthread")],)
 
 AC_ARG_WITH([mead],AS_HELP_STRING([--with-mead@<:@=dir@:>@],[Include MEAD library @<:@Default=PREFIX/include@:>@]),with_mead=${withval},AC_MSG_RESULT(Assuming mead is installed in system paths))

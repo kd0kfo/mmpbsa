@@ -247,7 +247,6 @@ private:
         const size_t& natoms, const size_t& nbonds, const size_t& ntype,
         const size_t& atomsPerBond);
 
-    void initializeArrays();
 
 };
 
