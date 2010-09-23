@@ -17,9 +17,9 @@ int main(int argc, char** argv)
             MMPBSAState currState;
             mmpbsa::SanderInterface si;
             retval = parseParameter(argMap,currState,si);
-            if(!retval)
+            if(retval == 0)
             {
-                sander_run(currState,si);
+            	sander_run(currState,si);
                 if(!retval && !currState.MDOnly)
                 {
                     mmpbsa::MeadInterface mi;
@@ -400,7 +400,7 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
         if (it->second.find("=") != std::string::npos)
         {
             std::ostringstream error;
-            error << "Multiple occurance of \"=\" in parameter: "
+            error << "Multiple occurrence of \"=\" in parameter: "
                     << it->first << "=" << it->second << std::endl;
             throw mmpbsa::MMPBSAException(error, mmpbsa::COMMAND_LINE_ERROR);
         }
@@ -418,20 +418,23 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
         {
             buff >> MMPBSA_FORMAT >> mi.surf_tension;
         }
-        else if (it->first == "help" || it->first == "h")
-        {
-            std::cout << helpString() << std::endl;
-            return 1;
-        }
-        else if(it->first == "version")
-        {
-            std::cout << PACKAGE_STRING << std::endl;
-        }
         else if (it->first == "trust_prmtop")
         {
             currState.trustPrmtop = true;
             return 0;
         }
+        else if (it->first == "help" || it->first == "h")
+		{
+			std::cout << helpString() << std::endl;
+			return 1;
+		}
+		else if(it->first == "version")
+		{
+			std::cout << PACKAGE_STRING << std::endl;
+			return 1;
+		}
+
+
     }
     return 0;
 }
@@ -485,7 +488,10 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
         } else if (it->first == "help" || it->first == "h") {
             std::cout << helpString() << std::endl;
             return 1;
-        } 
+        } else if(it->first == "version") {
+			std::cout << PACKAGE_STRING << std::endl;
+			return 1;
+		}
         else if(it->first == "sample_queue")
         {
             if(!it->second.size())
