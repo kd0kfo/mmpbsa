@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT([mmpbsa], [0.6.5], [David.Coss@stjude.org])
+AC_INIT([mmpbsa], [0.6.6], [David.Coss@stjude.org])
 AC_CONFIG_SRCDIR([src/libmmpbsa/])
 AC_CONFIG_SRCDIR([src/])
 AM_CONFIG_HEADER([config.h])
@@ -11,6 +11,7 @@ AM_INIT_AUTOMAKE
 AH_TEMPLATE([USE_BOINC],[Define to use the BOINC library])
 AH_TEMPLATE([USE_GRAPHICS],[Define to create the graphics application. Requires BOINC and GL])
 AH_TEMPLATE([USE_JPEGLIB],[Define to use the JPEG library])
+AH_TEMPLATE([WITHOUT_MOLSURF],[Define to prevent the use of molsurf, i.e. on Mac without proper signal.h])
 
 # Checks for programs.
 AC_PROG_CXX
@@ -23,6 +24,11 @@ AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Staticahlly]),
 [AC_MSG_RESULT(Compiling MMPBSA statically)
 AC_SUBST(CUSTOM_LDFLAGS," -static ")
 AC_SUBST(CUSTOM_LIBS,"-lpthread")],)
+
+AC_ARG_ENABLE([molsurf],AS_HELP_STRING([--enable-molsurf],[Compile and link to molsurf. Without molsurf, Surface Area calculations are not done.]),molsurf=$enableval)
+if test x"$molsurf" == xno; then
+	AC_DEFINE([WITHOUT_MOLSURF])
+fi
 
 AC_ARG_WITH([mead],AS_HELP_STRING([--with-mead@<:@=dir@:>@],[Include MEAD library @<:@Default=PREFIX/include@:>@]),with_mead=${withval},AC_MSG_RESULT(Assuming mead is installed in system paths))
 if test x$with_mead != x; then

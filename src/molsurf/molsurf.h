@@ -1,3 +1,10 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+
+#ifndef WITHOUT_MOLSURF
+
 #ifdef __cplusplus
  extern "C" {
 #include <csetjmp>//:-(
@@ -238,4 +245,5 @@ extern jmp_buf jmpbuf;
  #endif
 
 
+#endif //WITHOUT_MOLSURF
  

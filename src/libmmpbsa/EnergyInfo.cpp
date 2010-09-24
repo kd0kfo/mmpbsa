@@ -19,16 +19,17 @@ mmpbsa::EnergyInfo sqrt(const mmpbsa::EnergyInfo& rhs)
     return returnMe;
 }
 
-std::fstream& mmpbsa::operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data)
+std::fstream& operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data)
 {
     data.get_next_energyinfo(theStream);
     return theStream;
 }
 
-std::ostream& mmpbsa::operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data)
+std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data)
 {
+	using mmpbsa::EnergyInfo;
     if(data.size() != EnergyInfo::total_parameters)
-        throw MMPBSAException("Uninitialized EnergyInfo object in operator<<.",DATA_FORMAT_ERROR);
+        throw mmpbsa::MMPBSAException("Uninitialized EnergyInfo object in operator<<.",mmpbsa::DATA_FORMAT_ERROR);
     
     theStream << "NSTEP = " <<  data[EnergyInfo::nstep];
     theStream << "  TIME(PS) = " << data[EnergyInfo::time];

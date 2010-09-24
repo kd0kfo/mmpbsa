@@ -1,6 +1,6 @@
 #include "mmpbsa_exceptions.h"
 
-std::ostream& mmpbsa::operator<<(std::ostream& theStream,MMPBSAException& me)
+std::ostream& operator<<(std::ostream& theStream,mmpbsa::MMPBSAException& me)
 {
     theStream << me.identifier() << "(" << me.getErrType() << "): " << me.what() << std::endl;
     return theStream;

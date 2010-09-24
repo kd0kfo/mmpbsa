@@ -170,6 +170,9 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, 
     //# esol will already be in kcal/mole because of Amber's charge units
     returnMe[esol] = (prod_sol - prod_ref) / 2.0;
     /**/
+ #ifdef WITHOUT_MOLSURF
+    returnMe[area] = 0;
+ #else
     size_t numCoords = size_t(crds.size()/3);
     REAL_T xs[numCoords],ys[numCoords],zs[numCoords];
     REAL_T rads[numCoords];
@@ -181,9 +184,9 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, 
         zs[i] = crds[3*i+2];
         rads[i] = mmpbsa_utils::lookup_radius(efun.parminfo->atom_names[i],MI.brad) + 1.4;//SA radii are not necessarily the same as PB radii
     }
-    
     //Surface Area
     returnMe[area] = molsurf(xs,ys,zs,rads,numCoords,0);//replace with molsurf stuff
+#endif
 
     return returnMe;
 }

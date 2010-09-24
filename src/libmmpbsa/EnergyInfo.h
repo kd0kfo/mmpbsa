@@ -67,8 +67,6 @@ public:
      */
     bool operator>(const EnergyInfo& rhs)const;
 
-    friend std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data);
-    friend std::fstream& operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data);
 
     /**
      * energy information from sander/dynlib.f:prntmd
@@ -167,6 +165,9 @@ float get_minimized_energy(std::fstream& mdout) throw (SanderIOException);
 };//end namespace mmpbsa
 
 mmpbsa::EnergyInfo sqrt(const mmpbsa::EnergyInfo& rhs);
+
+std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data);
+std::fstream& operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data);
 
 #endif	/* ENERGYINFO_H */
 

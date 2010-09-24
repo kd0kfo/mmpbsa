@@ -64,6 +64,9 @@
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
@@ -85,11 +88,15 @@
 /* Version number of package */
 #undef VERSION
 
+/* Define to prevent the use of molsurf, i.e. on Mac without proper signal.h
+   */
+#undef WITHOUT_MOLSURF
+
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
 /* Define to rpl_malloc if the replacement function should be used. */
 #undef malloc
 
-/* Define to `unsigned' if <sys/types.h> does not define. */
+/* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t

@@ -63,7 +63,9 @@ std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite)
     theStream << "VDWAALS " << toWrite.vdwaals << std::endl;
     theStream << "PBSOL " << toWrite.elstat_solv << std::endl;
     theStream << "SASOL " << toWrite.sasol << std::endl;
+#ifndef WITHOUT_MOLSURF
     theStream << "area " << toWrite.area;
+#endif
     theStream.precision(prevPrecision);
     theStream.setf(prevFloatfield,std::ios::floatfield);
     return theStream;

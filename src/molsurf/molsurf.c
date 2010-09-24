@@ -1,3 +1,8 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifndef WITHOUT_MOLSURF
 /* 
   Now I, Don Bashford, am turning it back into a subroutine
   for the purpose of wrapping it (in another file) as a Python
@@ -5338,4 +5343,8 @@ static void free_memory ()
   if (cusp_edge != NULL) {free (cusp_edge); cusp_edge=NULL;}
   if (cusp_pair != NULL) {free (cusp_pair); cusp_pair=NULL;}
 }
+
+
+
+#endif //WITHOUT_MOLSURF
 
