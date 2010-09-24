@@ -2,7 +2,6 @@
 #include "config.h"
 #endif
 
-#ifndef WITHOUT_MOLSURF
 /* 
   Now I, Don Bashford, am turning it back into a subroutine
   for the purpose of wrapping it (in another file) as a Python
@@ -251,6 +250,9 @@ molsurf (const REAL_T xs[], const REAL_T ys[], const REAL_T zs[],
   }
 #else
   new_sigact.sa_handler = segv_handler; /* the handler function */
+#ifndef SA_ONESHOT
+#define SA_ONESHOT SA_RESETHAND
+#endif
   new_sigact.sa_flags = SA_ONESHOT;
   sigaction(SIGSEGV, &new_sigact, &old_sigact);
 #endif
@@ -5344,7 +5346,4 @@ static void free_memory ()
   if (cusp_pair != NULL) {free (cusp_pair); cusp_pair=NULL;}
 }
 
-
-
-#endif //WITHOUT_MOLSURF
 

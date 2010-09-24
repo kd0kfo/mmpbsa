@@ -3,8 +3,6 @@
 #endif
 
 
-#ifndef WITHOUT_MOLSURF
-
 #ifdef __cplusplus
  extern "C" {
 #include <csetjmp>//:-(
@@ -244,6 +242,4 @@ extern jmp_buf jmpbuf;
  }
  #endif
 
-
-#endif //WITHOUT_MOLSURF
  

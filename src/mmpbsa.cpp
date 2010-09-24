@@ -111,7 +111,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     {
         if(xmlpe.getErrType() != mmpbsa::FILE_READ_ERROR)
         {
-            std::cerr << "Previous energy data is corrupt. Overwritting." << std::endl;
+            std::cerr << "Previous energy data is corrupt. Overwriting." << std::endl;
         }
         previousEnergyData.setHead(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
     }
@@ -187,6 +187,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     //if the program is resuming a previously started calculation, advance to the
     //last snapshot.
     if(currState.currentSnap)//zero = one = start from beginning.
+    {
         for(size_t i = 0;i<currState.currentSnap-1;i++)
             try
             {
@@ -201,8 +202,13 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
                   std::cout << "End of Snapshots Reached" << std::endl;
                   return 0;
                 }
-            }
-    size_t snapcounter = (currState.currentSnap) ? currState.currentSnap - 1 : 0;//snapcounter will be incremented below
+            }//after this for loop, the trajFile is pointing to the beginning of currState.currentSnap
+    }
+    else
+    {
+    	currState.currentSnap = 1;//start from beginning if currentSnap was originally zero.
+    	currState.currentMolecule = MMPBSAState::COMPLEX;
+    }
 
     mmpbsa_utils::XMLNode* outputXML = previousEnergyData.getHead();
 
@@ -212,21 +218,22 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         try{
             //if a list of snaps to be run is provided, check to see if this snapshot
             //should be used. Remember: snapcounter is 1-indexed.
-            snapcounter++;
             if(currState.snapList.size())//check if the current snapshot should be skipped
-                if(!mmpbsa_utils::contains(currState.snapList,snapcounter))
+                if(!mmpbsa_utils::contains(currState.snapList,currState.currentSnap))
                 {
                     mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
-                    std::cout << "Skipping Snapshot #" << snapcounter << std::endl;
+                    std::cout << "Skipping Snapshot #" << currState.currentSnap << std::endl;
+                    currState.currentSnap += 1;
+                    currState.currentMolecule = MMPBSAState::COMPLEX;
                     continue;
                 }
         
             if(get_next_snap(trajFile, snapshot, sp->natom,isPeriodic))
-                std::cout << "Running Snapshot #" << snapcounter << std::endl;
+                std::cout << "Running Snapshot #" << currState.currentSnap << std::endl;
             else
             {
                 std::ostringstream error;
-                error << "Error in loading snapshot #"  << ++snapcounter << std::endl;
+                error << "Error in loading snapshot #"  << ++(currState.currentSnap) << std::endl;
                 throw MMPBSAException(error,BROKEN_TRAJECTORY_FILE);
             }
         }
@@ -241,7 +248,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
         //process snapshot.
         std::ostringstream strSnapNumber;
-        strSnapNumber << snapcounter;//Node used to output energy data
+        strSnapNumber << currState.currentSnap;//Node used to output energy data
         mmpbsa_utils::XMLNode* snapshotXML = new mmpbsa_utils::XMLNode("snapshot");
         snapshotXML->insertChild("ID",strSnapNumber.str());
         size_t complexCoordIndex = 0;
@@ -269,6 +276,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         {
             currState.currentMolecule = MMPBSAState::COMPLEX;
             ::updateMMPBSAProgress(currState,1);
+            currState.currentSnap += 1;
             report_boinc_progress();
             continue;//Restarted program at the end of a snapshot. So, move on.
         }
@@ -279,7 +287,6 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
                     *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
             snapshotXML->insertChild(complexEMap.toXML("COMPLEX"));
             currState.currentMolecule = MMPBSAState::RECEPTOR;
-            currState.currentSnap = snapcounter;
             ::updateMMPBSAProgress(currState,0.33333333);
             checkpoint_mmpbsa(currState);
         }
@@ -290,7 +297,6 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
                     *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
             snapshotXML->insertChild(receptorEMap.toXML("RECEPTOR"));
             currState.currentMolecule = MMPBSAState::LIGAND;
-            currState.currentSnap = snapcounter;
             ::updateMMPBSAProgress(currState,0.333333);
             checkpoint_mmpbsa(currState);
         }
@@ -304,8 +310,9 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             ::updateMMPBSAProgress(currState,0.3333333);
         }
         checkpoint_mmpbsa(currState);
-        currState.currentMolecule = MMPBSAState::COMPLEX;//Reset current molecule
         outputXML->insertChild(snapshotXML);
+        currState.currentMolecule = MMPBSAState::COMPLEX;//Reset current molecule
+        currState.currentSnap += 1;
 
         previousEnergyData.write(currState.outputFilename);
     }//end of snapshot loop

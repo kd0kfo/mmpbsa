@@ -325,8 +325,6 @@ int mmpbsa_io::fileopen(const char* filename, const std::ios::openmode& mode, st
 
 int mmpbsa_io::resolve_filename(const std::string& unresolvedFilename, std::string& resolvedFilename)
 {
-    std::cerr << unresolvedFilename.c_str() << " --> " << resolvedFilename << std::endl;
-    
 #ifdef USE_BOINC
       return boinc_resolve_filename_s(unresolvedFilename.c_str(),resolvedFilename);
 #else
