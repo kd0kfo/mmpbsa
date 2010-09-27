@@ -59,7 +59,6 @@ private:
 
 };
 
-std::ostream& operator<<(std::ostream& theStream,MMPBSAException& me);
 
 class SanderIOException : public MMPBSAException {
 public:
@@ -74,6 +73,8 @@ public:
 };
 
 };//end namespace mmpbsa
+
+std::ostream& operator<<(std::ostream& theStream,mmpbsa::MMPBSAException& me);
 
 #endif	/* MMPBSA_EXCEPTIONS_H */
 
