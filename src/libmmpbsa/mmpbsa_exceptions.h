@@ -50,7 +50,7 @@ class MMPBSAException : public std::runtime_error
      *
      * @return int error type.
      */
-    MMPBSAErrorTypes getErrType(){return errorType;}
+    const MMPBSAErrorTypes& getErrType()const{return errorType;}
 
     virtual const char* identifier(){return "General MMPBSA Error";}
 

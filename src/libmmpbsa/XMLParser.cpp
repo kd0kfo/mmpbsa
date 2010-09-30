@@ -117,6 +117,9 @@ std::pair<std::string,std::string> mmpbsa_utils::XMLParser::parseLine(const std:
     std::pair<std::string,std::string> returnMe("","");
     using std::string;
     string line = mmpbsa_utils::trimString(_line);
+    while(line.find(0xd) != string::npos)//CR char
+    	line.erase(line.find(0xd),1);
+
     if(line.size() == 0)
         return returnMe;
     if(line[0] != '<' || line.find_first_of('>') == string::npos)

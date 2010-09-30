@@ -1,7 +1,209 @@
-Latest  Change:
-Moved EMap to its own cpp/h files since it was growing decently.
+Recent Change:
+Fixed XMLParser::parse to read CR characters (and remove them).
+This will better facilitate capatibility between windows and linux.
 
-Previous Git Log:
+commit c4a430bd2d2a65cbab5f359f2101256877f022fc
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Sep 27 10:12:18 2010 -0500
+
+    Corrected mismatch between header and source in mmpbsa_exceptions
+
+commit 6362b94a4bbc2f49ae45f7cf867d3242ea1dc30c
+Author: David Coss (macbook) <David.Coss@stjude.org>
+Date:   Fri Sep 24 16:02:52 2010 -0500
+
+    REMOVED disable-molsurf from previous commit. It turns out that
+    SA_ONESHOT can be replaced by SA_RESETHAND, which OSX does have.
+    This is preferred since it allows molsurf to run on the mac.
+    
+    Fixed bug in mmpbsa restart. Removed redundant "snapCounter" from
+    mmpbsa_run, which was already contained in currState.currentSnap.
+
+commit 77fc08108b63c8170fddd702088ff8bcb9b12c55
+Author: David Coss (macbook) <David.Coss@stjude.org>
+Date:   Fri Sep 24 13:20:24 2010 -0500
+
+    Added a ./configure flag "--disable-molsurf" that will define
+    WITHOUT_MOLSURF. If WITHOUT_MOLSURF is defined, none of the molsurf
+    code is compiled and MeadInterface sets the surface area equal to zero.
+    This was prompted by a lack of signal code in OSX needed for the
+    jumpy nature of molsurf. If molsurf is replaced by good code, this
+    will no longer be necessary.
+
+commit 9e00f59dc9b5d20ae151d8b34416e21e5b01f967
+Author: David Coss <David.Coss@stjude.org>
+Date:   Thu Sep 23 10:57:16 2010 -0500
+
+    Fix bug with the "--version" argument that allowed the program to
+    continue after printing the version.
+
+commit 0fd1b32fc51f831317199dbadb89501c8d0fca56
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Sep 20 15:41:12 2010 -0500
+
+    Removed unnecessary MEAD reference in mmpbsa_utils. This requirement
+    is not needed for the functions in mmpbsa_utils and was causing an
+    unnecessary requirement for grid_tools. Ideally, all of the mead
+    includes should be in the MeadInterface abstraction layer.
+
+commit 7ad0ef80b0bfa03929b7bf40b3700cecc4db2e63
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Sep 20 14:20:39 2010 -0500
+
+    Added molsurf headers to the include list to be copied when
+    "make install" is run.
+
+commit dc9944e0982ddb2daafe1b7b2f0167aebede70e7
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Sep 20 14:14:00 2010 -0500
+
+    Added the compiler flag "-Wall" to automake. Then corrected warnings.
+
+commit 6e27ab22d479e7060d4109bbad28ec4248eb76ab
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Sep 14 10:29:45 2010 -0500
+
+    I switched to not using "__" in my #defines (e.g. USE_BOINC), because
+    I think this should be reserved for compiler defines (e.g. __cplusplus)
+
+commit 604aeb7d28b13a51bcbd578893e3e549c4087e77
+Author: David Coss <David.Coss@stjude.org>
+Date:   Thu Sep 2 08:51:18 2010 -0500
+
+    Fixed constructor and sqrt problems with EnergyInfo.
+
+commit 49370896f398d494bad6798539685102066c0fd2
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Sep 1 16:08:38 2010 -0500
+
+    Added features to EnergyInfo to make it more user friendly with
+    validation in grid_tools. Also, EnergyInfo now extends valarray
+    rather than containing it.
+    
+    Add the ability for MMPBSAException (and extensions) to be written
+    directly to an ostream so that one can do something like:
+    
+    std::cout << execObj << std::endl;
+
+commit 63a27e52d30442036a7c703307b436670e8d3fd7
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Aug 31 16:20:48 2010 -0500
+
+    The 'const XMLNode* const getHead()const' function was accidentally
+    removed, but this is needed for constant references to XMLParser.
+    This has been fixed.
+
+commit 34c29c63a1666e300af1837571e6ee5e1413abda
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Aug 30 16:18:24 2010 -0500
+
+    Made mmpbsa_run append energy data rather then overwrite. Also,
+    energy data is written after each snapshot; thus no energy data
+    is lost if the program is restarted.
+    
+    XMLParser has looser restrictions on access to its head node, making
+    it easier to use as a convenient wrapper for the XMLNode
+
+commit 02e93552362fa22175c0752d2e740b4804dc7436
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Aug 27 16:21:45 2010 -0500
+
+    More improvement for grid_tools.
+
+commit 0bd6267d7d8fed6afb03c7d5ef07a3b4fb65181c
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Aug 27 08:52:56 2010 -0500
+
+    Made improvements to the library for its use with grid_tools.
+
+commit 1f87db449b8f9bc6269998cd28d926c97de4b354
+Author: David Coss <David.Coss@stjude.org>
+Date:   Tue Aug 24 10:55:23 2010 -0500
+
+    "Audited" for security problems, as grid time is approaching.
+    This generally means using stringstreams instead of scanf and
+    printf. There are couple of exceptions, but strict sanity checking
+    is used.
+
+commit d7b8b5aaed364d8439f87fbc71213af35a3c38f7
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Aug 23 14:44:37 2010 -0500
+
+    Added <?xml...?> to be ignored by XMLParser.
+
+commit c96b5ff9c5bfa68c376ba14912382ed3ddf07b7f
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Aug 23 13:25:02 2010 -0500
+
+    Removed GPL notice from StringTokenizer. Again, blame sander.
+
+commit 64552b10b6c2e2dcd17b1b3ffce6f1f65cd3353a
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Aug 20 15:36:22 2010 -0500
+
+    Removed default GPL license. :-(  Blame sander.
+
+commit 6ba9dd63501ab88cf6472c656ea9b36165ba65f5
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Aug 20 12:02:51 2010 -0500
+
+    Added functions to EMap and XMLNode/Parser to improve data
+    validation.
+
+commit 03568f38dce4ce5f7d703c92b793890c012c2ded
+Author: David Coss <David.Coss@stjude.org>
+Date:   Thu Aug 19 14:27:30 2010 -0500
+
+    Moved mmpbsa::Emap code to its own set of cpp/h files after adding
+    more operator overloads to be used in data validation.
+
+commit 472c77d09330e5b95245f87322a549bccae4df64
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Aug 18 12:27:11 2010 -0500
+
+    Changed the output of the mmpbsa energy date to be in XML format.
+    This will make validation on the grid smoother. Something similar
+    might need to be done with sander too.
+
+commit a58b8d11264e72d915fe8ea4d6575fe2e719a27c
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Aug 16 15:45:11 2010 -0500
+
+    Updated the files for the necessary graphics objects and functions
+    for windows. The configure.ac file now assumes you are building
+    in windows. As UC Berkeley has yet to make a BOINC screensaver for
+    linux, this is not a problem.
+
+commit 48022c2ebf2267cae6886e1572106cff744aae30
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Aug 16 12:28:00 2010 -0500
+
+    Added mmpbsa_gutil to attempt to break the dependency on jpeglib,
+    unless specifically requested.
+
+commit 39c6bde3baf0ed1cd21277646fddf1bfc3c5b431
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Aug 16 09:02:17 2010 -0500
+
+    Changed #include's to place BOINC header files in a "BOINC/" path.
+    The reason for this 1.) the BOINC "make install" does this and 2.)
+    it organizes headers better.
+
+commit c5dea2e8ac6d7af041bde71c2f06d8f32fb3d680
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Aug 13 16:07:42 2010 -0500
+
+    Added documentation for XMLParser/Node and cleaned up boinc include structure.
+
+commit 42ebf5333b37e5f6706be59ed53357618a175d22
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Aug 13 14:25:22 2010 -0500
+
+    Moved away from the dependency on libxml2. This was a tremendous
+    pain in windows. At the same time, only a very small portion
+    of the whole library was being used. Therefore, a new independent
+    XML Parser was made for libmmpbsa.
+
 commit b911231c73c721a56e1e8f4811da2448c4d0dd27
 Merge: 3a5287c a46ac58
 Author: David Coss <David.Coss@stjude.org>
