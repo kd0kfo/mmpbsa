@@ -467,6 +467,7 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
             currState.prmtopFilename = si.prmtopFilename;
         } else if (it->first == "inpcrd") {
             mmpbsa_io::resolve_filename(it->second, si.inpcrdFilename);
+            mmpbsa_io::resolve_filename(it->second, currState.trajFilename);
         } else if (it->first == "mdout") {
             mmpbsa_io::resolve_filename(it->second, si.mdoutFilename);
             mmpbsa_io::resolve_filename(it->second, currState.outputFilename);
@@ -476,7 +477,6 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
             mmpbsa_io::resolve_filename(it->second, si.restartFilename);
         } else if (it->first == "mdcrd") {
             mmpbsa_io::resolve_filename(it->second, si.mdcrdFilename);
-            mmpbsa_io::resolve_filename(it->second, currState.trajFilename);
         } else if (it->first == "checkpoint") {
             mmpbsa_io::resolve_filename(it->second, currState.checkpointFilename);
         } else if (it->first == "radii") {
