@@ -35,7 +35,7 @@
 // - handle mouse input (in this case, to zoom and rotate)
 // - draw text and 3D objects using OpenGL
 #ifdef _WIN32
-#include "BOINC/boinc_win.h"
+#include "boinc/boinc_win.h"
 #else
 #include <math.h>
 #endif
@@ -44,17 +44,17 @@
 #include "glu.h"
 
 //BOINC stuff
-#include "BOINC/parse.h"
-#include "BOINC/util.h"
-//#include "BOINC/gutil.h"
-#include "BOINC/boinc_gl.h"
-#include "BOINC/app_ipc.h"
-#include "BOINC/boinc_api.h"
-#include "BOINC/graphics2.h"
-#include "BOINC/txf_util.h"
-#include "BOINC/diagnostics.h"
+#include "boinc/parse.h"
+#include "boinc/util.h"
+//#include "boinc/gutil.h"
+#include "boinc/boinc_gl.h"
+#include "boinc/app_ipc.h"
+#include "boinc/boinc_api.h"
+#include "boinc/graphics2.h"
+#include "boinc/txf_util.h"
+#include "boinc/diagnostics.h"
 #ifdef __APPLE__
-#include "BOINC/mac/app_icon.h"
+#include "boinc/mac/app_icon.h"
 #endif
 
 #include "mmpbsa_graphics.h"

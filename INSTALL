@@ -8,6 +8,8 @@ Molecular dynamics is performed by a modified version of Sander which must be st
 
 MMPBSA may be built to run on a BOINC grid (without requiring further modification to Sander). Simply run configure with the option "--with-boinc=<dir>", where <dir> is the path to the BOINC API install. A separate graphics application, mmpbsa_graphics, has been made to produce graphics during calculation in BOINC. This can be compiled optionally with the flag "--with-graphics=<dir>", where <dir> is an optional path to GL header files.
 
+If you get a linker error that complains about missing pthread, run configure wiht the flag --enable-static
+
 Installation Instructions
 *************************
 

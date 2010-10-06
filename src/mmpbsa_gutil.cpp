@@ -38,7 +38,7 @@
 #include <setjmp.h>
 
 #ifdef _WIN32
-#include "BOINC/boinc_win.h"
+#include "boinc/boinc_win.h"
 #ifdef USE_JPEGLIB
 #ifndef SANS_JPEGLIB
 #ifdef __cplusplus
@@ -52,8 +52,8 @@ extern "C" {
 #endif //jpeglib
 
 
-#include "BOINC/bmplib.h"
-#include "BOINC/tgalib.h"
+#include "boinc/bmplib.h"
+#include "boinc/tgalib.h"
 #endif
 
 #ifndef _WIN32
@@ -84,9 +84,9 @@ extern "C"{
 #include "glu.h"
 
 //BOINC Stuff
-#include "BOINC/boinc_gl.h"
-#include "BOINC/filesys.h"
-#include "BOINC/util.h"
+#include "boinc/boinc_gl.h"
+#include "boinc/filesys.h"
+#include "boinc/util.h"
 
 #include "mmpbsa_gutil.h"
 

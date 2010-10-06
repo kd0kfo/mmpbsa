@@ -22,20 +22,19 @@
 
 #ifdef USE_BOINC
 #if defined(_WIN32) || defined(__MINGW_WIN32__)
-#include "BOINC/boinc_win.h"
-#include "BOINC/win_util.h"
+#include "boinc/boinc_win.h"
+#include "boinc/win_util.h"
 #endif
 
-#include "BOINC/boinc_api.h"
-#include "BOINC/filesys.h"
-#include "BOINC/error_numbers.h"
-#include "BOINC/util.h"
+#include "boinc/boinc_api.h"
+#include "boinc/filesys.h"
+#include "boinc/error_numbers.h"
+#include "boinc/util.h"
 
-#define HAVE_STRCASESTR 1
-#include "BOINC/str_replace.h"
-#include "BOINC/str_util.h"
-#else
 extern size_t strlcpy(char *dst, const char *src, size_t size);
+#define HAVE_STRCASESTR 1
+#include "boinc/str_util.h"
+#else
 #define ERR_FORK -147
 #define PROCESS_IDLE_PRIORITY 19
 #define ERR_EXEC -148

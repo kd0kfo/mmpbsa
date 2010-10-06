@@ -28,9 +28,9 @@
 
 #ifdef USE_BOINC
 #if defined(_WIN32) || defined(__MINGW_WIN32__)
-#include "BOINC/boinc_win.h"
+#include "boinc/boinc_win.h"
 #endif
-#include "BOINC/boinc_api.h"
+#include "boinc/boinc_api.h"
 #endif
 
 namespace mmpbsa_io{
