@@ -101,7 +101,7 @@ public:
      * @return 
      */
     static EMap full_EMap(const EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
-        const FinDiffMethod& fdm, std::map<std::string,mmpbsa_t>& radii,
+        const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
         const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
         const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException);
 
@@ -118,7 +118,7 @@ public:
      * @return 
      */
     static mmpbsa_t* pbsa_solvation(const EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
-        const FinDiffMethod& fdm, std::map<std::string,mmpbsa_t>& radii,
+        const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
         const std::map<std::string,std::string>& residueMap,
         const mmpbsa_t& interactionStrength = 0.0, const mmpbsa_t& exclusionRadius = 2.0) throw (mmpbsa::MeadException);
 
@@ -128,7 +128,7 @@ public:
     mmpbsa_t surf_tension;// kcal/mol/Ang^2
     mmpbsa_t surf_offset;// kcal/mol
 
-    std::map<std::string,mmpbsa_t> brad;
+    std::map<std::string,float> brad;
 
     
 };

@@ -13,7 +13,7 @@ namespace mmpbsa{
 
 //MMPBSAErrorTypes could be used as return values. Therefore, zero is not used.
 enum MMPBSAErrorTypes {UNKNOWN_ERROR = 1, /*<Avoid, as this is vague.*/
-    FILE_READ_ERROR,/*<IO problem reading prmtop file.*/
+    FILE_IO_ERROR,/*<IO problem reading file.*/
     BROKEN_PRMTOP_FILE,/*<prmtop file is improperly formatted or missing data.*/
     BROKEN_TRAJECTORY_FILE,/*<trajectory file is improperly formatted or missing data.*/
     INVALID_PRMTOP_DATA,/*<Data which was loaded into an array is incorrect based on what is expected.*/

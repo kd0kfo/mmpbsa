@@ -119,7 +119,7 @@ std::string getNextLine(std::fstream& file) throw (mmpbsa::MMPBSAException);
  * @param residues
  */
 void read_siz_file(std::fstream& theFile,
-        std::map<std::string,mmpbsa_t>& radii, std::map<std::string,std::string>& residues);
+        std::map<std::string,float>& radii, std::map<std::string,std::string>& residues);
 
 /**
  * Opens a file using the provided fstream.
@@ -179,6 +179,37 @@ int resolve_filename(const std::string& unresolvedFilename, std::string& resolve
  * @param unresolvedFilename
  */
 int resolve_filename(const char* unresolvedFilename, char* resolvedFilename,  int length);
+
+
+/**
+ * Use stringstream buffers to convert a string representation of a number into the
+ * required format. Upon failure a SanderIOException is thrown.
+ *
+ * @param word string representation of the number.
+ * @param data int reference to the variable to be parse.
+ * @throws mmpbsa::SanderIOException
+ */
+void parseNumber(const std::string& word,int& data) throw (mmpbsa::SanderIOException);
+
+/**
+ * Use stringstream buffers to convert a string representation of a number into the
+ * required format. Upon failure a SanderIOException is thrown.
+ *
+ * @param word string representation of the number.
+ * @param data mmpbsa_t reference to the variable to be parse.
+ * @throws mmpbsa::SanderIOException
+ */
+void parseNumber(const std::string& word, mmpbsa_t& data) throw (mmpbsa::SanderIOException);
+
+/**
+ * Use stringstream buffers to convert a string representation of a number into the
+ * required format. Upon failure a SanderIOException is thrown.
+ *
+ * @param word string representation of the number.
+ * @param data size_t reference to the variable to be parse.
+ * @throws mmpbsa::SanderIOException
+ */
+void parseNumber(const std::string& word,size_t& data) throw (mmpbsa::SanderIOException);
 
 }//end namespace mmpbsa_io
 

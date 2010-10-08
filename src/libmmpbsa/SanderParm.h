@@ -250,6 +250,13 @@ private:
 
 };
 
+/**
+ * Looks up the residue of the atom and returns the label.
+ * If a non-zero pointer is given to resIndex, its data is
+ * replaced with the residue index (which is one-indexed!).
+ */
+std::string getResidueLabel(const size_t& index, const std::valarray<size_t>& res_ranges, const mmpbsa::SanderParm* parm, size_t* residueIndex);
+
 }//end namespace mmpbsa
 
 #endif	/* SANDERPARM_H */

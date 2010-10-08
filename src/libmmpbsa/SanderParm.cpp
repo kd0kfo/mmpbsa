@@ -905,3 +905,31 @@ template <class T> void mmpbsa::SanderParm::loadPrmtopMaskedData(std::fstream& p
         array[i] = tmpArray[i];
 
 }
+
+std::string mmpbsa::getResidueLabel(const size_t& index, const std::valarray<size_t>& res_ranges, const mmpbsa::SanderParm* parm, size_t* residueIndex)
+{
+		std::ostringstream error;
+	if(res_ranges.size() % 2 != 0 || res_ranges.size() == 0)
+	{
+		error << "Invalid residue range array given to mmpbsa::getResidueLabel. Size: " << res_ranges.size();
+		throw MMPBSAException(error,DATA_FORMAT_ERROR);
+	}
+
+	size_t first,last;
+	size_t resLabelCounter = 0;
+	for(size_t i = 0;i<res_ranges.size();i+=2)
+	{
+		first = res_ranges[i];
+		last = res_ranges[i+1];
+		if(index >= first && index <= last)
+		{
+			if(residueIndex != 0)
+				*residueIndex = resLabelCounter + 1;
+			return parm->residue_labels[resLabelCounter];
+		}
+		resLabelCounter++;
+	}
+	error << "Error [mmpbsa::getResidueLabel]: Index " << index << " is not a labeled residue "
+			<< "or the residue range list is incorrect." << std::endl;
+	throw MMPBSAException(error,DATA_FORMAT_ERROR);
+}

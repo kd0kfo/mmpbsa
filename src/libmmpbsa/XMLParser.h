@@ -106,8 +106,8 @@ public:
      * 
      * @param fileName
      */
-    void write(const std::string& fileName)const{write(fileName.c_str());}
-    void write(const char* fileName)const;
+    void write(const std::string& fileName)const throw (mmpbsa::XMLParserException){write(fileName.c_str());}
+    void write(const char* fileName)const throw (mmpbsa::XMLParserException);
 
     /**
      * Produces a string representation of the XML tree using XMLNode::toString()
@@ -132,6 +132,16 @@ public:
      */
     XMLNode * getHead(){return head;}
     const XMLNode * const getHead() const {return head;}
+
+    /**
+     * Detaches (and returns) the head node from the parser object, after which
+     * the parser object's head is set to null. This allows one to remove the
+     * node from the parser, preventing it from being deleted after the
+     * parser's destructor is called.
+     *
+     * @return mmpbsa_utils::XMLNode* detached head node of document.
+     */
+    XMLNode* detachHead();
 
     /**
      * Replaces the head node of the XMLParser. Previous node is deleted.

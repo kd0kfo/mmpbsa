@@ -65,12 +65,16 @@ namespace mmpbsa_utils {
      * atom names may contain more than just the symbol for the atom. The method
      * uses a set of naming rules to find the radius.
      * 
+     * Float is used instead of mmpbsa_t because the radius type in MEAD is float.
+     * Therefore casting is used to get a float from whatever type mmpbsa_t is
+     * defined to be.
+     *
      * @param atomName
      * @param radiusMap
      * @return
      */
-    mmpbsa_t lookup_radius(const std::string& atomName,
-            std::map<std::string,mmpbsa_t>& radiusMap)
+    float lookup_radius(const std::string& atomName,
+            const std::map<std::string,float>& radiusMap)
             throw (mmpbsa::MMPBSAException);
 
     std::string toUpperCase(const std::string& bean);

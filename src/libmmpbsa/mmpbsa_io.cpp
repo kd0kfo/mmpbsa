@@ -6,7 +6,7 @@ std::string mmpbsa_io::read_crds(std::fstream& crdFile, std::valarray<mmpbsa_t>&
     using namespace mmpbsa_utils;
     
     if(!crdFile.good())
-        throw mmpbsa::SanderIOException("Cannot open coordinate file",mmpbsa::FILE_READ_ERROR);
+        throw mmpbsa::SanderIOException("Cannot open coordinate file",mmpbsa::FILE_IO_ERROR);
 
     string title = getNextLine(crdFile);
     string strNatoms = getNextLine(crdFile);
@@ -16,7 +16,7 @@ std::string mmpbsa_io::read_crds(std::fstream& crdFile, std::valarray<mmpbsa_t>&
     buff >> natoms;
 
     if(!loadValarray(crdFile,crds,natoms*3,12,8))
-        throw mmpbsa::SanderIOException("Coordinate file is too short.",mmpbsa::FILE_READ_ERROR);
+        throw mmpbsa::SanderIOException("Coordinate file is too short.",mmpbsa::FILE_IO_ERROR);
 
     return title;
 }
@@ -39,7 +39,7 @@ void mmpbsa_io::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& c
     {
         std::ostringstream error;
         error << "Could not open: " << fileName;
-        throw mmpbsa::SanderIOException(error,mmpbsa::FILE_READ_ERROR);
+        throw mmpbsa::SanderIOException(error,mmpbsa::FILE_IO_ERROR);
     }
 
     outFile << title << std::endl;
@@ -153,6 +153,40 @@ void mmpbsa_io::skip_next_snap(std::fstream& trajFile, const size_t& natoms, boo
         getNextLine(trajFile);
 }
 
+void mmpbsa_io::parseNumber(const std::string& word,int& intData) throw (mmpbsa::SanderIOException)
+{
+	std::istringstream dataBuffer(word);
+	dataBuffer >> intData;
+	if(dataBuffer.fail())
+	{
+		throw mmpbsa::SanderIOException("parseNumber expected an integer but received \""
+				+ word + "\"",mmpbsa::DATA_FORMAT_ERROR);
+	}
+}
+
+void mmpbsa_io::parseNumber(const std::string& word,size_t& intData) throw (mmpbsa::SanderIOException)
+{
+	std::istringstream dataBuffer(word);
+	dataBuffer >> intData;
+	if(dataBuffer.fail())
+	{
+		throw mmpbsa::SanderIOException("parseNumber expected an integer but received \""
+				+ word + "\"",mmpbsa::DATA_FORMAT_ERROR);
+	}
+}
+
+void mmpbsa_io::parseNumber(const std::string& word,mmpbsa_t& returnData) throw (mmpbsa::SanderIOException)
+{
+	std::istringstream dataBuffer(word);
+	dataBuffer >> returnData;
+	if(dataBuffer.fail())
+	{
+		throw mmpbsa::SanderIOException("parseNumber expected an mmpbsa data type but received \""
+				+ word + "\"",mmpbsa::DATA_FORMAT_ERROR);
+	}
+}
+
+
 template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
         std::valarray<T>& dataArray, const size_t& arrayLength, const size_t& width,
         const size_t& numberOfColumns)
@@ -174,7 +208,6 @@ template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
         dataArray.resize(arrayLength);
 
     size_t lineIndex = 0;
-    mmpbsa_t fltCurrentData;
     size_t dataIndex = 0;
 
     for(;dataIndex<arrayLength;)
@@ -195,9 +228,7 @@ template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
         //tokenize line into data. put data into valarray.
         while(currentLine.size() >= width)
         {
-            std::istringstream currentData(currentLine.substr(0,width));
-            currentData >> MMPBSA_FORMAT >> fltCurrentData;
-            dataArray[dataIndex++] = T(fltCurrentData);
+        	parseNumber(currentLine.substr(0,width),dataArray[dataIndex++]);
             currentLine.erase(0,width);
         }
 
@@ -261,13 +292,13 @@ template <> bool mmpbsa_io::loadValarray<std::string>(std::fstream& dataFile,
 }
 
 void mmpbsa_io::read_siz_file(std::fstream& theFile,
-        std::map<std::string,mmpbsa_t>& radii, std::map<std::string,std::string>& residues)
+        std::map<std::string,float>& radii, std::map<std::string,std::string>& residues)
 {
     using mmpbsa_utils::trimString;
     using mmpbsa_utils::toUpperCase;
     
     if(!theFile.good())
-        throw mmpbsa::MMPBSAException("Could not open SIZ file.",mmpbsa::FILE_READ_ERROR);
+        throw mmpbsa::MMPBSAException("Could not open SIZ file.",mmpbsa::FILE_IO_ERROR);
 
     std::string currLine;
     std::string atomName;
@@ -289,7 +320,7 @@ void mmpbsa_io::read_siz_file(std::fstream& theFile,
         {
             std::ostringstream error;
             error << "Improperly formatted SIZ file: Short line at " << lineNumber;
-            throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_READ_ERROR);
+            throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_IO_ERROR);
         }
 
         atomName = toUpperCase(trimString(currLine.substr(0,6)));
@@ -320,7 +351,7 @@ int mmpbsa_io::fileopen(const char* filename, const std::ios::openmode& mode, st
     if(file.is_open())
         return 0;
     else
-        return int(mmpbsa::FILE_READ_ERROR);
+        return int(mmpbsa::FILE_IO_ERROR);
 }
 
 int mmpbsa_io::resolve_filename(const std::string& unresolvedFilename, std::string& resolvedFilename)

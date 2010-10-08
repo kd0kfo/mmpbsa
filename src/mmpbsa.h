@@ -62,7 +62,7 @@ public:
     double fractionDone;///<Progress of the program as a fraction of one.
 
     bool MDOnly;///<Indicator that only Molecular dynamics should be performed. Generally only needed when no XML queue file is provided.
-
+    bool savePDB;///<Indicator of whether or not pdb files should be produced for each energy fun calculated.
     mmpbsa::SanderInterface currentSI;
     mmpbsa::MeadInterface currentMI;
 

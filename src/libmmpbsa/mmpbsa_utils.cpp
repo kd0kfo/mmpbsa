@@ -120,8 +120,8 @@ float * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
     return returnMe;
 }
 
-mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
-       std::map<std::string,mmpbsa_t>& radiusMap)
+float mmpbsa_utils::lookup_radius(const std::string& atomName,
+       const std::map<std::string,float>& radiusMap)
             throw (mmpbsa::MMPBSAException)
 {
     using std::string;
@@ -138,12 +138,12 @@ mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
 
     //A direct name match is preferred. Otherwise test for untrimmed keys and/or ambiguities.
     if(radiusMap.find(atomName) != radiusMap.end())
-        return radiusMap[atomName];
+        return float(radiusMap.at(atomName));
     
     //Not found by atomName. Check atom name only entries
     std::vector<mmpbsa_t> possibleMatches;
     string theAtom = trimString(atomName);
-    for(map<std::string,mmpbsa_t>::const_iterator it = radiusMap.begin();it != radiusMap.end();it++)
+    for(map<std::string,float>::const_iterator it = radiusMap.begin();it != radiusMap.end();it++)
     {
         if(it->first == theAtom)//direct match
         {
@@ -154,7 +154,7 @@ mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
     //see what we found.
     if(possibleMatches.size() == 0)//see above note on shared radii
     {
-        mmpbsa_t deeperSearch = lookup_radius(theAtom.erase(theAtom.size()-1),radiusMap);
+        float deeperSearch = lookup_radius(theAtom.erase(theAtom.size()-1),radiusMap);
         if(deeperSearch == -1)
         {
             std::string error = "No radius found for '%s' in Radii Map" + atomName;
@@ -170,6 +170,6 @@ mmpbsa_t mmpbsa_utils::lookup_radius(const std::string& atomName,
     }
     
     //iff there is one match.
-    return possibleMatches[0];
+    return float(possibleMatches[0]);
 }
 

@@ -31,7 +31,6 @@
 #include "boinc/error_numbers.h"
 #include "boinc/util.h"
 
-extern size_t strlcpy(char *dst, const char *src, size_t size);
 #define HAVE_STRCASESTR 1
 #include "boinc/str_util.h"
 #else
@@ -54,6 +53,7 @@ extern size_t strlcpy(char *dst, const char *src, size_t size);
 #include <signal.h>
 #endif
 
+extern size_t strlcpy(char *dst, const char *src, size_t size);
 
 
 namespace mmpbsa{

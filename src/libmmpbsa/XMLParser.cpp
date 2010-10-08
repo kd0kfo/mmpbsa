@@ -58,7 +58,7 @@ void mmpbsa_utils::XMLParser::parse(const std::string& xmlFilename) throw (mmpbs
     if(!xmlFile.good())
     {
         std::string error = "Could not open xml file: " + xmlFilename;
-        throw mmpbsa::XMLParserException(error,mmpbsa::FILE_READ_ERROR);
+        throw mmpbsa::XMLParserException(error,mmpbsa::FILE_IO_ERROR);
     }
 
     using mmpbsa_io::getNextLine;
@@ -164,14 +164,14 @@ std::pair<std::string,std::string> mmpbsa_utils::XMLParser::parseLine(const std:
     return returnMe;
 }
 
-void mmpbsa_utils::XMLParser::write(const char* fileName)const
+void mmpbsa_utils::XMLParser::write(const char* fileName)const throw (mmpbsa::XMLParserException)
 {
     std::fstream outfile(fileName,std::ios::out);
     if(!outfile.good())
     {
         char error[256];
         sprintf(error,"Could not open: %s",fileName);
-        throw mmpbsa::XMLParserException(error,mmpbsa::FILE_READ_ERROR);
+        throw mmpbsa::XMLParserException(error,mmpbsa::FILE_IO_ERROR);
     }
     outfile << toString();
     outfile.close();
@@ -208,3 +208,9 @@ std::string mmpbsa_utils::XMLParser::mainTag()
     return "";
 }
 
+mmpbsa_utils::XMLNode* mmpbsa_utils::XMLParser::detachHead()
+{
+	mmpbsa_utils::XMLNode* detached = head;
+	head = 0;
+	return detached;
+}

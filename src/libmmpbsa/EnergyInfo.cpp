@@ -66,7 +66,7 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
     using mmpbsa_utils::trimString;
     
     if(!mdoutFile.good())
-        throw SanderIOException("Cannot open mdout file.",FILE_READ_ERROR);
+        throw SanderIOException("Cannot open mdout file.",FILE_IO_ERROR);
 
     string currentLine = getNextLine(mdoutFile);
     while(!mdoutFile.eof() && (currentLine.size() < 6 || currentLine.substr(1,5) != "NSTEP"))//" NSTEP" begins a block of energy info
@@ -350,7 +350,7 @@ float mmpbsa::get_minimized_energy(std::fstream& mdout) throw (SanderIOException
     using mmpbsa_io::getNextLine;
     
     if(!mdout.is_open())
-        throw mmpbsa::SanderIOException("Cannot read mdout file to obtain final energy",FILE_READ_ERROR);
+        throw mmpbsa::SanderIOException("Cannot read mdout file to obtain final energy",FILE_IO_ERROR);
 
     mdout.seekg(0,std::ios::beg);
 
@@ -359,14 +359,14 @@ float mmpbsa::get_minimized_energy(std::fstream& mdout) throw (SanderIOException
     while(currentLine.find("FINAL RESULTS") == currentLine.npos)
     {
         if(mdout.eof())
-            throw SanderIOException("FINAL RESULTS block was missing from the file",FILE_READ_ERROR);
+            throw SanderIOException("FINAL RESULTS block was missing from the file",FILE_IO_ERROR);
         currentLine = getNextLine(mdout);
     }
 
     while(currentLine.find("ENERGY") == currentLine.npos)
     {
         if (mdout.eof())
-            throw SanderIOException("Total Energy is missing from the FINAL RESULTS block.", FILE_READ_ERROR);
+            throw SanderIOException("Total Energy is missing from the FINAL RESULTS block.", FILE_IO_ERROR);
         currentLine = getNextLine(mdout);
     }
     currentLine = getNextLine(mdout);

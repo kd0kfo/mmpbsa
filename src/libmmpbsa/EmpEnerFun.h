@@ -284,7 +284,6 @@ private:
 
 };
 
-
 class BondWalker
 {
 public:
@@ -331,6 +330,11 @@ private:
 
 };//end namespace mmpbsa
 
+/**
+ * Writes Energy data to PDB format (cf http://www.wwpdb.org/documentation/format32/sect9.html)
+ */
+std::ostream& streamPDB(std::ostream& theStream, const mmpbsa::EmpEnerFun& energy, const std::valarray<mmpbsa_t>& crds) throw (mmpbsa::MMPBSAException);
 
 #endif	/* ENERGY_H */
+
 

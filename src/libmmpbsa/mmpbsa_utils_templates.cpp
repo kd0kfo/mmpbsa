@@ -210,19 +210,13 @@ template <class T> std::valarray<T> mmpbsa_utils::cshift(const std::vector<T>& o
 template <class T> size_t mmpbsa_utils::find_first(const std::valarray<T>& array,
             const T& reference)
 {
-    size_t half_size = size_t(array.size()/2);
-    for(size_t i = 0;i<half_size;i++)
+    size_t arr_size = array.size();
+    for(size_t i = 0;i<arr_size;i++)
     {
         if(array[i] == reference)
             return i;
-        if(array[i+half_size] == reference)
-            return i+half_size;
     }
-    if(array[array.size()-1] == reference)//in case of an odd sized array.
-        return array.size()-1;
-    else
-        return array.size();//reference not found.
-
+    return arr_size;
 }
 
 template<class T> T* mmpbsa_utils::cross_product(const T* A, const T* B,const size_t& dim)

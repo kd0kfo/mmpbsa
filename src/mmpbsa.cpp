@@ -92,6 +92,27 @@ int main(int argc, char** argv)
     }
 }
 
+void writePDB(const mmpbsa::EmpEnerFun& energy,
+		const std::valarray<mmpbsa_t>crds,const MMPBSAState& currState,const std::string& molecule)
+{
+	std::fstream pdbFile;
+	std::string filename = currState.outputFilename;
+	size_t dotLoc = filename.find_last_of('.');
+	if(dotLoc != std::string::npos)
+		filename.erase(dotLoc);
+	filename += "_" + molecule;
+	std::ostringstream buff;
+	buff << currState.currentSnap;
+	filename += + "_snap-" + buff.str() + ".pdb";
+
+	pdbFile.open(filename.c_str(),std::ios::out);
+	if(!pdbFile.is_open())
+		throw mmpbsa::MMPBSAException("writePDB could not open for writing: " + filename,mmpbsa::FILE_IO_ERROR);
+
+	streamPDB(pdbFile,energy,crds);
+	pdbFile.close();
+}
+
 int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 {
     using std::valarray;
@@ -109,7 +130,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     }
     catch(mmpbsa::XMLParserException xmlpe)
     {
-        if(xmlpe.getErrType() != mmpbsa::FILE_READ_ERROR)
+        if(xmlpe.getErrType() != mmpbsa::FILE_IO_ERROR)
         {
             std::cerr << "Previous energy data is corrupt. Overwriting." << std::endl;
         }
@@ -162,7 +183,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     EmpEnerFun ligandEFun = entireEFun.stripEnerFun(ligandKeepers,true);
 
     //load radii data, if available
-    map<std::string,mmpbsa_t> radii;//later, check to see if radii.size() > 0 before calling full_EMap(...)
+    map<std::string,float> radii;//later, check to see if radii.size() > 0 before calling full_EMap(...)
     map<std::string,std::string> residues;
     if(currState.radiiFilename.size())
     {
@@ -265,8 +286,17 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
                 ligandSnap[slice(3*ligandCoordIndex++,3,1)] = currCoord;
         }
 
+        //write PDB information, if requested.
+        if(currState.savePDB)
+        {
+
+        	writePDB(complexEFun,complexSnap,currState,"complex");
+        	writePDB(receptorEFun,receptorSnap,currState,"receptor");
+        	writePDB(ligandEFun,ligandSnap,currState,"ligand");
+        }
+
         FinDiffMethod fdm = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
-        map<std::string,mmpbsa_t>* pradii = &(mi.brad);//don't delete!!!
+        map<std::string,float>* pradii = &(mi.brad);//don't delete!!!
         if(radii.size())//if the radius map is empty, use MeadInterface's lookup table.
             pradii = &radii;
 
@@ -293,6 +323,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
         if(currState.currentMolecule == MMPBSAState::RECEPTOR)
         {
+        	//FinDiffMethod newFDM = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
             EMap receptorEMap = MeadInterface::full_EMap(receptorEFun,receptorSnap,fdm,
                     *pradii,residues,mi.istrength,mi.surf_tension,mi.surf_offset);
             snapshotXML->insertChild(receptorEMap.toXML("RECEPTOR"));
@@ -428,7 +459,6 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
         else if (it->first == "trust_prmtop")
         {
             currState.trustPrmtop = true;
-            return 0;
         }
         else if (it->first == "help" || it->first == "h")
 		{
@@ -440,7 +470,10 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
 			std::cout << PACKAGE_STRING << std::endl;
 			return 1;
 		}
-
+		else if(it->first == "save_pdb")
+		{
+			currState.savePDB = true;
+		}
 
     }
     return 0;
@@ -584,6 +617,7 @@ MMPBSAState::MMPBSAState()
     placeInQueue = 0;
     this->weight = 1;
     MDOnly = false;
+    savePDB = false;
 }
 
 MMPBSAState::MMPBSAState(const MMPBSAState& orig)
@@ -600,6 +634,7 @@ MMPBSAState::MMPBSAState(const MMPBSAState& orig)
     currentSnap = orig.currentSnap;
     fractionDone = orig.fractionDone;
     MDOnly = orig.MDOnly;
+    savePDB = orig.savePDB;
     currentSI = orig.currentSI;
     currentMI = orig.currentMI;
     currentMolecule = orig.currentMolecule;
@@ -626,6 +661,7 @@ MMPBSAState& MMPBSAState::operator=(const MMPBSAState& orig)
     currentSnap = orig.currentSnap;
     fractionDone = orig.fractionDone;
     MDOnly = orig.MDOnly;
+    savePDB = orig.savePDB;
     currentSI = orig.currentSI;
     currentMI = orig.currentMI;
     currentMolecule = orig.currentMolecule;
@@ -652,7 +688,7 @@ bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
     catch(mmpbsa::XMLParserException xpe)
     {
         std::cerr << "Did not open " << restartState.checkpointFilename << std::endl;
-        if(xpe.getErrType() == mmpbsa::FILE_READ_ERROR)
+        if(xpe.getErrType() == mmpbsa::FILE_IO_ERROR)
             return false;
         else
             throw xpe;
@@ -722,7 +758,7 @@ bool restart_mmpbsa(MMPBSAState& restartState)
     }
     catch(mmpbsa::XMLParserException xpe)
     {
-        if(xpe.getErrType() == mmpbsa::FILE_READ_ERROR)
+        if(xpe.getErrType() == mmpbsa::FILE_IO_ERROR)
             return false;
         else
             throw xpe;
@@ -769,6 +805,10 @@ bool restart_mmpbsa(MMPBSAState& restartState)
         else if(tag == "queue_position")
         {
             buff >> restartState.placeInQueue;
+        }
+        else if(tag == "save_pdb" && it->second != "0")
+        {
+        	restartState.savePDB == true;
         }
         else
         {
@@ -821,7 +861,10 @@ void checkpoint_mmpbsa(MMPBSAState& saveState)
     checkMap["checkpoint_counter"] = buff.str();
     buff.str("");buff << saveState.placeInQueue;
     checkMap["queue_position"] = buff.str();
-    mmpbsa_utils::XMLParser xmlDoc("mmpbsa_state",checkMap);
+
+    if(saveState.savePDB)
+    	checkMap["save_pdb"] = "1";
+	mmpbsa_utils::XMLParser xmlDoc("mmpbsa_state",checkMap);
     checkpoint_out(saveState,xmlDoc);
 }
 
@@ -937,7 +980,7 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
     catch(mmpbsa::XMLParserException xpe)
     {
         std::cerr << "Did not open "<< xmlFilename << std::endl;
-        if(xpe.getErrType() == mmpbsa::FILE_READ_ERROR)
+        if(xpe.getErrType() == mmpbsa::FILE_IO_ERROR)
             return returnMe;
         else
             throw xpe;
