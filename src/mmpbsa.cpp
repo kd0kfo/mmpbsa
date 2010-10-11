@@ -1009,7 +1009,7 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
             nodeState.placeInQueue = queuePosition++;
             returnMe.push_back(nodeState);
         }
-        else if(sibling->getName() == "molecular_dynamics")
+        else if(sibling->getName() == "molecular_dynamics" || sibling->getName() == "moledyn")
         {
             parseParameter(tags,nodeState,si);
             nodeState.currentSI = si;
@@ -1017,6 +1017,8 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
             nodeState.placeInQueue = queuePosition++;
             returnMe.push_back(nodeState);
         }
+        else
+        	throw mmpbsa::MMPBSAException("getQueueFile: " + sibling->getName() + " is an unknown process type.",mmpbsa::BAD_XML_TAG);
     }
 
     return returnMe;
