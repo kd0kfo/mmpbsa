@@ -44,12 +44,12 @@ std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data
     theStream << "  ANGLE   =   " << data[EnergyInfo::angle];
     theStream << "  DIHED   =   " << data[EnergyInfo::dihed];
     theStream << std::endl;
-    theStream << "1-4 NB =  " << data[EnergyInfo::nb14];
+    theStream << "1-4 VDW =  " << data[EnergyInfo::nb14];
     theStream << "  1-4 EEL =   " << data[EnergyInfo::eel14];
     theStream << "  VDWAALS    =  " << data[EnergyInfo::vdwaals];
     theStream << std::endl;
-    theStream << "EELEC  =  "  << data[EnergyInfo::eelec];
-    theStream << "  EHBOND  =   "  << data[EnergyInfo::eelec];
+    theStream << "EEL  =  "  << data[EnergyInfo::eelec];
+    theStream << "  HBOND  =   "  << data[EnergyInfo::eelec];
     theStream << "  RESTRAINT  =  "  << data[EnergyInfo::restraint];
     theStream << std::endl;
     theStream << "EAMBER (non-restraint)  =  " << data[EnergyInfo::nonconst_pot];
@@ -69,13 +69,26 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
         throw SanderIOException("Cannot open mdout file.",FILE_IO_ERROR);
 
     string currentLine = getNextLine(mdoutFile);
-    while(!mdoutFile.eof() && (currentLine.size() < 6 || currentLine.substr(1,5) != "NSTEP"))//" NSTEP" begins a block of energy info
+    while(!mdoutFile.eof() && currentLine.find("NSTEP") == std::string::npos)//" NSTEP" begins a block of energy info
         currentLine = getNextLine(mdoutFile);
     
-    string token;
-    while(!mdoutFile.eof() && currentLine.substr(1,5) != "-----")
+    if(mdoutFile.eof())
+    	throw SanderIOException("get_next_energyinfo: No NSTEP data found.",mmpbsa::UNEXPECTED_EOF);
+
+    getNextLine(mdoutFile);
+    getNextLine(mdoutFile);
+    currentLine = getNextLine(mdoutFile);
+    //NSTEP data format.
+    //Line with titles of information
+    //Line with information about the STEP
+    //Blank Line
+    //Energy values of the form "NAME = DATA"
+    while(!mdoutFile.eof())
     {
         currentLine = trimString(currentLine);
+        if(currentLine.size() == 0)
+        	break;//end of data section.
+
         mmpbsa_utils::StringTokenizer tokens(currentLine);
         while(tokens.hasMoreTokens())
         {
@@ -99,6 +112,8 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
         }
         if(!mdoutFile.eof())
             currentLine = getNextLine(mdoutFile);
+        else
+        	break;
     }
 
 
@@ -150,15 +165,15 @@ bool mmpbsa::EnergyInfo::loadEnergyValue(const std::string& identifier,const mmp
         energydata[angle] = value;
     else if(identifier == "DIHED")
         energydata[dihed] = value;
-    else if(identifier == "1-4 NB")
+    else if(identifier == "1-4 VDW")
         energydata[nb14] = value;
     else if(identifier == "1-4 EEL")
        energydata[eel14] = value;
     else if(identifier == "VDWAALS")
        energydata[vdwaals] = value;
-    else if(identifier == "EELEC")
+    else if(identifier == "EEL")
         energydata[eelec] = value;
-    else if(identifier == "EHBOND")
+    else if(identifier == "HBOND")
         energydata[ehbond] = value;
     else if(identifier == "EGB")
         energydata[egb] = value;
