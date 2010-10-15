@@ -165,15 +165,15 @@ bool mmpbsa::EnergyInfo::loadEnergyValue(const std::string& identifier,const mmp
         energydata[angle] = value;
     else if(identifier == "DIHED")
         energydata[dihed] = value;
-    else if(identifier == "1-4 VDW")
+    else if(identifier == "1-4 VDW" || identifier == "1-4 NB")
         energydata[nb14] = value;
     else if(identifier == "1-4 EEL")
        energydata[eel14] = value;
     else if(identifier == "VDWAALS")
        energydata[vdwaals] = value;
-    else if(identifier == "EEL")
+    else if(identifier == "EEL" || identifier == "EELEC")
         energydata[eelec] = value;
-    else if(identifier == "HBOND")
+    else if(identifier == "HBOND" || identifier == "EHBOND")
         energydata[ehbond] = value;
     else if(identifier == "EGB")
         energydata[egb] = value;

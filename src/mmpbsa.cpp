@@ -380,7 +380,7 @@ int sander_run(MMPBSAState& currState,mmpbsa::SanderInterface& si)
                 std::cerr << "Sander(" << si.getPID()
                         << ") had a problem: ";
                 std::cerr.setf(std::ios::hex);
-                std::cerr << status;//show status in hex.
+                std::cerr << "0x" << status;//show status in hex.
                 std::cerr.setf(std::ios::dec);
                 std::cerr << std::endl;
                 return EXIT_CHILD_FAILED;
