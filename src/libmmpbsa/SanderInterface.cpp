@@ -369,7 +369,7 @@ void mmpbsa::SanderInterface::kill() {
 
 void mmpbsa::SanderInterface::stop() {
 #ifdef _WIN32
-    suspend_or_resume_threads(pid, false);
+  suspend_or_resume_threads(pid, 0, false);
 #else
     ::kill(pid, SIGSTOP);
 #endif
@@ -378,7 +378,7 @@ void mmpbsa::SanderInterface::stop() {
 
 void mmpbsa::SanderInterface::resume() {
 #ifdef _WIN32
-    suspend_or_resume_threads(pid, true);
+  suspend_or_resume_threads(pid, 0, true);
 #else
     ::kill(pid, SIGCONT);
 #endif
