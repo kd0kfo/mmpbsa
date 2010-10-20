@@ -181,15 +181,19 @@ char* windows_error_string(char* pszBuf, int iSize) {
 // OpenThread
 typedef HANDLE (WINAPI *tOT)(DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwThreadId);
 
-int suspend_or_resume_threads(DWORD pid, bool resume) {
+int suspend_or_resume_threads(DWORD pid, DWORD calling_thread_id, bool resume) {
     HANDLE threads, thread;
     HMODULE hKernel32Lib = NULL;
     THREADENTRY32 te = {0};
     tOT pOT = NULL;
 
     // Dynamically link to the proper function pointers.
-    hKernel32Lib = GetModuleHandleA("kernel32.dll");
-    pOT = (tOT) GetProcAddress( hKernel32Lib, "OpenThread" );
+    if(!hKernel32Lib){
+      hKernel32Lib = GetModuleHandleA("kernel32.dll");
+    }
+    if(!pOT){
+      pOT = (tOT) GetProcAddress( hKernel32Lib, "OpenThread" );
+    }
 
     if (!pOT) {
         return -1;
@@ -205,6 +209,8 @@ int suspend_or_resume_threads(DWORD pid, bool resume) {
     }
 
     do {
+      if(!diagnostics_is_thread_exempt_suspend(te.the32ThreadID))continue;
+      if(te.th32ThreadID == calling_thread_id)continue;
         if (te.th32OwnerProcessID == pid) {
             thread = pOT(THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
             resume ?  ResumeThread(thread) : SuspendThread(thread);

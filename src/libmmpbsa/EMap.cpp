@@ -52,8 +52,8 @@ std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite)
 {
     std::streamsize prevPrecision = theStream.precision();
     std::ios::fmtflags prevFloatfield = theStream.floatfield;
-    theStream.precision(8);
-    theStream.setf(std::ios::fixed,std::ios::floatfield);
+    theStream << MMPBSA_FORMAT;
+    //theStream.setf(std::ios::fixed,std::ios::floatfield);
     theStream << "BOND " << toWrite.bond << std::endl;
     theStream << "ANGLE " << toWrite.angle << std::endl;
     theStream << "DIHED " << toWrite.dihed << std::endl;
