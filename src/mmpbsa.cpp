@@ -2,6 +2,7 @@
 
 int main(int argc, char** argv)
 {
+	using mmpbsa::MMPBSAState;
     try 
     {
         ::timeAtPreviousCheckpoint = 0;
@@ -13,8 +14,8 @@ int main(int argc, char** argv)
         //correspond to what is placed in the queue XML file.
         if(processQueue.size() == 0)
         {
-            std::map<std::string,std::string> argMap = parseArgs(argc,argv);
             MMPBSAState currState;
+            std::map<std::string,std::string> argMap = parseArgs(argc,argv);
             mmpbsa::SanderInterface si;
             retval = parseParameter(argMap,currState,si);
             if(retval == 0)
@@ -93,10 +94,12 @@ int main(int argc, char** argv)
 }
 
 void writePDB(const mmpbsa::EmpEnerFun& energy,
-		const std::valarray<mmpbsa_t>crds,const MMPBSAState& currState,const std::string& molecule)
+		const std::valarray<mmpbsa_t>crds,const mmpbsa::MMPBSAState& currState,const std::string& molecule)
 {
 	std::fstream pdbFile;
-	std::string filename = currState.outputFilename;
+	std::string filename = "default";
+	if(has_filename(SANDER_MDOUT_TYPE,currState))
+		filename = get_filename(SANDER_MDOUT_TYPE,currState);
 	size_t dotLoc = filename.find_last_of('.');
 	if(dotLoc != std::string::npos)
 		filename.erase(dotLoc);
@@ -113,20 +116,23 @@ void writePDB(const mmpbsa::EmpEnerFun& energy,
 	pdbFile.close();
 }
 
-int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
+int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 {
     using std::valarray;
     using std::vector;
     using std::slice;
     using std::map;
     using namespace mmpbsa;
+    using mmpbsa::MMPBSAState;
 
-    if(!currState.outputFilename.size())
-        currState.outputFilename = "mmpbsa-output.xml";
+    if(!has_filename(SANDER_MDOUT_TYPE,currState))
+        currState.filename_map[SANDER_MDOUT_TYPE] = "mmpbsa-output.xml";
 
+    //Upon restart, MMPBSA needs to reload energy that was calculated previously and then
+    //append new data to it.
     mmpbsa_utils::XMLParser previousEnergyData;
     try{
-        previousEnergyData.parse(currState.outputFilename);
+        previousEnergyData.parse(currState.filename_map[SANDER_MDOUT_TYPE]);
     }
     catch(mmpbsa::XMLParserException xmlpe)
     {
@@ -140,10 +146,13 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     
     //load and check the parmtop file.
     mmpbsa::SanderParm * sp = new mmpbsa::SanderParm;
-    sp->raw_read_amber_parm(currState.prmtopFilename);
+    if(!has_filename(SANDER_PRMTOP_TYPE,currState))
+    	throw mmpbsa::MMPBSAException("mmpbsa_run: no parmtop file.",BROKEN_PRMTOP_FILE);
+    sp->raw_read_amber_parm(get_filename(SANDER_PRMTOP_TYPE,currState));
     if(!currState.trustPrmtop)
         if(!sp->sanityCheck())
-            throw MMPBSAException("Parmtop file is insane.",INVALID_PRMTOP_DATA);
+            throw MMPBSAException("mmpbsa_run: Parmtop file, " + get_filename(SANDER_PRMTOP_TYPE,currState)
+            		+ " is insane.",INVALID_PRMTOP_DATA);
 
     //Create energy function with the parmtop data. This energy function will
     //have everything in it. Receptor and ligand will be stripped out.
@@ -156,6 +165,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     size_t receptorSize = 0;
     size_t ligandSize = 0;
 
+    //Prepare a list of the beginnings and ends of receptors and ligands
     for(size_t i = 0;i<currState.receptorStartPos.size();i++)
     {
         size_t currPos = currState.receptorStartPos[i];
@@ -178,6 +188,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     }
     size_t complexSize = receptorSize+ligandSize;
 
+    //Separate the molecules
     EmpEnerFun complexEFun = entireEFun.stripEnerFun(complexKeepers,true);
     EmpEnerFun receptorEFun = entireEFun.stripEnerFun(receptorKeepers,true);
     EmpEnerFun ligandEFun = entireEFun.stripEnerFun(ligandKeepers,true);
@@ -185,16 +196,19 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     //load radii data, if available
     map<std::string,float> radii;//later, check to see if radii.size() > 0 before calling full_EMap(...)
     map<std::string,std::string> residues;
-    if(currState.radiiFilename.size())
+    if(has_filename(RADII_TYPE,currState))
     {
-        std::fstream radiiFile(currState.radiiFilename.c_str(),std::ios::in);
+        std::fstream radiiFile(get_filename(RADII_TYPE,currState).c_str(),std::ios::in);
         mmpbsa_io::read_siz_file(radiiFile,radii, residues);
         radiiFile.close();
     }
 
-    std::fstream trajFile(currState.trajFilename.c_str(),std::ios::in);
+    //Load Trajectory.
+    if(!has_filename(SANDER_INPCRD_TYPE,currState))
+    	throw mmpbsa::MMPBSAException("mmpbsa_run: no trajectory file was given.",BROKEN_TRAJECTORY_FILE);
+    std::fstream trajFile(get_filename(SANDER_INPCRD_TYPE,currState).c_str(),std::ios::in);
     if(!trajFile.good())
-        throw MMPBSAException("Unable to read from trajectory file",BROKEN_TRAJECTORY_FILE);
+        throw MMPBSAException("mmpbsa_run: Unable to read from trajectory file",BROKEN_TRAJECTORY_FILE);
 
     using namespace mmpbsa_io;
     get_traj_title(trajFile);//Don't need title, but this ensure we are at the top of the file. If the title is needed later, hook this.
@@ -254,7 +268,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             else
             {
                 std::ostringstream error;
-                error << "Error in loading snapshot #"  << ++(currState.currentSnap) << std::endl;
+                error << "mmpbsa_run: Error in loading snapshot #"  << ++(currState.currentSnap) << std::endl;
                 throw MMPBSAException(error,BROKEN_TRAJECTORY_FILE);
             }
         }
@@ -262,12 +276,12 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         {
             if(e.getErrType() == UNEXPECTED_EOF)
             {
-                previousEnergyData.write(currState.outputFilename);
+                previousEnergyData.write(get_filename(SANDER_MDOUT_TYPE,currState));
                 return 0;
             }
         }
 
-        //process snapshot.
+        //retrieve snapshot.
         std::ostringstream strSnapNumber;
         strSnapNumber << currState.currentSnap;//Node used to output energy data
         mmpbsa_utils::XMLNode* snapshotXML = new mmpbsa_utils::XMLNode("snapshot");
@@ -295,6 +309,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         	writePDB(ligandEFun,ligandSnap,currState,"ligand");
         }
 
+        //This is the section where we actually do the MMPBSA calculations.
         FinDiffMethod fdm = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
         map<std::string,float>* pradii = &(mi.brad);//don't delete!!!
         if(radii.size())//if the radius map is empty, use MeadInterface's lookup table.
@@ -302,6 +317,10 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
         //output-ing is broken up by section, in case the program needs to be
         //monitored or paused.
+
+        //Check to see if we just ended one snap shot and need to start the
+        //next snap shot at the beginning (which is the whole COMPLEX. If
+        //so, reset the current Molecule to Complex and increment the snap count.
         if(currState.currentMolecule == MMPBSAState::END_OF_MOLECULES)
         {
             currState.currentMolecule = MMPBSAState::COMPLEX;
@@ -311,6 +330,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             continue;//Restarted program at the end of a snapshot. So, move on.
         }
         
+        //MMPBSA on Complex
         if(currState.currentMolecule == MMPBSAState::COMPLEX)
         {
             EMap complexEMap = MeadInterface::full_EMap(complexEFun,complexSnap,fdm,
@@ -321,6 +341,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             checkpoint_mmpbsa(currState);
         }
 
+        //MMPBSA on Receptor
         if(currState.currentMolecule == MMPBSAState::RECEPTOR)
         {
         	//FinDiffMethod newFDM = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
@@ -332,6 +353,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             checkpoint_mmpbsa(currState);
         }
 
+        //MMPBSA on Ligand
         if(currState.currentMolecule == MMPBSAState::LIGAND)
         {
             EMap ligandEMap = MeadInterface::full_EMap(ligandEFun,ligandSnap,fdm,
@@ -340,12 +362,15 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             currState.currentMolecule = MMPBSAState::END_OF_MOLECULES;
             ::updateMMPBSAProgress(currState,0.3333333);
         }
+
+        //MMPBSA is complete. Save the state and update the process on the
+        //status, if monitoring is being done, e.g. BOINC.
         checkpoint_mmpbsa(currState);
         outputXML->insertChild(snapshotXML);
         currState.currentMolecule = MMPBSAState::COMPLEX;//Reset current molecule
         currState.currentSnap += 1;
 
-        previousEnergyData.write(currState.outputFilename);
+        previousEnergyData.write(get_filename(SANDER_MDOUT_TYPE,currState));
     }//end of snapshot loop
 
     currState.fractionDone = 1.0;
@@ -353,20 +378,20 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
     trajFile.close();
 
-    previousEnergyData.write(currState.outputFilename);
+    previousEnergyData.write(get_filename(SANDER_MDOUT_TYPE,currState));
 
 
     delete sp;
     return 0;
 }
 
-int sander_run(MMPBSAState& currState,mmpbsa::SanderInterface& si)
+int sander_run(mmpbsa::MMPBSAState& currState,mmpbsa::SanderInterface& si)
 {
     using namespace mmpbsa;
     if(si.completed || currState.currentProcess == MMPBSAState::MMPBSA)
         return 0;
 
-    int retval = si.start();
+    int retval = si.start(currState.filename_map);
     if(retval)
         return retval;
 
@@ -431,7 +456,7 @@ std::map<std::string,std::string> parseArgs(int argc, char** argv)
     return returnMe;
 }
 
-int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currState, mmpbsa::MeadInterface& mi)
+int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 {
     for(std::map<std::string,std::string>::const_iterator it = args.begin();it != args.end();it++)
     {
@@ -479,7 +504,7 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
     return 0;
 }
 
-int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currState, mmpbsa::SanderInterface& si)
+int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& currState, mmpbsa::SanderInterface& si)
 {
     using mmpbsa_utils::loadListArg;
     int returnMe = 0;
@@ -490,33 +515,12 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
         if (it->second.find("=") != string::npos)
         {
             std::ostringstream error;
-            error << "Multiple occurance of \"=\" in parameter: " <<
+            error << "Multiple occurrence of \"=\" in parameter: " <<
                     it->first << " = " << it->second << std::endl;
             throw mmpbsa::MMPBSAException(error, mmpbsa::COMMAND_LINE_ERROR);
         }
 
-        if (it->first == "prmtop" || it->first == "parmtop") {
-            mmpbsa_io::resolve_filename(it->second, si.prmtopFilename);
-            currState.prmtopFilename = si.prmtopFilename;
-        } else if (it->first == "inpcrd") {
-            mmpbsa_io::resolve_filename(it->second, si.inpcrdFilename);
-            mmpbsa_io::resolve_filename(it->second, currState.trajFilename);
-        } else if (it->first == "mdout") {
-            mmpbsa_io::resolve_filename(it->second, si.mdoutFilename);
-            mmpbsa_io::resolve_filename(it->second, currState.outputFilename);
-        } else if (it->first == "in" || it->first == "mdin") {
-            mmpbsa_io::resolve_filename(it->second, si.mdinFilename);
-        } else if (it->first == "rst" || it->first == "restart" || it->first == "restrt") {
-            mmpbsa_io::resolve_filename(it->second, si.restartFilename);
-        } else if (it->first == "mdcrd") {
-            mmpbsa_io::resolve_filename(it->second, si.mdcrdFilename);
-        } else if (it->first == "checkpoint") {
-            mmpbsa_io::resolve_filename(it->second, currState.checkpointFilename);
-        } else if (it->first == "radii") {
-            mmpbsa_io::resolve_filename(it->second, currState.radiiFilename);
-        } else if (it->first == "mmpbsa_out") {
-            mmpbsa_io::resolve_filename(it->second, currState.outputFilename);
-        } else if (it->first == "rec_list") {
+        if (it->first == "rec_list") {
             currState.receptorStartPos.clear();
             loadListArg(it->second, currState.receptorStartPos,1);
         } else if (it->first == "lig_list") {
@@ -549,7 +553,7 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
             return 0;
         } else if (it->first == "mmpbsa_only") {
             si.completed = true;
-            currState.currentProcess = MMPBSAState::MMPBSA;
+            currState.currentProcess = mmpbsa::MMPBSAState::MMPBSA;
             return 0;
         } else if (it->first == "md_only") {
             currState.MDOnly = true;
@@ -559,6 +563,10 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
         {
             std::istringstream buff(it->second);
             buff >> currState.weight;
+        }
+        else//assuming if the argument is not one of the parameters listed above, it's a filename
+        {
+        	currState.filename_map.insert(*it);
         }
 
     }
@@ -605,89 +613,23 @@ std::string helpString()
     "\n\tCreates a sample queue XML file.";
 }
 
-MMPBSAState::MMPBSAState()
-{
-    trustPrmtop = false;
-    checkpointFilename = "";
-    currentSnap = 0;
-    currentProcess = MMPBSAState::SANDER;
-    currentMolecule = MMPBSAState::COMPLEX;
-    checkpointCounter = 0;
-    this->fractionDone = 0;
-    placeInQueue = 0;
-    this->weight = 1;
-    MDOnly = false;
-    savePDB = false;
-}
-
-MMPBSAState::MMPBSAState(const MMPBSAState& orig)
-{
-    receptorStartPos = orig.receptorStartPos;
-    ligandStartPos = orig.ligandStartPos;
-    snapList = orig.snapList;
-    outputFilename = orig.outputFilename;
-    prmtopFilename = orig.prmtopFilename;
-    trajFilename = orig.trajFilename;
-    radiiFilename = orig.radiiFilename;
-    checkpointFilename = orig.checkpointFilename;
-    checkpointCounter = orig.checkpointCounter;
-    currentSnap = orig.currentSnap;
-    fractionDone = orig.fractionDone;
-    MDOnly = orig.MDOnly;
-    savePDB = orig.savePDB;
-    currentSI = orig.currentSI;
-    currentMI = orig.currentMI;
-    currentMolecule = orig.currentMolecule;
-    currentProcess = orig.currentProcess;
-    trustPrmtop = orig.trustPrmtop;
-    placeInQueue = orig.placeInQueue;
-    weight = orig.weight;
-}
-
-MMPBSAState& MMPBSAState::operator=(const MMPBSAState& orig)
-{
-    if(this == &orig)
-        return *this;
-
-    receptorStartPos = orig.receptorStartPos;
-    ligandStartPos = orig.ligandStartPos;
-    snapList = orig.snapList;
-    outputFilename = orig.outputFilename;
-    prmtopFilename = orig.prmtopFilename;
-    trajFilename = orig.trajFilename;
-    radiiFilename = orig.radiiFilename;
-    checkpointFilename = orig.checkpointFilename;
-    checkpointCounter = orig.checkpointCounter;
-    currentSnap = orig.currentSnap;
-    fractionDone = orig.fractionDone;
-    MDOnly = orig.MDOnly;
-    savePDB = orig.savePDB;
-    currentSI = orig.currentSI;
-    currentMI = orig.currentMI;
-    currentMolecule = orig.currentMolecule;
-    currentProcess = orig.currentProcess;
-    trustPrmtop = orig.trustPrmtop;
-    placeInQueue = orig.placeInQueue;
-    weight = orig.weight;
-    
-    return *this;
-}
-
-bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
+bool restart_sander(mmpbsa::MMPBSAState& restartState, mmpbsa::SanderInterface& si)
 {
     using mmpbsa_utils::XMLParser;
+    using mmpbsa::MMPBSAState;
     XMLParser xmlDoc;
-    if(restartState.checkpointFilename.size() == 0)
+
+    if(!has_filename(CHECKPOINT_FILE_TYPE,restartState))
         return false;
 
     try{
-        xmlDoc.parse(restartState.checkpointFilename);
-        if(xmlDoc.mainTag() == "mmpbsa_state")
+        xmlDoc.parse(get_filename(CHECKPOINT_FILE_TYPE,restartState));
+        if(xmlDoc.mainTag() == MMPBSASTATE_TAG)
             restartState.currentProcess = MMPBSAState::MMPBSA;
     }
     catch(mmpbsa::XMLParserException xpe)
     {
-        std::cerr << "Did not open " << restartState.checkpointFilename << std::endl;
+        std::cerr << "restart_sander: Did not open " << get_filename(CHECKPOINT_FILE_TYPE,restartState) << std::endl;
         if(xpe.getErrType() == mmpbsa::FILE_IO_ERROR)
             return false;
         else
@@ -746,15 +688,17 @@ bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si)
     return usedAllParameters;
 }
 
-bool restart_mmpbsa(MMPBSAState& restartState)
+bool restart_mmpbsa(mmpbsa::MMPBSAState& restartState)
 {
-    if(restartState.checkpointFilename.size() == 0)
+	using mmpbsa::MMPBSAState;
+
+    if(!has_filename(CHECKPOINT_FILE_TYPE,restartState))
         return false;
 
     using mmpbsa_utils::XMLParser;
     XMLParser xmlDoc;
     try{
-        xmlDoc.parse(restartState.checkpointFilename);
+        xmlDoc.parse(get_filename(CHECKPOINT_FILE_TYPE,restartState));
     }
     catch(mmpbsa::XMLParserException xpe)
     {
@@ -818,9 +762,9 @@ bool restart_mmpbsa(MMPBSAState& restartState)
     return usedAllParameters;
 }
 
-void checkpoint_sander(MMPBSAState& saveState, mmpbsa::SanderInterface& si)
+void checkpoint_sander(mmpbsa::MMPBSAState& saveState, mmpbsa::SanderInterface& si)
 {
-    std::fstream sanderProgress("progress.dat",std::ios::in);
+    std::fstream sanderProgress(HEARTBEAT_FILENAME,std::ios::in);
     if(sanderProgress.good())
     {
         double completed,remaining;
@@ -844,11 +788,11 @@ void checkpoint_sander(MMPBSAState& saveState, mmpbsa::SanderInterface& si)
     checkMap["queue_position"] = buff.str();
     buff.str("");buff << saveState.fractionDone;
     checkMap["stage_fraction_done"] = buff.str();
-    mmpbsa_utils::XMLParser xmlDoc("moldyn_state",checkMap);
+    mmpbsa_utils::XMLParser xmlDoc(MDSTATE_TAG,checkMap);
     checkpoint_out(saveState,xmlDoc);
 }
 
-void checkpoint_mmpbsa(MMPBSAState& saveState)
+void checkpoint_mmpbsa(mmpbsa::MMPBSAState& saveState)
 {
     
     std::map<std::string,std::string> checkMap;
@@ -864,16 +808,16 @@ void checkpoint_mmpbsa(MMPBSAState& saveState)
 
     if(saveState.savePDB)
     	checkMap["save_pdb"] = "1";
-	mmpbsa_utils::XMLParser xmlDoc("mmpbsa_state",checkMap);
+	mmpbsa_utils::XMLParser xmlDoc(MMPBSASTATE_TAG,checkMap);
     checkpoint_out(saveState,xmlDoc);
 }
 
-void checkpoint_out(MMPBSAState& saveState,mmpbsa_utils::XMLParser& xmlDoc)
+void checkpoint_out(mmpbsa::MMPBSAState& saveState,mmpbsa_utils::XMLParser& xmlDoc)
 {
     report_boinc_progress();
     saveState.checkpointCounter++;
-    if(saveState.checkpointFilename != "")
-        xmlDoc.write(saveState.checkpointFilename);
+    if(has_filename(CHECKPOINT_FILE_TYPE,saveState))
+        xmlDoc.write(get_filename(CHECKPOINT_FILE_TYPE,saveState));
 #ifdef USE_BOINC
     boinc_checkpoint_completed();
 #endif
@@ -900,7 +844,7 @@ int mmpbsa_boinc_init()
     boinc_register_timer_callback(update_gshmem);
 #endif
 
-    std::cerr << "mmpbsa started\n" << std::endl;
+    std::cerr << "md/mmpbsa started\n" << std::endl;
     return boinc_init_options(&options);
 #endif
 }
@@ -947,10 +891,10 @@ void poll_boinc_messages(mmpbsa::SanderInterface& si)
     a *= 42;
 }
 
-
-std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
+std::vector<mmpbsa::MMPBSAState> getQueueFile(int argc,char** argv)
 {
     using mmpbsa_utils::XMLParser;
+    using mmpbsa::MMPBSAState;
     std::vector<MMPBSAState> returnMe;
 
     XMLParser queueXML;
@@ -979,7 +923,7 @@ std::vector<MMPBSAState> getQueueFile(int argc,char** argv)
     }
     catch(mmpbsa::XMLParserException xpe)
     {
-        std::cerr << "Did not open "<< xmlFilename << std::endl;
+        std::cerr << "getQueueFile: Did not open "<< xmlFilename << std::endl;
         if(xpe.getErrType() == mmpbsa::FILE_IO_ERROR)
             return returnMe;
         else
@@ -1055,7 +999,7 @@ void sampleQueue(const std::string& filename)
     writeMe.write(filename);
 }
 
-void updateMMPBSAProgress(MMPBSAState& currState,const double& increment)
+void updateMMPBSAProgress(mmpbsa::MMPBSAState& currState,const double& increment)
 {
     if(currState.snapList.size())
     {
@@ -1063,7 +1007,7 @@ void updateMMPBSAProgress(MMPBSAState& currState,const double& increment)
     }
     else
     {
-        currState.fractionDone += increment/5;
+        currState.fractionDone = 0;//if we do not know how many snapshots we're reading, do we know the fraction done?
     }
 }
 
@@ -1092,7 +1036,6 @@ void report_boinc_progress()
 #endif
 }
 
-
 void update_gshmem()
 {
 #if defined(USE_BOINC) && defined(USE_GRAPHICS)
@@ -1111,4 +1054,15 @@ void update_gshmem()
 #endif
 }
 
+bool has_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state)
+{
+	return the_state.filename_map.find(filetype) != the_state.filename_map.end();
+}
+
+const std::string& get_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state) throw (mmpbsa::MMPBSAException)
+{
+	if(the_state.filename_map.find(filetype) == the_state.filename_map.end())
+		throw mmpbsa::MMPBSAException("get_filename: No filename provided for the file type " + filetype,mmpbsa::COMMAND_LINE_ERROR);
+	return the_state.filename_map.find(filetype)->second;
+}
 

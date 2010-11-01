@@ -1124,7 +1124,6 @@ std::ostream& streamPDB(std::ostream& theStream, const mmpbsa::EmpEnerFun& energ
 
 	//iterate through list. output using PDB format.
 	size_t first,last,currAtom,currRes;
-	bool haveFormatWarned = false;
 	size_t serialNumber = 1;
 	for(size_t i = 0;i<mol_ranges.size();i+=2)
 	{

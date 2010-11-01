@@ -226,26 +226,31 @@ int suspend_or_resume_threads(DWORD pid, DWORD calling_thread_id, bool resume) {
 
 #endif
 
-int mmpbsa::SanderInterface::start(const double& start_time) {
+int mmpbsa::SanderInterface::start(const std::map<std::string,std::string>& filename_map, const double& start_time) {
     using std::string;
+    string command_line;
+    std::map<string,string>::const_iterator filename_it;
+
+    //check to see  if filenames have been provided to sander, either via command line arguments or an XML queue file.
+    if(filename_map.size() == 0)
+    	throw MMPBSAException("mmpbsa::SanderInterface::start : no input files were provided.",
+    			COMMAND_LINE_ERROR);
+
     this->starting_cpu = start_time;
     string stdout_path = "sander-stdout.txt";
     string stdin_path = "sander-stdin.txt";
     string stderr_path = "sander-stdin.txt";
     
-    
+    //setup executable
     char buff[] = "./moldyn";
     char application[1024];
     mmpbsa_io::resolve_filename(buff, application,sizeof(application));
     
-    std::string command_line = "-O -i " + mdinFilename + " -o  " + mdoutFilename
-            + " -c " + inpcrdFilename + " -p " + prmtopFilename + " -r " + restartFilename;
-
-    std::cerr << command_line << std::endl;
-
-    if(mdcrdFilename.size())
-        command_line += " -x " + mdcrdFilename;
-
+    //append filename arguments.
+    for(filename_it = filename_map.begin();filename_it != filename_map.end();filename_it++)
+    {
+    	command_line += " -" + filename_it->first + " " + filename_it->second + " ";
+    }
 
     std::cout << application << " running with arguments: " << command_line << std::endl;
     

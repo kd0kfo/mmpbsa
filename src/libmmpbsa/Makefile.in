@@ -69,7 +69,8 @@ am_libmmpbsa_a_OBJECTS = libmmpbsa_a-EmpEnerFun.$(OBJEXT) \
 	libmmpbsa_a-mmpbsa_utils.$(OBJEXT) \
 	libmmpbsa_a-XMLParser.$(OBJEXT) libmmpbsa_a-XMLNode.$(OBJEXT) \
 	libmmpbsa_a-mmpbsa_io.$(OBJEXT) \
-	libmmpbsa_a-StringTokenizer.$(OBJEXT)
+	libmmpbsa_a-StringTokenizer.$(OBJEXT) \
+	libmmpbsa_a-MMPBSAState.$(OBJEXT)
 libmmpbsa_a_OBJECTS = $(am_libmmpbsa_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -178,9 +179,9 @@ target_alias = @target_alias@
 lib_LIBRARIES = libmmpbsa.a
 libmmpbsa_adir = $(libdir)
 libmmpbsa_a_CPPFLAGS = -Wall  $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ -I../ $(BOINC_CPPFLAGS)
-libmmpbsa_a_SOURCES = EmpEnerFun.cpp EMap.cpp EnergyInfo.cpp SanderInterface.cpp MeadInterface.cpp SanderParm.cpp mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp StringTokenizer.cpp 
+libmmpbsa_a_SOURCES = EmpEnerFun.cpp EMap.cpp EnergyInfo.cpp SanderInterface.cpp MeadInterface.cpp SanderParm.cpp mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp StringTokenizer.cpp MMPBSAState.cpp 
 libmmpbsa_a_includedir = $(includedir)/libmmpbsa
-libmmpbsa_a_include_HEADERS = EmpEnerFun.h EMap.h EnergyInfo.h SanderInterface.h MeadInterface.h SanderParm.h mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h StringTokenizer.h XMLParser.h XMLNode.h
+libmmpbsa_a_include_HEADERS = EmpEnerFun.h EMap.h EnergyInfo.h SanderInterface.h MeadInterface.h SanderParm.h mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h
 all: all-am
 
 .SUFFIXES:
@@ -257,6 +258,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-EMap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-EmpEnerFun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-EnergyInfo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-MMPBSAState.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-MeadInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-SanderInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-SanderParm.Po@am__quote@
@@ -463,6 +465,20 @@ libmmpbsa_a-StringTokenizer.obj: StringTokenizer.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StringTokenizer.cpp' object='libmmpbsa_a-StringTokenizer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-StringTokenizer.obj `if test -f 'StringTokenizer.cpp'; then $(CYGPATH_W) 'StringTokenizer.cpp'; else $(CYGPATH_W) '$(srcdir)/StringTokenizer.cpp'; fi`
+
+libmmpbsa_a-MMPBSAState.o: MMPBSAState.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-MMPBSAState.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-MMPBSAState.Tpo" -c -o libmmpbsa_a-MMPBSAState.o `test -f 'MMPBSAState.cpp' || echo '$(srcdir)/'`MMPBSAState.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-MMPBSAState.Tpo" "$(DEPDIR)/libmmpbsa_a-MMPBSAState.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-MMPBSAState.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='MMPBSAState.cpp' object='libmmpbsa_a-MMPBSAState.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-MMPBSAState.o `test -f 'MMPBSAState.cpp' || echo '$(srcdir)/'`MMPBSAState.cpp
+
+libmmpbsa_a-MMPBSAState.obj: MMPBSAState.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-MMPBSAState.obj -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-MMPBSAState.Tpo" -c -o libmmpbsa_a-MMPBSAState.obj `if test -f 'MMPBSAState.cpp'; then $(CYGPATH_W) 'MMPBSAState.cpp'; else $(CYGPATH_W) '$(srcdir)/MMPBSAState.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-MMPBSAState.Tpo" "$(DEPDIR)/libmmpbsa_a-MMPBSAState.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-MMPBSAState.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='MMPBSAState.cpp' object='libmmpbsa_a-MMPBSAState.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-MMPBSAState.obj `if test -f 'MMPBSAState.cpp'; then $(CYGPATH_W) 'MMPBSAState.cpp'; else $(CYGPATH_W) '$(srcdir)/MMPBSAState.cpp'; fi`
 uninstall-info-am:
 install-libmmpbsa_a_includeHEADERS: $(libmmpbsa_a_include_HEADERS)
 	@$(NORMAL_INSTALL)

@@ -12,7 +12,9 @@
 #include "config.h"
 #endif
 
-#include "mmpbsa_utils.h"
+#include <map>
+
+#include "libmmpbsa/mmpbsa_utils.h"
 
 #if defined(_WIN32) || defined(__MINGW_WIN32__)
 #include <windows.h>
@@ -53,6 +55,9 @@
 #include <signal.h>
 #endif
 
+#define HEARTBEAT_FILENAME "progress.dat"
+
+
 extern size_t strlcpy(char *dst, const char *src, size_t size);
 
 
@@ -73,10 +78,11 @@ public:
      * reporting the amount of time the process has be running, when netRuntime()
      * is called.
      * 
+     * @param filename_map std::map that maps file type types to filenames.
      * @param start_time
      * @return
      */
-    int start(const double& start_time = 0.0);
+    int start(const std::map<std::string,std::string>& filename_map, const double& start_time = 0.0);
 
     /**
      * Checks on the status of the sander process. Returns true when the process
@@ -188,6 +194,7 @@ private:
     int pid;
 #endif
 };
+
 
 
 }//end namespace mmpbsa

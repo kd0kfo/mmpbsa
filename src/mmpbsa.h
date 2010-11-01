@@ -22,6 +22,7 @@
 #include "libmmpbsa/XMLParser.h"
 #include "libmmpbsa/XMLNode.h"
 #include "libmmpbsa/SanderInterface.h"
+#include "libmmpbsa/MMPBSAState.h"
 
 #include "MEAD/FinDiffMethod.h"
 
@@ -43,55 +44,9 @@ double timeAtPreviousCheckpoint;
 double netFractionDone;
 double netCPUTime;
 
-class MMPBSAState
-{
-public:
-    std::vector<size_t> receptorStartPos;///<Starting positions for receptors. End positions are deduced from the parmtop file.
-    std::vector<size_t> ligandStartPos;///<Starting positions for ligands. End positions are deduced from the parmtop file.
-    std::vector<size_t> snapList;///<List of snapshots to be used in the calculations. If the list is empty, all snapshots are used.
 
-    std::string outputFilename;///<Output file of MMPBSA Calculations
-    std::string prmtopFilename;///<Sander Parmtop file
-    std::string trajFilename;///<Molecular dynamics trajectories.
-    std::string radiiFilename;///<Atom Radii
-    std::string checkpointFilename;///<Checkpoint file. If no checkpointing is to be done, filename should be a null string.
 
-    size_t checkpointCounter;///<Counter of the number of times checkpoint is done. For purely informative purposes.
-    size_t currentSnap;///<Gives the current snapshot being used by mmpbsa_run
-
-    double fractionDone;///<Progress of the program as a fraction of one.
-
-    bool MDOnly;///<Indicator that only Molecular dynamics should be performed. Generally only needed when no XML queue file is provided.
-    bool savePDB;///<Indicator of whether or not pdb files should be produced for each energy fun calculated.
-    mmpbsa::SanderInterface currentSI;
-    mmpbsa::MeadInterface currentMI;
-
-    /**
-     * List parts of the complex on which to perform MMPBSA. END_OF_MOLECUES signifies the snapshot is finished.
-     */
-    enum MOLECULE{COMPLEX,RECEPTOR,LIGAND,END_OF_MOLECULES} currentMolecule;
-
-    /**
-     * Stage in the program.
-     */
-    enum SimProcess{MMPBSA,SANDER} currentProcess;
-    int placeInQueue;//zero orderd place in queue.
-    float weight;//factor by which to multiple time in queue(i.e. weight = 1 means process will take equal time as other processes).
-
-    bool trustPrmtop;///<Flag to indicate if the sanity check of the SanderParm object should be ignored. This is not suggested, but if the sanity check fails and one *does* believe it should work, this is provided as a work around, for whatever reason might arise.
-
-    /**
-     * Stores variables needed to restart the program. This is needed for running
-     * on systems where the program may be closed and restarted again, i.e. BOINC Grid
-     */
-    MMPBSAState();
-    MMPBSAState(const MMPBSAState& orig);
-    virtual ~MMPBSAState(){}
-
-    MMPBSAState& operator=(const MMPBSAState& orig);
-};
-
-std::vector<MMPBSAState> processQueue;///<Array of calculations to be run by the program.
+std::vector<mmpbsa::MMPBSAState> processQueue;///<Array of calculations to be run by the program.
 
 /**
  * Pulls everything together to perform the MMPBSA calculations.
@@ -101,7 +56,7 @@ std::vector<MMPBSAState> processQueue;///<Array of calculations to be run by the
  * @param argv
  * @return
  */
-int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi);
+int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi);
 
 /**
  * Forks and monitors a Sander Process. Parameters are stored in the
@@ -115,7 +70,7 @@ int mmpbsa_run(MMPBSAState& currState, mmpbsa::MeadInterface& mi);
  * @param si
  * @return
  */
-int sander_run(MMPBSAState& currState,mmpbsa::SanderInterface& si);
+int sander_run(mmpbsa::MMPBSAState& currState,mmpbsa::SanderInterface& si);
 
 /**
  * Updates the progress measurement (fractionDone) for the MMPBSAState object
@@ -124,7 +79,7 @@ int sander_run(MMPBSAState& currState,mmpbsa::SanderInterface& si);
  * @param currState
  * @param increment
  */
-void updateMMPBSAProgress(MMPBSAState& currState,const double& increment);
+void updateMMPBSAProgress(mmpbsa::MMPBSAState& currState,const double& increment);
 
 /**
  * Prints the energy data for a given snapshot, using the overloaded "<<" operator
@@ -154,8 +109,8 @@ std::map<std::string,std::string> parseArgs(int argc, char** argv);
  * @param arg
  * @param mi
  */
-int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currState, mmpbsa::MeadInterface& mi);
-int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currState, mmpbsa::SanderInterface& si);
+int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi);
+int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& currState, mmpbsa::SanderInterface& si);
 
 /**
  * When a command line argument toggles a program flag, this method makes the
@@ -164,12 +119,24 @@ int parseParameter(std::map<std::string,std::string> args, MMPBSAState& currStat
  * @param flag
  * @param mi
  */
-int parseFlag(std::string flag, MMPBSAState& currState, mmpbsa::MeadInterface& mi);
-int parseFlag(std::string flag, MMPBSAState& currState, mmpbsa::SanderInterface& si);
+int parseFlag(std::string flag, mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi);
+int parseFlag(std::string flag, mmpbsa::MMPBSAState& currState, mmpbsa::SanderInterface& si);
 
 
+/**
+ * Determines whether or not a filename was provided for the given file type.
+ */
+bool has_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state);
 
-std::vector<MMPBSAState> getQueueFile(int argc,char** argv);
+/**
+ * Returns a reference to the filename that corresponds to the file type (cf Amber Manual)
+ * based on those proved in MMPBSAState. If the file type is not listed in the MMPBSAState
+ * object, an exception is thrown. To provent an exception, one could check to see if there
+ * is a filename for that file type by using has_filename.
+ */
+const std::string& get_filename(const std::string& filetype, const mmpbsa::MMPBSAState&) throw (mmpbsa::MMPBSAException);
+
+std::vector<mmpbsa::MMPBSAState> getQueueFile(int argc,char** argv);
 
 /**
  * Creates a string about the usage of the program, listing the parameters and
@@ -195,23 +162,21 @@ int mmpbsa_boinc_init();
  */
 void poll_boinc_messages(mmpbsa::SanderInterface& si);
 
-
-
 /**
  * Saves the state of the MMPBSA Program. If BOINC is being used, BOINC checkpointing
  * is performed.
  */
-void checkpoint_out(MMPBSAState& saveState, mmpbsa_utils::XMLParser& xmlDoc);
-void checkpoint_mmpbsa(MMPBSAState& saveState);
-void checkpoint_sander(MMPBSAState& saveState, mmpbsa::SanderInterface& si);
+void checkpoint_out(mmpbsa::MMPBSAState& saveState, mmpbsa_utils::XMLParser& xmlDoc);
+void checkpoint_mmpbsa(mmpbsa::MMPBSAState& saveState);
+void checkpoint_sander(mmpbsa::MMPBSAState& saveState, mmpbsa::SanderInterface& si);
 \
 /**
  * Load the last MMPBSA state. Returns true is all of the parameters in the
  * checkpoint file were used.
  *
  */
-bool restart_mmpbsa(MMPBSAState& restartState);
-bool restart_sander(MMPBSAState& restartState, mmpbsa::SanderInterface& si);
+bool restart_mmpbsa(mmpbsa::MMPBSAState& restartState);
+bool restart_sander(mmpbsa::MMPBSAState& restartState, mmpbsa::SanderInterface& si);
 
 /**
  * Generates a sample queue file and writes it to the provided file. The sample

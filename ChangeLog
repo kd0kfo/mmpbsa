@@ -1,6 +1,71 @@
-Recent Change:
-Fixed XMLParser::parse to read CR characters (and remove them).
-This will better facilitate capatibility between windows and linux.
+Recent Changes:
+	Added some documentation.
+
+commit 2e67dd09d255bd9e607ecd353050ae61a9c1896b
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Oct 20 10:03:33 2010 -0500
+
+    Updated references to suspend_or_resume_threads
+
+commit 811970ce891a5671c309e67b2e81f655af460e81
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Oct 20 09:59:50 2010 -0500
+
+    Enforced use of MMPBSA_FORMAT in EMap
+    
+    Updated SanderInterface::suspend_or_resume_threads for changes in
+    the boinc library.
+
+commit 364885695fe3313ee54afb37b331f75eb99ecaa0
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Oct 15 16:02:29 2010 -0500
+
+    Updated
+    Updated EnergyInfo for varying amber energy label formats (e.g. 1-4
+    van der waals energy)
+
+commit 6b93f0941758f9dec7e4032f2dff74d16bca5801
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Oct 11 14:33:29 2010 -0500
+
+    Corrected EEL & HBOND energy term labels with >> and << operator
+    overloads.
+
+commit 2e65fb90524abbfed182aa81497c739ee930aa46
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Oct 11 10:08:02 2010 -0500
+
+    Added "moledyn" to the list of  recognized processes in getQueueFile
+
+commit e84b5a47522e312cfc49c906142069eb9f79f3e6
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Oct 8 13:43:02 2010 -0500
+
+    Improved mmpbsa routine to better handle radii, including treating
+    it as a float rather than mmpbsa_t (float is used by MEAD).
+
+commit 1db010a362f6483bd7ab76a72bfd50fddb63b761
+Author: David Coss <David.Coss@stjude.org>
+Date:   Wed Oct 6 13:53:47 2010 -0500
+
+    Changed the include path for BOINC headers to use a lower case directory.
+
+commit aec1bf354410787d3b2bf752b655fac020f6f419
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Oct 1 09:55:54 2010 -0500
+
+    Changed mmpbsa to use the "inpcrd" tag in the queue XML file as the
+    input coordinate file for doing MMPBSA. Originally, mdcrd was used
+    as this is, or can be, the file extension used for that file type.
+    However, for better compatibility with sander command line arguments,
+    inpcrd is being used instead.
+
+commit 7f6e7e32e3ec6828230f3b61cac16201a2f6d54d
+Author: David Coss <David.Coss@stjude.org>
+Date:   Thu Sep 30 08:55:11 2010 -0500
+
+    Fixed XMLParser::parse to read CR characters (and remove them).
+    This will better facilitate capatibility between windows and linux.
 
 commit c4a430bd2d2a65cbab5f359f2101256877f022fc
 Author: David Coss <David.Coss@stjude.org>
