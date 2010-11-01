@@ -116,6 +116,7 @@ void writePDB(const mmpbsa::EmpEnerFun& energy,
 	pdbFile.close();
 }
 
+#include <unistd.h>
 int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 {
     using std::valarray;
@@ -124,6 +125,13 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     using std::map;
     using namespace mmpbsa;
     using mmpbsa::MMPBSAState;
+
+    double debug_cpu_time;
+    pid_t the_pid = getpid();
+    std::cout << "Starting MMPBSA calculation (" << the_pid << ")." << std::endl;
+    boinc_wu_cpu_time(debug_cpu_time);
+    std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
+
 
     if(!has_filename(SANDER_MDOUT_TYPE,currState))
         currState.filename_map[SANDER_MDOUT_TYPE] = "mmpbsa-output.xml";
@@ -188,6 +196,9 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     }
     size_t complexSize = receptorSize+ligandSize;
 
+    boinc_wu_cpu_time(debug_cpu_time);
+    std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
+
     //Separate the molecules
     EmpEnerFun complexEFun = entireEFun.stripEnerFun(complexKeepers,true);
     EmpEnerFun receptorEFun = entireEFun.stripEnerFun(receptorKeepers,true);
@@ -229,6 +240,9 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
                 mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
                 ::updateMMPBSAProgress(currState,1);
                 report_boinc_progress();
+                boinc_wu_cpu_time(debug_cpu_time);
+                std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
+
             }
             catch(MMPBSAException e)
             {
@@ -280,6 +294,8 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
                 return 0;
             }
         }
+        boinc_wu_cpu_time(debug_cpu_time);
+            std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
 
         //retrieve snapshot.
         std::ostringstream strSnapNumber;
@@ -339,6 +355,9 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             currState.currentMolecule = MMPBSAState::RECEPTOR;
             ::updateMMPBSAProgress(currState,0.33333333);
             checkpoint_mmpbsa(currState);
+            boinc_wu_cpu_time(debug_cpu_time);
+                std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
+
         }
 
         //MMPBSA on Receptor
@@ -351,6 +370,9 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             currState.currentMolecule = MMPBSAState::LIGAND;
             ::updateMMPBSAProgress(currState,0.333333);
             checkpoint_mmpbsa(currState);
+            boinc_wu_cpu_time(debug_cpu_time);
+                std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
+
         }
 
         //MMPBSA on Ligand
@@ -361,6 +383,9 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             snapshotXML->insertChild(ligandEMap.toXML("LIGAND"));
             currState.currentMolecule = MMPBSAState::END_OF_MOLECULES;
             ::updateMMPBSAProgress(currState,0.3333333);
+            boinc_wu_cpu_time(debug_cpu_time);
+                std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
+
         }
 
         //MMPBSA is complete. Save the state and update the process on the
@@ -371,7 +396,10 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         currState.currentSnap += 1;
 
         previousEnergyData.write(get_filename(SANDER_MDOUT_TYPE,currState));
+
     }//end of snapshot loop
+    boinc_wu_cpu_time(debug_cpu_time);
+        std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
 
     currState.fractionDone = 1.0;
     checkpoint_mmpbsa(currState);
@@ -391,11 +419,13 @@ int sander_run(mmpbsa::MMPBSAState& currState,mmpbsa::SanderInterface& si)
     if(si.completed || currState.currentProcess == MMPBSAState::MMPBSA)
         return 0;
 
+    std::cout << "Starting molecular dynamics" << std::endl;
     int retval = si.start(currState.filename_map);
     if(retval)
         return retval;
 
     int status;
+    double debug_cpu_time;
     while(true)//si has a fork running. Monitor it.
     {
         if(si.poll(status))
@@ -419,7 +449,12 @@ int sander_run(mmpbsa::MMPBSAState& currState,mmpbsa::SanderInterface& si)
 
             ::netFractionDone = overallFractionDone();
             checkpoint_sander(currState,si);
+            std::cout << "Checkpointed." << std::endl;
         }
+        std::cout << "Sander time: " << si.cpu_time();
+        boinc_report_app_status(si.start_time()+si.cpu_time(),::timeAtPreviousCheckpoint,overallFractionDone());
+        ::boinc_wu_cpu_time(debug_cpu_time);
+        std::cout << " Boinc time: " << debug_cpu_time << std::endl;
         ::boinc_sleep(SanderInterface::pollPeriod);
 #endif
     }

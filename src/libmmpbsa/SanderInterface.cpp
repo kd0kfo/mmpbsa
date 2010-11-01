@@ -283,7 +283,10 @@ int mmpbsa::SanderInterface::start(const std::map<std::string,std::string>& file
     command_line = "-O ";
     for(filename_it = filename_map.begin();filename_it != filename_map.end();filename_it++)
     {
-      command_line += " -" + get_sander_arg(filename_it->first) + " " + filename_it->second + " ";
+    	const std::string file_type = filename_it->first;
+    	if(file_type == "checkpoint")
+    		continue;
+      command_line += " -" + get_sander_arg(file_type) + " " + filename_it->second + " ";
     }
 
     std::cerr << application << " running with arguments: " << command_line << std::endl;

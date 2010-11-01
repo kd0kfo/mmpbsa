@@ -195,8 +195,6 @@ private:
 #endif
 };
 
-
-
 }//end namespace mmpbsa
 
 #endif	/* SANDERINTERFACE_H */

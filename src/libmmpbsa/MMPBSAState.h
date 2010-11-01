@@ -8,10 +8,10 @@
 #include "libmmpbsa/SanderInterface.h"
 #include "libmmpbsa/MeadInterface.h"
 
-#define SANDER_MDOUT_TYPE "o"
-#define SANDER_PRMTOP_TYPE "p"
+#define SANDER_MDOUT_TYPE "mdout"
+#define SANDER_PRMTOP_TYPE "prmtop"
 #define RADII_TYPE "radii"
-#define SANDER_INPCRD_TYPE "c"
+#define SANDER_INPCRD_TYPE "inpcrd"
 #define CHECKPOINT_FILE_TYPE "checkpoint"
 
 //These tags are used to indicate the current state of the mdmmpbsa program

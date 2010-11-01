@@ -45,7 +45,6 @@ double netFractionDone;
 double netCPUTime;
 
 
-
 std::vector<mmpbsa::MMPBSAState> processQueue;///<Array of calculations to be run by the program.
 
 /**
@@ -211,6 +210,8 @@ void update_gshmem();
  */
 double overallFractionDone();
 
+void send_status_message(mmpbsa::SanderInterface& si, double frac_done,
+        double checkpoint_cpu_time);
 
 #endif	/* MMPBSA_H */
 
