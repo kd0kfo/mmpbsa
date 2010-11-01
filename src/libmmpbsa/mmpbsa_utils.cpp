@@ -138,7 +138,7 @@ float mmpbsa_utils::lookup_radius(const std::string& atomName,
 
     //A direct name match is preferred. Otherwise test for untrimmed keys and/or ambiguities.
     if(radiusMap.find(atomName) != radiusMap.end())
-        return float(radiusMap.at(atomName));
+      return radiusMap.find(atomName)->second;
     
     //Not found by atomName. Check atom name only entries
     std::vector<mmpbsa_t> possibleMatches;
