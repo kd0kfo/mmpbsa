@@ -308,7 +308,7 @@ void app_graphics_init() {
 
     txf_load_fonts(".");
 
-    boinc_resolve_filename("logo.jpg", path, sizeof(path));
+    boinc_resolve_filename("logo.bmp", path, sizeof(path));
     logo.load_image_file(path);
 
     init_lights();

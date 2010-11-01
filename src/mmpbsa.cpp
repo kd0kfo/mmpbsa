@@ -507,6 +507,7 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
 int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& currState, mmpbsa::SanderInterface& si)
 {
     using mmpbsa_utils::loadListArg;
+    std::string resolved_filename;
     int returnMe = 0;
     currState.receptorStartPos.push_back(0);//in case these are not set manually by the use. This is the default.
     currState.ligandStartPos.push_back(1);
@@ -551,11 +552,14 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
         else if (it->first == "trust_prmtop") {
             currState.trustPrmtop = true;
             return 0;
-        } else if (it->first == "mmpbsa_only") {
+        }
+        else if (it->first == "mmpbsa_only") {
             si.completed = true;
             currState.currentProcess = mmpbsa::MMPBSAState::MMPBSA;
             return 0;
-        } else if (it->first == "md_only") {
+        }
+        else if (it->first == "md_only")
+        {
             currState.MDOnly = true;
             return 0;
         }
@@ -564,11 +568,12 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
             std::istringstream buff(it->second);
             buff >> currState.weight;
         }
-	else if(it->first == "id")//this is used by the queue system only. Not needed for calculations.
-	  continue;
+        else if(it->first == "id")//this is used by the queue system only. Not needed for calculations.
+        	continue;
         else//assuming if the argument is not one of the parameters listed above, it's a filename
         {
-        	currState.filename_map.insert(*it);
+        	mmpbsa_io::resolve_filename(it->second,resolved_filename);
+        	currState.filename_map[it->first] = resolved_filename;
         }
 
     }
