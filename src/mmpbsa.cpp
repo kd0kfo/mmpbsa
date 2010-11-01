@@ -564,6 +564,8 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
             std::istringstream buff(it->second);
             buff >> currState.weight;
         }
+	else if(it->first == "id")//this is used by the queue system only. Not needed for calculations.
+	  continue;
         else//assuming if the argument is not one of the parameters listed above, it's a filename
         {
         	currState.filename_map.insert(*it);

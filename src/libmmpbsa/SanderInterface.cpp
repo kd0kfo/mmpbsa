@@ -226,6 +226,39 @@ int suspend_or_resume_threads(DWORD pid, DWORD calling_thread_id, bool resume) {
 
 #endif
 
+std::string get_sander_arg(const std::string& file_type)
+{
+  std::string returnMe = file_type;
+
+  if(file_type == "mdin")
+    returnMe = "i";
+  else if(file_type == "mdout")
+    returnMe = "o";
+  else if(file_type == "prmtop")
+    returnMe = "p";
+  else if(file_type == "inpcrd")
+    returnMe = "c";
+  else if(file_type == "restrt")
+    returnMe = "r";
+  else if(file_type == "refc")
+    returnMe = "ref";
+  else if(file_type == "mdcrd")
+    returnMe = "x";
+  else if(file_type == "mdvel")
+    returnMe = "v";
+  else if(file_type == "mden")
+    returnMe = "e";
+  else if(file_type == "mdinfo")
+    returnMe = "inf";
+  else if(file_type == "radii")
+    returnMe = "radii";
+  else if(file_type == "cpin")
+    returnMe = "cpin";
+
+  return returnMe;
+}
+
+
 int mmpbsa::SanderInterface::start(const std::map<std::string,std::string>& filename_map, const double& start_time) {
     using std::string;
     string command_line;
@@ -247,12 +280,13 @@ int mmpbsa::SanderInterface::start(const std::map<std::string,std::string>& file
     mmpbsa_io::resolve_filename(buff, application,sizeof(application));
     
     //append filename arguments.
+    command_line = "-O ";
     for(filename_it = filename_map.begin();filename_it != filename_map.end();filename_it++)
     {
-    	command_line += " -" + filename_it->first + " " + filename_it->second + " ";
+      command_line += " -" + get_sander_arg(filename_it->first) + " " + filename_it->second + " ";
     }
 
-    std::cout << application << " running with arguments: " << command_line << std::endl;
+    std::cerr << application << " running with arguments: " << command_line << std::endl;
     
 
 #if defined(_WIN32)

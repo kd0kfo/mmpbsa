@@ -59,4 +59,3 @@ mmpbsa::MMPBSAState& mmpbsa::MMPBSAState::operator=(const mmpbsa::MMPBSAState& o
 
     return *this;
 }
-
