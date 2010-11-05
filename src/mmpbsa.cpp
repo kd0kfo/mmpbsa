@@ -117,6 +117,16 @@ void writePDB(const mmpbsa::EmpEnerFun& energy,
 }
 
 #include <unistd.h>
+void study_cpu_time()
+{
+#ifdef USE_BOINC
+	double debug_cpu_time;
+    pid_t the_pid = getpid();
+    boinc_wu_cpu_time(debug_cpu_time);
+    std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
+#endif
+}
+
 int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 {
     using std::valarray;
@@ -126,11 +136,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     using namespace mmpbsa;
     using mmpbsa::MMPBSAState;
 
-    double debug_cpu_time;
-    pid_t the_pid = getpid();
-    std::cout << "Starting MMPBSA calculation (" << the_pid << ")." << std::endl;
-    boinc_wu_cpu_time(debug_cpu_time);
-    std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
+    std::cout << "Starting MMPBSA calculation " << std::endl;
 
 
     if(!has_filename(SANDER_MDOUT_TYPE,currState))
@@ -196,8 +202,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     }
     size_t complexSize = receptorSize+ligandSize;
 
-    boinc_wu_cpu_time(debug_cpu_time);
-    std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
+    study_cpu_time();
 
     //Separate the molecules
     EmpEnerFun complexEFun = entireEFun.stripEnerFun(complexKeepers,true);
@@ -240,9 +245,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
                 mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
                 ::updateMMPBSAProgress(currState,1);
                 report_boinc_progress();
-                boinc_wu_cpu_time(debug_cpu_time);
-                std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
-
+                study_cpu_time();
             }
             catch(MMPBSAException e)
             {
@@ -294,8 +297,8 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
                 return 0;
             }
         }
-        boinc_wu_cpu_time(debug_cpu_time);
-            std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
+
+        study_cpu_time();
 
         //retrieve snapshot.
         std::ostringstream strSnapNumber;
@@ -355,9 +358,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             currState.currentMolecule = MMPBSAState::RECEPTOR;
             ::updateMMPBSAProgress(currState,0.33333333);
             checkpoint_mmpbsa(currState);
-            boinc_wu_cpu_time(debug_cpu_time);
-                std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
-
+            study_cpu_time();
         }
 
         //MMPBSA on Receptor
@@ -370,9 +371,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             currState.currentMolecule = MMPBSAState::LIGAND;
             ::updateMMPBSAProgress(currState,0.333333);
             checkpoint_mmpbsa(currState);
-            boinc_wu_cpu_time(debug_cpu_time);
-                std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
-
+            study_cpu_time();
         }
 
         //MMPBSA on Ligand
@@ -383,9 +382,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             snapshotXML->insertChild(ligandEMap.toXML("LIGAND"));
             currState.currentMolecule = MMPBSAState::END_OF_MOLECULES;
             ::updateMMPBSAProgress(currState,0.3333333);
-            boinc_wu_cpu_time(debug_cpu_time);
-                std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
-
+            study_cpu_time();
         }
 
         //MMPBSA is complete. Save the state and update the process on the
@@ -398,8 +395,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         previousEnergyData.write(get_filename(SANDER_MDOUT_TYPE,currState));
 
     }//end of snapshot loop
-    boinc_wu_cpu_time(debug_cpu_time);
-        std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
+    study_cpu_time();
 
     currState.fractionDone = 1.0;
     checkpoint_mmpbsa(currState);
@@ -453,9 +449,9 @@ int sander_run(mmpbsa::MMPBSAState& currState,mmpbsa::SanderInterface& si)
         }
         std::cout << "Sander time: " << si.cpu_time();
         boinc_report_app_status(si.start_time()+si.cpu_time(),::timeAtPreviousCheckpoint,overallFractionDone());
-        ::boinc_wu_cpu_time(debug_cpu_time);
+        boinc_wu_cpu_time(debug_cpu_time);
         std::cout << " Boinc time: " << debug_cpu_time << std::endl;
-        ::boinc_sleep(SanderInterface::pollPeriod);
+        boinc_sleep(SanderInterface::pollPeriod);
 #endif
     }
     si.completed = true;
@@ -482,6 +478,10 @@ std::map<std::string,std::string> parseArgs(int argc, char** argv)
             name = currArg.substr(0,currArg.find("="));
             value = currArg.substr(currArg.find("=")+1);
             returnMe[name] = value;
+        }
+        else if(currArg == "verbose")
+        {
+        	mmpbsa_verbosity = 1;
         }
         else
         {
@@ -534,6 +534,13 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
 		{
 			currState.savePDB = true;
 		}
+		else if(it->first == "verbose")
+		{
+			buff >> mmpbsa_verbosity;
+			if(buff.fail())
+				throw mmpbsa::MMPBSAException("parse_parameters: \"" + it->second + "\" is an invalid verbosity level.",
+						mmpbsa::COMMAND_LINE_ERROR);
+		}
 
     }
     return 0;
@@ -572,6 +579,14 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
 			std::cout << PACKAGE_STRING << std::endl;
 			return 1;
 		}
+        else if(it->first == "verbose")
+        {
+        	std::istringstream vbuff(it->second);
+        	vbuff >> mmpbsa_verbosity;
+        	if(vbuff.fail())
+        		throw mmpbsa::MMPBSAException("parse_parameters: \"" + it->second + "\" is an invalid verbosity level.",
+        				mmpbsa::COMMAND_LINE_ERROR);
+        }
         else if(it->first == "sample_queue")
         {
             if(!it->second.size())

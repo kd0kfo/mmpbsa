@@ -1,6 +1,6 @@
 Recent Changes:
-	Added some documentation.
-
+	Added Verbosity level. Needs to be properly implemented.
+	
 commit 2e67dd09d255bd9e607ecd353050ae61a9c1896b
 Author: David Coss <David.Coss@stjude.org>
 Date:   Wed Oct 20 10:03:33 2010 -0500

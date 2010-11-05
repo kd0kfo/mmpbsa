@@ -20,7 +20,7 @@ AC_PROG_RANLIB
 
 AC_SUBST(CUSTOM_CPPFLAGS,"-Wall")
 
-AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Staticahlly]),
+AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Statically]),
 [AC_MSG_RESULT(Compiling MMPBSA statically)
 AC_SUBST(CUSTOM_LDFLAGS," -static ")
 AC_SUBST(CUSTOM_LIBS,"-lpthread")],)

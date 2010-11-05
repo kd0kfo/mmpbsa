@@ -59,6 +59,40 @@ std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data
     return theStream;
 }
 
+mmpbsa_t* mmpbsa::EnergyInfo::get_minimization_header(const std::string& header_line) throw (mmpbsa::SanderIOException)
+{
+	std::istringstream buff;
+	mmpbsa_t* returnMe,temp_var;
+	size_t delim_loc;
+	std::string error_message,_the_line = mmpbsa_utils::trimString(header_line);
+	if(_the_line.size() == 0)
+		throw mmpbsa::SanderIOException("mmpbsa::EnergyInfo::get_minimization_energy: the line which should contain"
+				" energy information for a minimization contains no data values: " + header_line,
+				mmpbsa::DATA_FORMAT_ERROR);
+
+
+	error_message = "mmpbsa::EnergyInfo::get_minimization_energy: the line which should contain"
+			" energy information for a minimization contains unexpected values: " + _the_line;
+	returnMe = new mmpbsa_t[2];
+	for(int i = 0;i<2;i++)
+	{
+		delim_loc = _the_line.find(" ",0);
+		if(delim_loc == std::string::npos)
+		{
+			delete [] returnMe;
+			throw mmpbsa::SanderIOException(error_message + "\nDelimiter not Found",mmpbsa::DATA_FORMAT_ERROR);
+		}
+		buff.clear();buff.str(_the_line.substr(0,delim_loc));
+		_the_line.erase(0,delim_loc);
+		_the_line = mmpbsa_utils::trimString(_the_line);
+		buff >> std::scientific >> temp_var;
+		if(buff.fail())
+			throw mmpbsa::SanderIOException(error_message + "\nData format error: " + buff.str() + "",mmpbsa::DATA_FORMAT_ERROR);;
+		returnMe[i] = temp_var;
+	}
+	return returnMe;
+}
+
 void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
 {
     using std::string;
@@ -66,17 +100,38 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
     using mmpbsa_utils::trimString;
     
     if(!mdoutFile.good())
-        throw SanderIOException("Cannot open mdout file.",FILE_IO_ERROR);
+        throw SanderIOException("mmpbsa::EnergyInfo::get_next_energyinfo: Cannot open mdout file.",FILE_IO_ERROR);
 
     string currentLine = getNextLine(mdoutFile);
     while(!mdoutFile.eof() && currentLine.find("NSTEP") == std::string::npos)//" NSTEP" begins a block of energy info
         currentLine = getNextLine(mdoutFile);
     
     if(mdoutFile.eof())
-    	throw SanderIOException("get_next_energyinfo: No NSTEP data found.",mmpbsa::UNEXPECTED_EOF);
+    	throw SanderIOException("mmpbsa::EnergyInfo::get_next_energyinfo: No NSTEP data found.",mmpbsa::UNEXPECTED_EOF);
 
-    getNextLine(mdoutFile);
-    getNextLine(mdoutFile);
+    //The format of MDOUT varies depending on whether or not the run was minimization :-/
+    //Therefore, we must parse the NSTEP line differently if it is a minimization.
+    if(currentLine.find("=") == string::npos)//in this case, this is minimization
+    {
+    	mmpbsa_t* minimization_header;
+    	currentLine = getNextLine(mdoutFile);
+    	try{
+    		minimization_header = get_minimization_header(currentLine);
+    	}
+    	catch(mmpbsa::SanderIOException sioe)
+    	{
+    		std::ostringstream error;
+    		error << "mmpbsa::EnergyInfo::get_next_energyinfo: Error with minimization data."
+    				<< std::endl << sioe;
+    		throw mmpbsa::SanderIOException(error,sioe.getErrType());
+    	}
+    	(*this)[EnergyInfo::nstep] = minimization_header[0];
+    	(*this)[EnergyInfo::etot] = minimization_header[1];
+    	delete [] minimization_header;
+    	getNextLine(mdoutFile);//minimization skips a line before the Energy = ... block.
+
+    }
+
     currentLine = getNextLine(mdoutFile);
     //NSTEP data format.
     //Line with titles of information

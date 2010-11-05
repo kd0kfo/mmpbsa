@@ -57,6 +57,13 @@ public:
     bool loadEnergyValue(const std::string& identifier,const mmpbsa_t& value);
     bool loadEnergyValue(const std::string& identifier,const std::string& value);
 
+    /**
+     * Gives the NSTEP, Etotal, RMS values for a minimization NSTEP as a
+     * pointer to a mmpbsa_t[2]. If the values are incorrect or absent,
+     * an SanderIOException is thrown.
+     */
+    static mmpbsa_t* get_minimization_header(const std::string& header_line) throw (mmpbsa::SanderIOException);
+
 
     /**
      * Returns true if at least one element is greater than the corresponding

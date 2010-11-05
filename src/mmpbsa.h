@@ -43,6 +43,7 @@ MMPBSA_SHMEM* gshmem;
 double timeAtPreviousCheckpoint;
 double netFractionDone;
 double netCPUTime;
+static int mmpbsa_verbosity;
 
 
 std::vector<mmpbsa::MMPBSAState> processQueue;///<Array of calculations to be run by the program.

@@ -860,7 +860,7 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
-  --enable-static         Compile Staticahlly
+  --enable-static         Compile Statically
   --enable-molsurf        Compile and link to molsurf. Without molsurf,
                           Surface Area calculations are not done.
 
