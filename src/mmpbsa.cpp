@@ -846,7 +846,10 @@ void checkpoint_sander(mmpbsa::MMPBSAState& saveState, mmpbsa::SanderInterface& 
     buff.str("");buff << saveState.fractionDone;
     checkMap["stage_fraction_done"] = buff.str();
     mmpbsa_utils::XMLParser xmlDoc(MDSTATE_TAG,checkMap);
+
+    send_status_message(si, saveState.fractionDone,::timeAtPreviousCheckpoint);
     checkpoint_out(saveState,xmlDoc);
+
 }
 
 void checkpoint_mmpbsa(mmpbsa::MMPBSAState& saveState)
@@ -866,12 +869,12 @@ void checkpoint_mmpbsa(mmpbsa::MMPBSAState& saveState)
     if(saveState.savePDB)
     	checkMap["save_pdb"] = "1";
 	mmpbsa_utils::XMLParser xmlDoc(MMPBSASTATE_TAG,checkMap);
+	report_boinc_progress();
     checkpoint_out(saveState,xmlDoc);
 }
 
 void checkpoint_out(mmpbsa::MMPBSAState& saveState,mmpbsa_utils::XMLParser& xmlDoc)
 {
-    report_boinc_progress();
     saveState.checkpointCounter++;
     if(has_filename(CHECKPOINT_FILE_TYPE,saveState))
         xmlDoc.write(get_filename(CHECKPOINT_FILE_TYPE,saveState));

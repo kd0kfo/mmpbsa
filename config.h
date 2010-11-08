@@ -75,7 +75,7 @@
 #define STDC_HEADERS 1
 
 /* Define to use the BOINC library */
-/* #undef USE_BOINC */
+#define USE_BOINC 1
 
 /* Define to create the graphics application. Requires BOINC and GL */
 /* #undef USE_GRAPHICS */
