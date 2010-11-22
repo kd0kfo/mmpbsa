@@ -124,4 +124,100 @@ void foreach(mmpbsa_utils::XMLNode* beginning, mmpbsa_utils::XMLNode* end,
     }
 }
 
+std::vector<mmpbsa_utils::XMLNode*> quick_sort(mmpbsa_utils::XMLNode* node_to_sort,
+		int sort_algo(mmpbsa_utils::XMLNode* partition_element, mmpbsa_utils::XMLNode* test_element))
+{
+	std::vector<mmpbsa_utils::XMLNode*> returnMe;
+	std::vector<int> stack;
+
+	if(node_to_sort == 0)
+		throw mmpbsa::XMLParserException("quick_sort: given a null pointer.");
+
+	mmpbsa_utils::XMLNode *it,*swapper;
+	int curr_index = 0,index_length;
+	int ins_inner_loop,ins_sort_index,median;
+	int GREATER = 0x2,LESS = 0x4, EQUAL = 0x1;//retvals of sort_algo. Used as a greater than, less than, equal to bit map.
+
+	//index array starting point.
+	for(it = node_to_sort->children;it != 0;it = it->siblings)
+		returnMe.push_back(it);
+
+	index_length = returnMe.size() - 1;
+	//quick sort algo
+	for(;;)
+	{
+		if(index_length - 1 < 7)//suggested by Numerical Recipes to be the cutoff between quicksort and insert sort
+		{
+			for(ins_sort_index = curr_index + 1;ins_sort_index <= index_length;ins_sort_index++)
+			{
+				it = returnMe[ins_sort_index];
+				for(ins_inner_loop = ins_sort_index - 1;ins_inner_loop >= curr_index; ins_inner_loop--)
+				{
+					if(sort_algo(returnMe[ins_inner_loop],it) & (LESS+EQUAL))
+						break;
+					returnMe[ins_inner_loop+1] = returnMe[ins_inner_loop];
+				}
+				returnMe[ins_inner_loop+1] = it;
+			}
+			if(stack.size() == 0)
+				break;
+			ins_sort_index = stack.back();stack.pop_back();
+			index_length = stack.back();stack.pop_back();
+		}
+		else
+		{
+			median = (curr_index + index_length) >> 1;//more efficient then division.
+			swapper = returnMe[median];
+			returnMe[median] = returnMe[curr_index+1];
+			returnMe[curr_index+1] = swapper;
+			if(sort_algo(returnMe[curr_index],returnMe[index_length]) & GREATER)
+			{
+				swapper = returnMe[curr_index];
+				returnMe[curr_index] = returnMe[index_length];
+				returnMe[index_length] = swapper;
+			}
+			if(sort_algo(returnMe[curr_index+1],returnMe[index_length]) & GREATER)
+			{
+				swapper = returnMe[curr_index+1];
+				returnMe[curr_index+1] = returnMe[index_length];
+				returnMe[index_length] = swapper;
+			}
+			if(sort_algo(returnMe[curr_index],returnMe[curr_index+1]) & GREATER)
+			{
+				swapper = returnMe[curr_index];
+				returnMe[curr_index] = returnMe[curr_index+1];
+				returnMe[curr_index + 1] = swapper;
+			}
+			ins_inner_loop = curr_index+1;
+			ins_sort_index = index_length;
+			it = returnMe[curr_index+1];
+			for(;;)
+			{
+				do ins_inner_loop++;while(sort_algo(returnMe[ins_inner_loop],it) & LESS);
+				do ins_sort_index--;while(sort_algo(returnMe[ins_sort_index],it) & GREATER);
+				if(ins_inner_loop > ins_sort_index)
+					break;
+				swapper = returnMe[ins_inner_loop];
+				returnMe[ins_inner_loop] = returnMe[ins_sort_index];
+				returnMe[ins_sort_index] = swapper;
+			}
+			returnMe[curr_index+1] = returnMe[ins_sort_index];
+			returnMe[ins_sort_index] = it;
+			if(index_length-ins_inner_loop+1 >= ins_sort_index-1)
+			{
+				stack.push_back(index_length);
+				stack.push_back(ins_inner_loop);
+				index_length = ins_sort_index - 1;
+			}
+			else
+			{
+				stack.push_back(ins_sort_index - 1);
+				stack.push_back(curr_index);
+				curr_index = ins_inner_loop;
+			}
+		}
+	}
+
+	return returnMe;
+}
 
