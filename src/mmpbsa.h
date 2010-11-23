@@ -214,5 +214,31 @@ double overallFractionDone();
 void send_status_message(mmpbsa::SanderInterface& si, double frac_done,
         double checkpoint_cpu_time);
 
+int do_mmpbsa_calculation(void* thread_object,int num_free_threads,const mmpbsa::EmpEnerFun& EFun, const std::valarray<mmpbsa_t>& Snap,
+		const FinDiffMethod& fdm,const std::map<std::string,float>& radii,
+		const std::map<std::string,std::string>& residues,
+		const mmpbsa::MeadInterface& mi,
+		mmpbsa::MMPBSAState& currState,mmpbsa_utils::XMLNode* snapshotXML,
+		mmpbsa::MMPBSAState::MOLECULE next_mole, const char* mole_name, void * mmpbsa_mutex);
+
+void thread_safe_checkpoint(const mmpbsa::MMPBSAState::MOLECULE& next_mole,const char* mole_name,
+		const mmpbsa::EMap& EMap, mmpbsa::MMPBSAState& currState,
+		mmpbsa_utils::XMLNode* snapshotXML, void * mmpbsa_mutex);
+
+typedef struct
+{
+	const mmpbsa::EmpEnerFun* EFun;
+	const std::valarray<mmpbsa_t>* snap;
+	const FinDiffMethod* fdm;
+	const std::map<std::string,float>* pradii;
+	const std::map<std::string,std::string>* residues;
+	const mmpbsa::MeadInterface* mi;
+	mmpbsa::MMPBSAState* currState;
+	mmpbsa_utils::XMLNode* snapshotXML;
+	mmpbsa::MMPBSAState::MOLECULE next_mole;
+	const char* mole_name;
+	void * mmpbsa_mutex;
+}mmpbsa_thread_arg;
+
 #endif	/* MMPBSA_H */
 
