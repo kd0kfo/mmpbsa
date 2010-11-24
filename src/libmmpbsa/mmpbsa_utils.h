@@ -27,9 +27,6 @@
 #define DEFAULT_SCEE 1.2
 #define DEFAULT_DIELC 1.0
 
-
-
-
 typedef double mmpbsa_t;
 
 

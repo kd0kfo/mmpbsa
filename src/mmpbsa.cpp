@@ -3,6 +3,13 @@
 int main(int argc, char** argv)
 {
 	using mmpbsa::MMPBSAState;
+
+#ifdef USE_PTHREADS
+	pthread_mutex_init(&mmpbsa_mutex,NULL);
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+#endif
+
     try 
     {
         ::timeAtPreviousCheckpoint = 0;
@@ -337,18 +344,13 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         //Number of threads is specified in the MeadInterface object,
         //to allow the number of threads to be dynamically set.
         FinDiffMethod *ligand_fdm,*recpt_fdm,comp_fdm = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
-        switch(mi.num_threads)
+    	ligand_fdm = recpt_fdm = &comp_fdm;
+    	if(mi.multithread)
         {
-        case 1:default:
-        	ligand_fdm = recpt_fdm = &comp_fdm;
-        	break;
-        case 3:
         	ligand_fdm = new FinDiffMethod;
         	*ligand_fdm = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
-        case 2:
         	recpt_fdm = new FinDiffMethod;
         	*recpt_fdm = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
-        	break;
         }
 
         //Radii information
@@ -373,39 +375,38 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         
         //MMPBSA on Complex
         int comp_thread_retval, recpt_thread_retval, ligand_retval;
+    	//map<std::string,float> recpt_radii = *pradii;
+
 #ifdef USE_PTHREADS
       pthread_t comp_thread,recpt_thread,ligand_thread;
-      pthread_mutex_t mmpbsa_mutex = PTHREAD_MUTEX_INITIALIZER;
 #else
       unsigned short comp_thread, recpt_thread, ligand_thread,mmpbsa_mutex;//will be ignored. Dummy variable name
 #endif
         if(currState.currentMolecule == MMPBSAState::COMPLEX)
         {
-        	do_mmpbsa_calculation((void*) &comp_thread,mi.num_threads-1,complexEFun, complexSnap,comp_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::RECEPTOR,"COMPLEX",(void*)&mmpbsa_mutex);
+        	do_mmpbsa_calculation((void*) &comp_thread, mi.multithread, complexEFun, complexSnap,comp_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::RECEPTOR,"COMPLEX",(void*)&mmpbsa_mutex);
         }
 
         //MMPBSA on Receptor
-        if(currState.currentMolecule == MMPBSAState::RECEPTOR || mi.num_threads-1)
+        if(currState.currentMolecule == MMPBSAState::RECEPTOR || mi.multithread)
         {
-        	do_mmpbsa_calculation((void*) &recpt_thread,mi.num_threads-1,receptorEFun, receptorSnap,*recpt_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::LIGAND,"RECEPTOR",(void*)&mmpbsa_mutex);
+        	do_mmpbsa_calculation((void*) &recpt_thread, mi.multithread, receptorEFun, receptorSnap,*recpt_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::LIGAND,"RECEPTOR",(void*)&mmpbsa_mutex);
         }
 
         //MMPBSA on Ligand
-        if(currState.currentMolecule == MMPBSAState::LIGAND || mi.num_threads-2)
+        if(currState.currentMolecule == MMPBSAState::LIGAND || mi.multithread)
         {
-        	do_mmpbsa_calculation((void*) &ligand_thread,mi.num_threads-2,ligandEFun, ligandSnap,*ligand_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::END_OF_MOLECULES,"LIGAND",(void*)&mmpbsa_mutex);
+        	do_mmpbsa_calculation((void*) &ligand_thread,mi.multithread, ligandEFun, ligandSnap,*ligand_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::END_OF_MOLECULES,"LIGAND",(void*)&mmpbsa_mutex);
         }
 
 #ifdef USE_PTHREADS
-        switch(mi.num_threads)
+        if(mi.multithread)
         {
-        case 3:
-        	pthread_join(ligand_thread);
-        case 2:
-        	pthread_join(comp_thread,NULL);
-        	pthread_join(recpt_thread,NULL);
-        default: case 1:
-        	break;
+			std::cout << "Waiting to join threads.... ";
+			pthread_join(ligand_thread,NULL);
+			pthread_join(comp_thread,NULL);
+			pthread_join(recpt_thread,NULL);
+			std::cout << "Finished."<< std::endl;
         }
 #endif
         //MMPBSA is complete. Save the state and update the process on the
@@ -548,6 +549,19 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
         else if (it->first == "trust_prmtop")
         {
             currState.trustPrmtop = true;
+        }
+        else if(it->first == "multithread")
+        {
+#ifndef USE_PTHREADS
+        	std::cerr << "Warning: not compiled with threads. multithread tag." << std::endl;
+        	continue;
+#endif
+        	buff >> mi.multithread;
+        	if(buff.fail())
+        	{
+        		std::cerr << "Warning: could not determine number of threads from " << it->first << " = " << it->second << "  Not using multithreading." << std::endl;
+        		mi.multithread = 0;
+        	}
         }
         else if (it->first == "help" || it->first == "h")
 		{
@@ -1157,8 +1171,7 @@ const std::string& get_filename(const std::string& filetype, const mmpbsa::MMPBS
 
 void *do_mmpbsa_calculation_thread(void* args)
 {
-	mmpbsa_thread_arg * thread_args;
-	thread_args = (mmpbsa_thread_arg*) args;
+	struct mmpbsa_thread_arg * thread_args = (mmpbsa_thread_arg*) args;
 	if(thread_args == 0)
 		throw mmpbsa::MMPBSAException("do_mmpbsa_calculation_thread: given null pointer for argument structure");
 	mmpbsa::EMap theEMap = mmpbsa::MeadInterface::full_EMap(*thread_args->EFun,*thread_args->snap,
@@ -1167,33 +1180,42 @@ void *do_mmpbsa_calculation_thread(void* args)
 			thread_args->mi->surf_tension,thread_args->mi->surf_offset);
 	thread_safe_checkpoint(thread_args->next_mole,thread_args->mole_name,
 			theEMap,*thread_args->currState,thread_args->snapshotXML,thread_args->mmpbsa_mutex);
+#ifdef USE_PTHREADS
+	std::cout << "Finished " << thread_args->mole_name << std::endl;
+	delete thread_args;
+#endif
 }
 
-int do_mmpbsa_calculation(void* thread_object,int num_free_threads,const mmpbsa::EmpEnerFun& EFun, const std::valarray<mmpbsa_t>& Snap,
+int do_mmpbsa_calculation(void* thread_object,int useMultithread,const mmpbsa::EmpEnerFun& EFun, const std::valarray<mmpbsa_t>& Snap,
 		const FinDiffMethod& fdm,const std::map<std::string,float>& radii,
 		const std::map<std::string,std::string>& residues,
 		const mmpbsa::MeadInterface& mi,
 		mmpbsa::MMPBSAState& currState,mmpbsa_utils::XMLNode* snapshotXML,
 		mmpbsa::MMPBSAState::MOLECULE next_mole, const char* mole_name, void * mmpbsa_mutex)
 {
-	mmpbsa_thread_arg pass_these;
-	pass_these.EFun = &EFun;
-	pass_these.snap = &Snap;
-	pass_these.fdm = &fdm;
-	pass_these.pradii = &radii;
-	pass_these.residues = &residues;
-	pass_these.mi = &mi;
-	pass_these.currState = &currState;
-	pass_these.snapshotXML = snapshotXML;
-	pass_these.next_mole = next_mole;
-	pass_these.mmpbsa_mutex = mmpbsa_mutex;
-	pass_these.mole_name = mole_name;
+	struct mmpbsa_thread_arg * pass_these = new struct mmpbsa_thread_arg;
+	pass_these->EFun = &EFun;
+	pass_these->snap = &Snap;
+	pass_these->fdm = &fdm;
+	pass_these->pradii = &radii;
+	pass_these->residues = &residues;
+	pass_these->mi = &mi;
+	pass_these->currState = &currState;
+	pass_these->snapshotXML = snapshotXML;
+	pass_these->next_mole = next_mole;
+	pass_these->mmpbsa_mutex = mmpbsa_mutex;
+	pass_these->mole_name = mole_name;
 
-#ifdef USE_PTHREAD
-	if(num_free_threads > 0)
-		return pthread_create((pthread_t*)thread_object,NULL,do_mmpbsa_calculation_thread,(void*) &pass_these);
+
+#ifdef USE_PTHREADS
+	if(useMultithread)
+	{
+		std::cout << "Running thread " << mole_name << "(" << &pass_these << ", " << pass_these->snap <<  ")" << std::endl;
+		return pthread_create((pthread_t*)thread_object,&attr,do_mmpbsa_calculation_thread,(void*) pass_these);
+	}
 #endif
-	(*do_mmpbsa_calculation_thread)((void*) &pass_these);
+	std::cout << "Calculating " << mole_name << std::endl;
+	(*do_mmpbsa_calculation_thread)((void*) pass_these);
 	return 0;
 }
 
@@ -1207,7 +1229,7 @@ void thread_safe_checkpoint(const mmpbsa::MMPBSAState::MOLECULE& next_mole,const
 #ifdef USE_PTHREADS
 	pthread_mutex_t* pMutex = (pthread_mutex_t*)mmpbsa_mutex;
 	if(pMutex != 0)
-		pthread_mutex_lock(*pMutex);
+		pthread_mutex_lock(pMutex);
 #endif
 
 	snapshotXML->insertChild(EMap.toXML(((mole_name) ? mole_name : "UNKNOWN_MOLECULE")));
@@ -1217,7 +1239,7 @@ void thread_safe_checkpoint(const mmpbsa::MMPBSAState::MOLECULE& next_mole,const
 	study_cpu_time();
 #ifdef USE_PTHREADS
 	if(pMutex != 0)
-		pthread_mutex_unlock(*pMutex);
+		pthread_mutex_unlock(pMutex);
 #endif
 }
 

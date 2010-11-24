@@ -82,6 +82,10 @@
 /* Define to use the JPEG library */
 #undef USE_JPEGLIB
 
+/* Define to use pthreads for multithread MMPBSA calculations. (Has no effect
+   on MD). */
+#undef USE_PTHREADS
+
 /* Version number of package */
 #undef VERSION
 

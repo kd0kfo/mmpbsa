@@ -130,7 +130,7 @@ public:
 
     std::map<std::string,float> brad;
 
-    int num_threads;//used to indicate number of threads to be used in MMPBSA calculations. Default = 1
+    int multithread;//used to indicate number of threads to be used in MMPBSA calculations. Default = 1
     
 };
 

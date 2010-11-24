@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT([mmpbsa], [0.8.2], [David.Coss@stjude.org])
+AC_INIT([mmpbsa], [0.9.0], [David.Coss@stjude.org])
 AC_CONFIG_SRCDIR([src/libmmpbsa/])
 AC_CONFIG_SRCDIR([src/])
 AM_CONFIG_HEADER([config.h])
@@ -12,6 +12,7 @@ AH_TEMPLATE([USE_BOINC],[Define to use the BOINC library])
 AH_TEMPLATE([USE_GRAPHICS],[Define to create the graphics application. Requires BOINC and GL])
 AH_TEMPLATE([USE_JPEGLIB],[Define to use the JPEG library])
 AH_TEMPLATE([WITHOUT_MOLSURF],[Define to prevent the use of molsurf, i.e. on Mac without proper signal.h])
+AH_TEMPLATE([USE_PTHREADS],[Define to use pthreads for multithread MMPBSA calculations. (Has no effect on MD).])
 
 # Checks for programs.
 AC_PROG_CXX
@@ -24,6 +25,11 @@ AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Statically]),
 [AC_MSG_RESULT(Compiling MMPBSA statically)
 AC_SUBST(CUSTOM_LDFLAGS," -static ")
 AC_SUBST(CUSTOM_LIBS,"-lpthread")],)
+
+AC_ARG_ENABLE([multithreads],AS_HELP_STRING([--enable-multithreads],[Adds the ability to perform MMPBSA calculations with the complex, receptor and ligand each getting their own thread, if thread_count is supplied to mmpbsa as an argument or entry in the XML queue.]),
+[AC_MSG_RESULT(Using multithreading)
+AC_SUBST(MULTITHREAD_LIBS,"-lpthread")
+AC_DEFINE([USE_PTHREADS])],)
 
 AC_ARG_ENABLE([molsurf],AS_HELP_STRING([--enable-molsurf],[Compile and link to molsurf. Without molsurf, Surface Area calculations are not done.]),molsurf=$enableval)
 if test x"$molsurf" == xno; then

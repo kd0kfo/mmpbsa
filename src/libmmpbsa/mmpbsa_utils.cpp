@@ -119,7 +119,6 @@ float * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
     }
     return returnMe;
 }
-
 float mmpbsa_utils::lookup_radius(const std::string& atomName,
        const std::map<std::string,float>& radiusMap)
             throw (mmpbsa::MMPBSAException)
@@ -127,6 +126,8 @@ float mmpbsa_utils::lookup_radius(const std::string& atomName,
     using std::string;
     using std::map;
     using mmpbsa_utils::trimString;
+
+
 
     //If atomic radii are the same for element variations with common first letters, such
     //as Carbon-alpha and Carbon-beta, they are stored in the .siz by that
@@ -138,8 +139,10 @@ float mmpbsa_utils::lookup_radius(const std::string& atomName,
 
     //A direct name match is preferred. Otherwise test for untrimmed keys and/or ambiguities.
     if(radiusMap.find(atomName) != radiusMap.end())
-      return radiusMap.find(atomName)->second;
-    
+    {
+    	return radiusMap.find(atomName)->second;
+    }
+
     //Not found by atomName. Check atom name only entries
     std::vector<mmpbsa_t> possibleMatches;
     string theAtom = trimString(atomName);
@@ -150,7 +153,6 @@ float mmpbsa_utils::lookup_radius(const std::string& atomName,
             possibleMatches.push_back(it->second);
         }
     }
-
     //see what we found.
     if(possibleMatches.size() == 0)//see above note on shared radii
     {

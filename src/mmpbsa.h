@@ -45,6 +45,12 @@ double netFractionDone;
 double netCPUTime;
 static int mmpbsa_verbosity;
 
+#ifdef USE_PTHREADS
+pthread_mutex_t mmpbsa_mutex;
+pthread_attr_t attr;
+#else
+unsigned short mmpbsa_mutex;
+#endif
 
 std::vector<mmpbsa::MMPBSAState> processQueue;///<Array of calculations to be run by the program.
 
@@ -214,7 +220,7 @@ double overallFractionDone();
 void send_status_message(mmpbsa::SanderInterface& si, double frac_done,
         double checkpoint_cpu_time);
 
-int do_mmpbsa_calculation(void* thread_object,int num_free_threads,const mmpbsa::EmpEnerFun& EFun, const std::valarray<mmpbsa_t>& Snap,
+int do_mmpbsa_calculation(void* thread_object,int useMultithread,const mmpbsa::EmpEnerFun& EFun, const std::valarray<mmpbsa_t>& Snap,
 		const FinDiffMethod& fdm,const std::map<std::string,float>& radii,
 		const std::map<std::string,std::string>& residues,
 		const mmpbsa::MeadInterface& mi,
@@ -225,7 +231,7 @@ void thread_safe_checkpoint(const mmpbsa::MMPBSAState::MOLECULE& next_mole,const
 		const mmpbsa::EMap& EMap, mmpbsa::MMPBSAState& currState,
 		mmpbsa_utils::XMLNode* snapshotXML, void * mmpbsa_mutex);
 
-typedef struct
+typedef struct mmpbsa_thread_arg
 {
 	const mmpbsa::EmpEnerFun* EFun;
 	const std::valarray<mmpbsa_t>* snap;
@@ -238,7 +244,9 @@ typedef struct
 	mmpbsa::MMPBSAState::MOLECULE next_mole;
 	const char* mole_name;
 	void * mmpbsa_mutex;
-}mmpbsa_thread_arg;
+};
+
+
 
 #endif	/* MMPBSA_H */
 
