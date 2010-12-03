@@ -175,3 +175,12 @@ float mmpbsa_utils::lookup_radius(const std::string& atomName,
     return float(possibleMatches[0]);
 }
 
+std::string mmpbsa_utils::get_human_time()
+{
+	time_t rawtime;
+	struct tm * timeinfo;
+	time ( &rawtime );
+	timeinfo = localtime ( &rawtime );
+	return asctime (timeinfo);
+}
+

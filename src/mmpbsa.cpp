@@ -3,6 +3,7 @@
 int main(int argc, char** argv)
 {
 	using mmpbsa::MMPBSAState;
+<<<<<<< HEAD
 
 #ifdef USE_PTHREADS
 	pthread_mutex_init(&mmpbsa_mutex,NULL);
@@ -11,6 +12,10 @@ int main(int argc, char** argv)
 #endif
 
     try 
+=======
+	std::cerr << PACKAGE_STRING <<" started on " << mmpbsa_utils::get_human_time() << std::endl;
+	try
+>>>>>>> master
     {
         ::timeAtPreviousCheckpoint = 0;
         mmpbsa_boinc_init();//must be called before any other BOINC routines. If BOINC is not used, nothing will happen.
@@ -87,6 +92,7 @@ int main(int argc, char** argv)
             std::cerr << "BOINC Error: " << boincerror(retval) << std::endl;
         boinc_finish(retval);
 #endif
+        std::cerr << PACKAGE_STRING <<" finished on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
         return retval;
     }    
     catch (mmpbsa::MMPBSAException e)
@@ -95,6 +101,7 @@ int main(int argc, char** argv)
 #ifdef USE_BOINC
         boinc_finish(e.getErrType());
 #endif
+        std::cerr << PACKAGE_STRING <<" finished on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
         return e.getErrType();
 
     }
@@ -947,7 +954,6 @@ int mmpbsa_boinc_init()
     boinc_register_timer_callback(update_gshmem);
 #endif
 
-    std::cerr << "md/mmpbsa started\n" << std::endl;
     return boinc_init_options(&options);
 #endif
 }

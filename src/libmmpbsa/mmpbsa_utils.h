@@ -195,8 +195,12 @@ namespace mmpbsa_utils {
     template<class T> T dot_product(const T* A, const T* B,
             const size_t& ndim = 3);
     
+    std::string get_human_time();
+
     
 }//end mmpbsa_utils namespace
+
+
 
 #endif	/* MMPBSA_UTILS_H */
 
