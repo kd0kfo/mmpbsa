@@ -3,7 +3,6 @@
 int main(int argc, char** argv)
 {
 	using mmpbsa::MMPBSAState;
-<<<<<<< HEAD
 
 #ifdef USE_PTHREADS
 	pthread_mutex_init(&mmpbsa_mutex,NULL);
@@ -11,11 +10,8 @@ int main(int argc, char** argv)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 #endif
 
-    try 
-=======
 	std::cerr << PACKAGE_STRING <<" started on " << mmpbsa_utils::get_human_time() << std::endl;
 	try
->>>>>>> master
     {
         ::timeAtPreviousCheckpoint = 0;
         mmpbsa_boinc_init();//must be called before any other BOINC routines. If BOINC is not used, nothing will happen.
