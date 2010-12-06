@@ -131,6 +131,8 @@ public:
      */
     void insertChild(const std::string& name, const std::string& text){insertChild(new XMLNode(name,text));}
     
+    XMLNode* removeChild(XMLNode* to_be_removed);
+
     XMLNode* parent;///<Parent of the node.
     XMLNode* children;///<Pointer to the first child (not an array, cf destructor)
     XMLNode* siblings;///<Pointer to first sibling (not an array, cf destructor)

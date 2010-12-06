@@ -88,6 +88,23 @@ void mmpbsa_utils::XMLNode::insertChild(mmpbsa_utils::XMLNode* newChild)
 }
 
 
+mmpbsa_utils::XMLNode* mmpbsa_utils::XMLNode::removeChild(XMLNode* to_be_removed)
+{
+	XMLNode* left_of_delete;
+	for(left_of_delete = this->children;left_of_delete != 0;left_of_delete = left_of_delete->siblings)
+	{
+		if(left_of_delete->siblings == to_be_removed)
+			break;
+	}
+	if(left_of_delete->siblings == 0)
+		return left_of_delete;
+
+	left_of_delete->siblings = to_be_removed->siblings;
+	to_be_removed->siblings = 0;
+	delete to_be_removed;
+	return left_of_delete;
+}
+
 std::string mmpbsa_utils::XMLNode::toString(const std::string& offset) const
 {
     std::string returnMe = offset+"<" + name + ">";
