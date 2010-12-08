@@ -88,11 +88,17 @@ void mmpbsa_utils::XMLNode::insertChild(mmpbsa_utils::XMLNode* newChild)
 }
 
 
-mmpbsa_utils::XMLNode* mmpbsa_utils::XMLNode::removeChild(XMLNode* to_be_removed)
+mmpbsa_utils::XMLNode* mmpbsa_utils::XMLNode::removeChild(XMLNode* to_be_removed) throw (mmpbsa::XMLParserException)
 {
 	XMLNode* left_of_delete;
+	if(this->children == 0)
+		return 0;
+
 	for(left_of_delete = this->children;left_of_delete != 0;left_of_delete = left_of_delete->siblings)
 	{
+		if(left_of_delete->siblings == 0)//this means we've reached the end and to_be_removed is not a child of "this"
+			throw mmpbsa::XMLParserException("mmpbsa_utils::XMLNode::removeChild: attempted to remove a non-child node.",mmpbsa::INVALID_XML_REQUEST);
+
 		if(left_of_delete->siblings == to_be_removed)
 			break;
 	}

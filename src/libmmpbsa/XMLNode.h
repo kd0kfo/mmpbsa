@@ -11,6 +11,28 @@
 #include <string>
 #include <vector>
 
+#include "mmpbsa_exceptions.h"
+
+namespace mmpbsa{
+
+class XMLParserException : public mmpbsa::MMPBSAException
+{
+    public:
+    /**
+     * Exception for when something goes wrong with reading the XML data
+     *
+     * @param error
+     */
+    XMLParserException(const std::string& error) : mmpbsa::MMPBSAException( error){}
+
+    XMLParserException(const std::string& error, const mmpbsa::MMPBSAErrorTypes& errorType)
+        : mmpbsa::MMPBSAException(error,errorType){}
+
+    const char* identifier(){return "XML Parser Error";}
+};
+}//end namespace mmpbsa
+
+
 namespace mmpbsa_utils{
 
 class XMLNode {
@@ -131,7 +153,7 @@ public:
      */
     void insertChild(const std::string& name, const std::string& text){insertChild(new XMLNode(name,text));}
     
-    XMLNode* removeChild(XMLNode* to_be_removed);
+    XMLNode* removeChild(XMLNode* to_be_removed) throw (mmpbsa::XMLParserException);
 
     XMLNode* parent;///<Parent of the node.
     XMLNode* children;///<Pointer to the first child (not an array, cf destructor)

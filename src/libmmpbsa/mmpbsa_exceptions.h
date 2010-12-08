@@ -21,7 +21,8 @@ enum MMPBSAErrorTypes {UNKNOWN_ERROR = 1, /*<Avoid, as this is vague.*/
     INVALID_ARRAY_SIZE,
     UNEXPECTED_EOF,
     COMMAND_LINE_ERROR,/*<Program supplied an invalid argument in the command line.*/
-    BAD_XML_TAG
+    BAD_XML_TAG,
+    INVALID_XML_REQUEST /* Trying to access or modify nodes and node information that does not exist or is broken.*/
 };
 
 class MMPBSAException : public std::runtime_error

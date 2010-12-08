@@ -1,6 +1,85 @@
-Recent Changes:
-	Added Verbosity level. Needs to be properly implemented.
+Recent changes:
+
+	fixed bug in XMLNode::removeChild code for attempting to remove
+	a node that is not a child of calling Node.
+
+	Moved XMLParserException to XMLNode.h, thus allowing Node code to throw those exceptions too.
+
 	
+Last git log:
+	
+commit 866e6c0ff459adb681b4f0fdd0d115a84512e6dd
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Dec 6 13:48:24 2010 -0600
+
+    Added remove function to XMLNode
+    
+    Added write mdcrd function to mmpbsa_io
+
+commit e11412d69fe36f09f8a9d67d10ee7056d5b2ecb3
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Dec 3 09:19:03 2010 -0600
+
+    Added time stamps to beginning and end of mmpbsa program.
+
+commit e1955e6443da795c11e66e89900ca6d8076fa3b9
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Nov 22 13:41:13 2010 -0600
+
+    Added quicksort to XMLNode.
+
+commit 2f39508b40052e8a0240a6b55370462c294621a9
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Nov 8 14:30:42 2010 -0600
+
+    Switched cpu usage reporting to use send_status_message for
+    molecular dynamics (which is a forked process) and the boinc work
+    unit clock for mmpbsa.
+
+commit 3eae05c7e20593423215ab4b9b98bf1387824e1d
+Author: David Coss <David.Coss@stjude.org>
+Date:   Fri Nov 5 16:24:34 2010 -0500
+
+    Made changes to EnergyInfo, so that it can take both forms of mdout
+    from sander.
+
+commit 962413e938a102def5386aeb2a7af94c97abc94c
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Nov 1 16:13:41 2010 -0500
+
+    Working on improving the time reporting of molecular dynamics
+    calculations in boinc.
+
+commit 553ba6eca98baeb8eb92f428de875ab2f4a5be01
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Nov 1 13:27:48 2010 -0500
+
+    Added "prereq" to the list of XML tags that are *not* to be passed
+    on to sander.
+
+commit 362c8abb36ffc036f4f3d859836e5c6daa07c5b6
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Nov 1 11:55:42 2010 -0500
+
+    Added missing resolve_filename calls when filling the filename
+    map in MMPBSAState and running in BOINC.
+
+commit 0c43aa62ae04760c3ffb824f44322597ed87175e
+Author: David Coss (stjudeathome2) <David.Coss@stjude.org>
+Date:   Mon Nov 1 11:42:05 2010 -0500
+
+    Tested on grid. Commiting before some changes can be made
+    to resolve boinc filenames with the new filename map in
+    MMPBSAState
+
+commit ae8a193830f5b2c3b0c3d39366169a80b6be4315
+Author: David Coss <David.Coss@stjude.org>
+Date:   Mon Nov 1 09:59:21 2010 -0500
+
+    Restructured libmmpbsa so that MMPBSAState is contained in its own source
+    code file in libmmpbsa. Also, filenames are stored in a map in MMPBSAState
+    in order to ensure no filetypes are lost due to queue file parsing.
+
 commit 2e67dd09d255bd9e607ecd353050ae61a9c1896b
 Author: David Coss <David.Coss@stjude.org>
 Date:   Wed Oct 20 10:03:33 2010 -0500
