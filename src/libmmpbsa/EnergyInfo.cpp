@@ -98,13 +98,17 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
     using std::string;
     using mmpbsa_io::getNextLine;
     using mmpbsa_utils::trimString;
+   
+    size_t line_count = 0;
     
     if(!mdoutFile.good())
         throw SanderIOException("mmpbsa::EnergyInfo::get_next_energyinfo: Cannot open mdout file.",FILE_IO_ERROR);
 
-    string currentLine = getNextLine(mdoutFile);
+    string currentLine = getNextLine(mdoutFile);line_count++;
     while(!mdoutFile.eof() && currentLine.find("NSTEP") == std::string::npos)//" NSTEP" begins a block of energy info
-        currentLine = getNextLine(mdoutFile);
+      {
+	currentLine = getNextLine(mdoutFile);line_count++;
+      }
     
     if(mdoutFile.eof())
     	throw SanderIOException("mmpbsa::EnergyInfo::get_next_energyinfo: No NSTEP data found.",mmpbsa::UNEXPECTED_EOF);
@@ -114,7 +118,7 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
     if(currentLine.find("=") == string::npos)//in this case, this is minimization
     {
     	mmpbsa_t* minimization_header;
-    	currentLine = getNextLine(mdoutFile);
+    	currentLine = getNextLine(mdoutFile);line_count++;
     	try{
     		minimization_header = get_minimization_header(currentLine);
     	}
@@ -132,7 +136,7 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
 
     }
 
-    currentLine = getNextLine(mdoutFile);
+    currentLine = getNextLine(mdoutFile);line_count++;
     //NSTEP data format.
     //Line with titles of information
     //Line with information about the STEP
@@ -141,10 +145,11 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
     while(!mdoutFile.eof())
     {
         currentLine = trimString(currentLine);
-        if(currentLine.size() == 0)
+        if(currentLine.size() == 0 || currentLine.find("------------------------------------") != std::string::npos)
         	break;//end of data section.
 
         mmpbsa_utils::StringTokenizer tokens(currentLine);
+	try{
         while(tokens.hasMoreTokens())
         {
             string identifier = tokens.nextToken();
@@ -165,8 +170,18 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
             if(!loadEnergyValue(identifier,value))
                 std::cerr << "Warning: Unknown energy type: " << identifier << std::endl;
         }
+	}
+	catch(mmpbsa::TokenizerException te)
+	  {
+	    std::ostringstream error;
+	    error << te.what() << std::endl << "On line " << line_count << ": " << currentLine;
+	    throw mmpbsa::TokenizerException(error.str(),te.getErrType());
+	  }
+
         if(!mdoutFile.eof())
-            currentLine = getNextLine(mdoutFile);
+	  {
+            currentLine = getNextLine(mdoutFile);line_count++;
+	  }
         else
         	break;
     }
