@@ -211,6 +211,8 @@ void parseNumber(const std::string& word, mmpbsa_t& data) throw (mmpbsa::SanderI
  */
 void parseNumber(const std::string& word,size_t& data) throw (mmpbsa::SanderIOException);
 
+template <class T> std::ostream& write_snapshot(std::ostream& the_stream,const std::valarray<T>& dataArray,const std::string& ifbox_data);
+
 }//end namespace mmpbsa_io
 
 

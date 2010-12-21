@@ -22,29 +22,8 @@
 #include <map>
 #include "XMLNode.h"
 
-#include "mmpbsa_exceptions.h"
 #include "mmpbsa_io.h"
 
-
-namespace mmpbsa{
-
-class XMLParserException : public mmpbsa::MMPBSAException
-{
-    public:
-    /**
-     * Exception for when something goes wrong with reading the XML data
-     *
-     * @param error
-     */
-    XMLParserException(const std::string& error) : mmpbsa::MMPBSAException( error){}
-
-    XMLParserException(const std::string& error, const mmpbsa::MMPBSAErrorTypes& errorType)
-        : mmpbsa::MMPBSAException(error,errorType){}
-
-    const char* identifier(){return "XML Parser Error";}
-};
-
-};//end namespace mmpbsa
 
 namespace mmpbsa_utils{
 

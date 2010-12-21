@@ -291,6 +291,35 @@ template <> bool mmpbsa_io::loadValarray<std::string>(std::fstream& dataFile,
     return true;
 }
 
+template <class T> std::ostream& mmpbsa_io::write_snapshot(std::ostream& the_stream,const std::valarray<T>& dataArray,const std::string& ifbox_data)
+{
+	//If the length is zero, there is no data, which will correspond to a blank
+	//line in the parmtop file. Pop that line and return (true);
+	if(dataArray == 0)
+	{
+		std::cerr << "Warning: write_snapshot was called without data." << std::endl;
+		return the_stream;
+	}
+
+	size_t arrayLength = dataArray.size();
+	if(arrayLength % 3 != 0)
+		throw mmpbsa::MMPBSAException("mmpbsa_io::write_snapshot: Given coordinate (trajectory) data that is not 3-dimensional.",mmpbsa::DATA_FORMAT_ERROR);
+
+	for(size_t dataIndex = 0;dataIndex<arrayLength;dataIndex++)
+	{
+		if(dataIndex % 10 == 0)
+		{
+			the_stream << std::endl;
+		}
+
+		the_stream << std::setw(8) << dataArray[dataIndex];
+	}
+	if(ifbox_data.size() != 0)
+		the_stream << std::endl << ifbox_data;
+	the_stream << std::endl;
+	return the_stream;
+}
+
 void mmpbsa_io::read_siz_file(std::fstream& theFile,
         std::map<std::string,float>& radii, std::map<std::string,std::string>& residues)
 {
