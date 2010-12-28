@@ -128,6 +128,12 @@ public:
     mmpbsa_t surf_tension;// kcal/mol/Ang^2
     mmpbsa_t surf_offset;// kcal/mol
 
+    //offset used to recombine snaplist segments.
+    //Snap list are counted in order of appearance in the trajectory file.
+    //To ensure that multiple MMPBSA calculation can be combined in the correct order,
+    //an offset may be used to be added to the snap shot's index when recombining results.
+    int snap_list_offset;
+
     std::map<std::string,float> brad;
 
     

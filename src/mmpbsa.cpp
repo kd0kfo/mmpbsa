@@ -303,11 +303,19 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
         study_cpu_time();
 
-        //retrieve snapshot.
+        //retrieve snapshot ID and start a snapshot XML dataset.
         std::ostringstream strSnapNumber;
         strSnapNumber << currState.currentSnap;//Node used to output energy data
         mmpbsa_utils::XMLNode* snapshotXML = new mmpbsa_utils::XMLNode("snapshot");
         snapshotXML->insertChild("ID",strSnapNumber.str());
+        if(mi.snap_list_offset != 0)
+        {
+			strSnapNumber.str("");
+			strSnapNumber << mi.snap_list_offset;
+			snapshotXML->insertChild("snap_list_offset",strSnapNumber.str());
+        }
+
+        //separate coordinates
         size_t complexCoordIndex = 0;
         size_t receptorCoordIndex = 0;
         size_t ligandCoordIndex = 0;
@@ -544,6 +552,13 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
 				throw mmpbsa::MMPBSAException("parse_parameters: \"" + it->second + "\" is an invalid verbosity level.",
 						mmpbsa::COMMAND_LINE_ERROR);
 		}
+		else if(it->first == "snap_list_offset")
+		{
+			buff >> mi.snap_list_offset;
+			if(buff.fail())
+				throw mmpbsa::MMPBSAException("parse_parameters: \"" + it->second + "\" is an invalid verbosity level.",
+						mmpbsa::COMMAND_LINE_ERROR);
+		}
 
     }
     return 0;
@@ -621,7 +636,7 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
             std::istringstream buff(it->second);
             buff >> currState.weight;
         }
-        else if(it->first == "id" || it->first == "prereq")//this is used by the queue system only. Not needed for calculations.
+        else if(it->first == "id" || it->first == "prereq" || it->first == "snap_list_offset")//this is used by the queue system only. Not needed for calculations.
         	continue;
         else//assuming if the argument is not one of the parameters listed above, it's a filename
         {
