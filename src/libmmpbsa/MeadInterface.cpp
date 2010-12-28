@@ -14,8 +14,12 @@ mmpbsa::MeadInterface::MeadInterface() {
     istrength = 0;
     surf_tension =  0.00542;// kcal/mol/Ang^2
     surf_offset = 0.92;// kcal/mol
+<<<<<<< HEAD
 
     multithread = 0;
+=======
+    snap_list_offset = 0;
+>>>>>>> master
 }
 
 mmpbsa::MeadInterface::MeadInterface(const mmpbsa::MeadInterface& orig) {
@@ -23,7 +27,11 @@ mmpbsa::MeadInterface::MeadInterface(const mmpbsa::MeadInterface& orig) {
     istrength = orig.istrength;
     surf_offset = orig.surf_offset;
     surf_tension = orig.surf_tension;
+<<<<<<< HEAD
     multithread = orig.multithread;
+=======
+    snap_list_offset = orig.snap_list_offset;
+>>>>>>> master
 }
 
 mmpbsa::MeadInterface::~MeadInterface() {
