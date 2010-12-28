@@ -26,6 +26,7 @@
 #define DEFAULT_SCNB 2.0
 #define DEFAULT_SCEE 1.2
 #define DEFAULT_DIELC 1.0
+#define CR_CHAR 0xd
 
 typedef double mmpbsa_t;
 

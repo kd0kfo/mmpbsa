@@ -37,6 +37,7 @@ public:
      * @return 
      */
     void get_first_energyinfo(const char* fileName);
+    void get_first_energyinfo(const std::string& filename){get_first_energyinfo(filename.c_str());}
 
     /**
      * Loads next energy info from the provided mdout file.

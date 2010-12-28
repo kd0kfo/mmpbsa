@@ -52,6 +52,12 @@ std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data
     theStream << "  HBOND  =   "  << data[EnergyInfo::eelec];
     theStream << "  RESTRAINT  =  "  << data[EnergyInfo::restraint];
     theStream << std::endl;
+    theStream << "EKCMT  =  " << data[EnergyInfo::ekcmt];
+    theStream << "  VIRIAL  =   " << data[EnergyInfo::virial];
+    theStream << "  VOLUME     =    " << data[EnergyInfo::volume];
+    theStream << std::endl;
+    theStream << "Density    =    " << data[EnergyInfo::density];
+    theStream << std::endl;
     theStream << "EAMBER (non-restraint)  =  " << data[EnergyInfo::nonconst_pot];
     theStream << std::endl;
     theStream << "Ewald error estimate:   " << data[EnergyInfo::ewalderr];
@@ -147,7 +153,8 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
         currentLine = trimString(currentLine);
         if(currentLine.size() == 0 || currentLine.find("------------------------------------") != std::string::npos)
         	break;//end of data section.
-
+        if(currentLine.find(CR_CHAR) != std::string::npos)
+        	currentLine.erase(currentLine.find(CR_CHAR),1);
         mmpbsa_utils::StringTokenizer tokens(currentLine);
 	try{
         while(tokens.hasMoreTokens())
