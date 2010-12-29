@@ -130,14 +130,14 @@ void study_cpu_time()
 #endif
 }
 
-void write_file(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState& currState)
+void write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState& currState)
 {
 	const string& filename = get_filename(SANDER_MDOUT_TYPE,currState);
 #ifdef USE_GZIP
 	using mmpbsa_utils::Zipper;
 	FILE *tempfile,*out_file = fopen(filename.c_str(),"w");
 	if(out_file == 0)
-		throw mmpbsa::MMPBSAException("write_file: could not open " + filename + " for writing.",mmpbsa::FILE_IO_ERROR);
+		throw mmpbsa::MMPBSAException("write_mmpbsa_data: could not open " + filename + " for writing.",mmpbsa::FILE_IO_ERROR);
 
 	std::string data = energy_data.toString();
 	bool should_gzip = (filename.find(".gz") != std::string::npos || filename.find(".tgz") != std::string::npos);
@@ -175,6 +175,7 @@ void write_file(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState&
 		  {
 		    rewind(tempfile);
 		    Zipper::fzip(tempfile,out_file,Z_BEST_SPEED);
+		    fclose(tempfile);
 		  }
 	}
 	else//in this case, no tar or gzip
@@ -183,6 +184,85 @@ void write_file(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState&
 	fclose(out_file);
 #else
 	energy_data.write(filename);
+#endif
+}
+
+mmpbsa_utils::XMLNode* read_mmpbsa_data(const mmpbsa::MMPBSAState& currState)
+{
+	const string& filename = get_filename(SANDER_MDOUT_TYPE,currState);
+	mmpbsa_utils::XMLNode* returnMe = 0;
+	mmpbsa_utils::XMLParser xmlDoc;
+#ifdef USE_GZIP
+	using mmpbsa_utils::Zipper;
+	FILE *tempfile,*in_file = fopen(filename.c_str(),"r");
+	if(in_file == 0)
+		throw mmpbsa::MMPBSAException("read_mmpbsa_data: could not open " + filename + " for writing.",mmpbsa::FILE_IO_ERROR);
+
+	bool should_gzip = (filename.find(".gz") != std::string::npos || filename.find(".tgz") != std::string::npos);
+	bool should_tar = (filename.find(".tgz") != std::string::npos || filename.find(".tar") != std::string::npos);
+	if(should_gzip || should_tar)
+	{
+		//gzip file (or intermediate tar file)
+		if(should_gzip)
+		{
+			tempfile = tmpfile();
+			int unzip_result = Zipper::funzip(in_file,tempfile);
+			if(unzip_result != Z_OK)
+			{
+				std::ostringstream error;
+				Zipper::zerr(unzip_result);
+				error << "write_mmpbsa_data: Error decompressing " << filename << " zlib error number " << unzip_result;
+				throw mmpbsa::MMPBSAException(error);
+			}
+			rewind(tempfile);
+			fclose(in_file);
+		}
+		else
+			tempfile = in_file;
+
+		//Tar file
+		if(should_tar)
+		{
+			std::string decomp_filename;
+			if(filename.find(".tgz") != std::string::npos)
+				decomp_filename = filename.substr(0,filename.find(".tgz"));
+			else if(filename.find(".tar") != std::string::npos)
+				decomp_filename = filename.substr(0,filename.find(".tar"));
+			std::stringstream* tarstream = Zipper::funtar(tempfile,decomp_filename);
+			if(tarstream == 0)
+				throw mmpbsa::MMPBSAException("read_mmpbsa_data: Could not extract " + decomp_filename + " from " + filename,mmpbsa::FILE_IO_ERROR);
+			returnMe = mmpbsa_utils::XMLParser::parse(*tarstream);
+		}
+		else//if no tar, load gunzip'ed xmldata into xml tree.
+		{
+			std::stringstream xml_stream;
+			char * in_data;
+			size_t buff_size,amount_read;
+			fseek(tempfile,0,SEEK_END);
+			buff_size = ftell(tempfile);
+			rewind(tempfile);
+			in_data = (char*)malloc(sizeof(char)*buff_size);
+			amount_read = fread(in_data,1,buff_size,tempfile);
+			if(amount_read != buff_size)
+				throw mmpbsa::MMPBSAException("read_mmpbsa_data: Error reading gunzip'ed buffer.",mmpbsa::FILE_IO_ERROR);
+			xml_stream << in_data;
+			delete [] in_data;
+			returnMe = mmpbsa_utils::XMLParser::parse(xml_stream);
+		}
+		fclose(tempfile);
+		return returnMe;
+	}//end should tar or should gzip
+
+	//If this point is reached, no tar or gzip; just use XMLParser.
+	fclose(in_file);
+	xmlDoc.parse(filename);
+	returnMe = xmlDoc.detachHead();
+	return returnMe;
+
+#else
+	xmlDoc.parse(filename);
+	returnMe = xmlDoc.detachHead();
+	return returnMe;
 #endif
 }
 
@@ -205,9 +285,13 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     //append new data to it.
     mmpbsa_utils::XMLParser previousEnergyData;
     try{
-        previousEnergyData.parse(currState.filename_map[SANDER_MDOUT_TYPE]);
+    	mmpbsa_utils::XMLNode* old_data = read_mmpbsa_data(currState);
+    	if(old_data == 0)
+    		previousEnergyData.setHead(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
+    	else
+    		previousEnergyData.setHead(old_data);
     }
-    catch(mmpbsa::XMLParserException xmlpe)
+    catch(mmpbsa::MMPBSAException xmlpe)
     {
         if(xmlpe.getErrType() != mmpbsa::FILE_IO_ERROR)
         {
@@ -352,7 +436,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         {
             if(e.getErrType() == UNEXPECTED_EOF)
             {
-            	write_file(previousEnergyData,currState);
+            	write_mmpbsa_data(previousEnergyData,currState);
             	return 0;
             }
         }
@@ -459,7 +543,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         currState.currentMolecule = MMPBSAState::COMPLEX;//Reset current molecule
         currState.currentSnap += 1;
 
-        write_file(previousEnergyData,currState);
+        write_mmpbsa_data(previousEnergyData,currState);
 
     }//end of snapshot loop
     study_cpu_time();
@@ -469,7 +553,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
     trajFile.close();
 
-    write_file(previousEnergyData,currState);
+    write_mmpbsa_data(previousEnergyData,currState);
 
 
     delete sp;

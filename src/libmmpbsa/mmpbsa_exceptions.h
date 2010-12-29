@@ -43,7 +43,7 @@ class MMPBSAException : public std::runtime_error
      * @param errorType
      */
     MMPBSAException(const std::string& error, const MMPBSAErrorTypes& errorType) : runtime_error(error){this->errorType = errorType;}
-    MMPBSAException(const std::ostringstream& error, const MMPBSAErrorTypes& errorType) : runtime_error(error.str()){this->errorType = errorType;}
+    MMPBSAException(const std::ostringstream& error, const MMPBSAErrorTypes& errorType = UNKNOWN_ERROR) : runtime_error(error.str()){this->errorType = errorType;}
     /**
      * Returns the error type, corresponding to the error types listed below.
      * These should be returned if the exception is caught and the program

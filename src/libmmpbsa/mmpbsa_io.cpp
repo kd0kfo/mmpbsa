@@ -79,7 +79,7 @@ std::string mmpbsa_io::get_traj_title(std::fstream& trajFile)
     return getNextLine(trajFile);
 }
 
-std::string mmpbsa_io::getNextLine(std::fstream& file) throw (mmpbsa::MMPBSAException)
+std::string mmpbsa_io::getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAException)
 {
     if(!file.good())
         throw mmpbsa::MMPBSAException("Could not read from file");

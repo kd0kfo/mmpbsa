@@ -106,7 +106,7 @@ void skip_next_snap(std::fstream& trajFile, const size_t& natoms,
  * @param file
  * @return 
  */
-std::string getNextLine(std::fstream& file) throw (mmpbsa::MMPBSAException);
+std::string getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAException);
 
 
 /**
