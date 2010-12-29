@@ -9,3 +9,8 @@ mmpbsa_graphics_CPPFLAGS = -Wall $(BOINC_CPPFLAGS) $(GRAPHICS_CPPFLAGS)
 mmpbsa_graphics_LDFLAGS = $(BOINC_LDFLAGS) $(GRAPHICS_LDFLAGS)
 mmpbsa_graphics_LDADD = $(BOINC_LIBS) $(GRAPHICS_LIBS) $(CUSTOM_LIBS)
 mmpbsa_graphics_SOURCES = mmpbsa_graphics.cpp mmpbsa_gutil.cpp
+
+
+if BUILD_WITH_GZIP
+mmpbsa_LDADD += -lz
+endif
