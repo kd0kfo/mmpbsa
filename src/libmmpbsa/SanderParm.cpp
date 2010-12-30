@@ -311,10 +311,13 @@ void mmpbsa::SanderParm::raw_read_amber_parm(const std::string& file) throw (mmp
     using namespace mmpbsa_utils;
 
     std::fstream prmtopFile(file.c_str(),std::ios::in);
+    std::stringstream data;
+    mmpbsa_io::smart_read(data,prmtopFile,&file);
+    prmtopFile.close();
 
     try
     {
-        raw_read_amber_parm(prmtopFile);
+        raw_read_amber_parm(data);
     }
     catch(mmpbsa::SanderIOException sioe)
     {
@@ -322,7 +325,6 @@ void mmpbsa::SanderParm::raw_read_amber_parm(const std::string& file) throw (mmp
         buff << sioe.what() << std::endl << "Parmtop File = " << file;
         throw mmpbsa::SanderIOException(buff,sioe.getErrType());
     }
-    prmtopFile.close();
 }
 
 void mmpbsa::SanderParm::raw_read_amber_parm(std::iostream& prmtopFile) throw (mmpbsa::SanderIOException)
@@ -335,8 +337,8 @@ void mmpbsa::SanderParm::raw_read_amber_parm(std::iostream& prmtopFile) throw (m
         throw mmpbsa::SanderIOException("Could not open parmtop file.",mmpbsa::BROKEN_PRMTOP_FILE);
 
     string currentLine = getNextLine(prmtopFile);
-    if(!strcmp(currentLine.substr(0,9).c_str(),"%VERSION"))
-        throw mmpbsa::SanderIOException("Parmtop file is malformed. %%VERSION is missing.",mmpbsa::BROKEN_PRMTOP_FILE);
+    if(currentLine.substr(0,8) != "%VERSION")
+        throw mmpbsa::SanderIOException("Parmtop file is malformed. %VERSION is missing.",mmpbsa::BROKEN_PRMTOP_FILE);
 
     string flag;
     string format;

@@ -73,7 +73,7 @@ void mmpbsa_io::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& c
     outFile.close();
 }
 
-std::string mmpbsa_io::get_traj_title(std::fstream& trajFile)
+std::string mmpbsa_io::get_traj_title(std::iostream& trajFile)
 {
     trajFile.seekg(0,std::ios::beg);
     return getNextLine(trajFile);
@@ -89,7 +89,7 @@ std::string mmpbsa_io::getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAExc
     return returnMe;
 }
 
-bool mmpbsa_io::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
+bool mmpbsa_io::get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa_t>& snapshot,
     const size_t& natoms,bool isPeriodic)
 {
     bool returnMe = loadValarray(trajFile,snapshot,natoms*3,8,10);
@@ -98,7 +98,7 @@ bool mmpbsa_io::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& s
     return returnMe;
 }
 
-size_t mmpbsa_io::count_snapshots(std::fstream& trajFile,const size_t& natoms, bool isPeriodic)
+size_t mmpbsa_io::count_snapshots(std::iostream& trajFile,const size_t& natoms, bool isPeriodic)
 {
     get_traj_title(trajFile);
     size_t snapcount = 0;
@@ -119,7 +119,7 @@ size_t mmpbsa_io::count_snapshots(std::fstream& trajFile,const size_t& natoms, b
     return snapcount;
 }
 
-void mmpbsa_io::skip_next_snap(std::fstream& trajFile, const size_t& natoms, bool isPeriodic)
+void mmpbsa_io::skip_next_snap(std::iostream& trajFile, const size_t& natoms, bool isPeriodic)
 {
     //This might seem excessive just to skip, but I want to verify a snapshot is
     //actually there.

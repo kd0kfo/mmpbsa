@@ -81,7 +81,7 @@ int main(int argc, char** argv)
             std::cerr << "BOINC Error: " << boincerror(retval) << std::endl;
         boinc_finish(retval);
 #endif
-        std::cerr << PACKAGE_STRING <<" finished on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
+        std::cerr << PACKAGE_STRING <<" finished (" << retval << ") on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
         return retval;
     }    
     catch (mmpbsa::MMPBSAException e)
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 #ifdef USE_BOINC
         boinc_finish(e.getErrType());
 #endif
-        std::cerr << PACKAGE_STRING <<" finished on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
+        std::cerr << PACKAGE_STRING <<" finished (" << e.getErrType() << ") on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
         return e.getErrType();
 
     }
@@ -250,15 +250,21 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     map<std::string,std::string> residues;
     if(has_filename(RADII_TYPE,currState))
     {
-        std::fstream radiiFile(get_filename(RADII_TYPE,currState).c_str(),std::ios::in);
-        mmpbsa_io::read_siz_file(radiiFile,radii, residues);
+    	std::string radiiFilename = get_filename(RADII_TYPE,currState);
+        std::fstream radiiFile(radiiFilename.c_str(),std::ios::in);
+        std::stringstream radiiData;
+        mmpbsa_io::smart_read(radiiData,radiiFile,&radiiFilename);
         radiiFile.close();
+        mmpbsa_io::read_siz_file(radiiData,radii, residues);
     }
 
     //Load Trajectory.
     if(!has_filename(SANDER_INPCRD_TYPE,currState))
     	throw mmpbsa::MMPBSAException("mmpbsa_run: no trajectory file was given.",BROKEN_TRAJECTORY_FILE);
-    std::fstream trajFile(get_filename(SANDER_INPCRD_TYPE,currState).c_str(),std::ios::in);
+    std::fstream trajDiskFile(get_filename(SANDER_INPCRD_TYPE,currState).c_str(),std::ios::in);
+    std::stringstream trajFile;
+    mmpbsa_io::smart_read(trajFile,trajDiskFile,&(get_filename(SANDER_INPCRD_TYPE,currState)));
+    trajDiskFile.close();
     if(!trajFile.good())
         throw MMPBSAException("mmpbsa_run: Unable to read from trajectory file",BROKEN_TRAJECTORY_FILE);
 
@@ -443,8 +449,6 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
     currState.fractionDone = 1.0;
     checkpoint_mmpbsa(currState);
-
-    trajFile.close();
 
     write_mmpbsa_data(previousEnergyData,currState);
 

@@ -64,7 +64,7 @@ void write_crds(const char* fileName,const std::valarray<mmpbsa_t>& crds,
  * @param trajFile
  * @return title
  */
-std::string get_traj_title(std::fstream& trajFile);
+std::string get_traj_title(std::iostream& trajFile);
 
 /**
  * Counts the number of snap shots in the given file.
@@ -74,7 +74,7 @@ std::string get_traj_title(std::fstream& trajFile);
  * @param isPeriodic
  * @return
  */
-size_t count_snapshots(std::fstream& trajFile,const size_t& natoms, bool isPeriodic);
+size_t count_snapshots(std::iostream& trajFile,const size_t& natoms, bool isPeriodic);
 
 /**
  * Gets the next snapshot from the provided trajectory file. The snapshot data
@@ -87,7 +87,7 @@ size_t count_snapshots(std::fstream& trajFile,const size_t& natoms, bool isPerio
  * @param natoms
  * @return
  */
-bool get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
+bool get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa_t>& snapshot,
     const size_t& natoms,bool isPeriodic = false);
 
 /**
@@ -97,7 +97,7 @@ bool get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
  * @param natoms
  * @param isPeriodic
  */
-void skip_next_snap(std::fstream& trajFile, const size_t& natoms,
+void skip_next_snap(std::iostream& trajFile, const size_t& natoms,
         bool isPeriodic = false);
 
 /**
