@@ -381,9 +381,19 @@ std::iostream& mmpbsa_io::smart_write(std::iostream& dest, std::iostream& source
 
 	if(filename == 0)
 	{
-		dest << source;
+		dest << source.rdbuf();
 		return dest;
 	}
+
+	bool should_gzip = (filename->find(".gz") != std::string::npos || filename->find(".tgz") != std::string::npos);
+	bool should_tar = (filename->find(".tgz") != std::string::npos || filename->find(".tar") != std::string::npos);
+	if(!should_gzip && !should_tar)//for efficiency's sake, if there is no compression, don't use buffers.
+	{
+		dest << source.rdbuf();
+		return dest;
+	}
+
+
 	size_t buffer_size;
 	char *buffer;
 	source.seekg(0,std::ios::end);
@@ -461,6 +471,130 @@ std::iostream& mmpbsa_io::smart_write(std::iostream& dest, const char* source,co
 	dest << source;
 #endif
 
+	return dest;
+}
+
+size_t mmpbsa_io::smart_read(char** dest, std::iostream& source, const std::string* filename)
+{
+	size_t buffer_size;
+#ifdef USE_GZIP
+	using mmpbsa_utils::Zipper;
+	FILE *tempfile,*in_file = tmpfile();
+
+	char* buffer;
+	size_t source_size;
+
+	//push the buffer into the FILE stream to be used by tar and/or gzip
+	source.seekg(0,std::ios::end);
+	source_size = source.tellg();
+	source.seekg(0,std::ios::beg);
+	buffer = new char[source_size];
+	source.read(buffer,source_size);
+	fwrite(buffer,sizeof(char),source_size,in_file);
+	rewind(in_file);
+
+	//Without an extension, do not try to decompress.
+	if(filename == 0)
+	{
+		fclose(in_file);
+		*dest = buffer;
+		return source_size;
+	}
+
+	bool should_gzip = (filename->find(".gz") != std::string::npos || filename->find(".tgz") != std::string::npos);
+	bool should_tar = (filename->find(".tgz") != std::string::npos || filename->find(".tar") != std::string::npos);
+	if(should_gzip || should_tar)
+	{
+		//gzip file (or intermediate tar file)
+		if(should_gzip)
+		{
+			tempfile = tmpfile();
+			int unzip_result = Zipper::funzip(in_file,tempfile);
+			if(unzip_result != Z_OK)
+			{
+				std::ostringstream error;
+				Zipper::zerr(unzip_result);
+				error << "write_mmpbsa_data: Error decompressing " << *filename << " zlib error number " << unzip_result;
+				throw mmpbsa::MMPBSAException(error);
+			}
+			rewind(tempfile);
+			fclose(in_file);
+		}
+		else
+			tempfile = in_file;
+
+		//Tar file
+		if(should_tar)
+		{
+			std::string decomp_filename;
+			if(filename->find(".tgz") != std::string::npos)
+				decomp_filename = filename->substr(0,filename->find(".tgz"));
+			else if(filename->find(".tar") != std::string::npos)
+				decomp_filename = filename->substr(0,filename->find(".tar"));
+			std::stringstream* tarstream = Zipper::funtar(tempfile,decomp_filename);
+			if(tarstream == 0)
+				throw mmpbsa::ZipperException("mmpbsa_io::smart_read: bad tar data in " + *filename,mmpbsa::FILE_IO_ERROR);
+			buffer_size = tarstream->str().size();
+			*dest = new char[buffer_size];
+			memcpy(*dest,tarstream->str().c_str(),buffer_size);
+			delete tarstream;
+		}
+		else
+		{
+			fseek(tempfile,0,SEEK_END);
+			buffer_size = ftell(tempfile);
+			fseek(tempfile,0,SEEK_SET);
+			*dest = new char[buffer_size];
+			fread(*dest,sizeof(char),buffer_size,tempfile);
+		}
+
+		fclose(tempfile);
+		delete [] buffer;
+		return buffer_size;
+	}//end should tar or should gzip
+
+	//If this point is reached, no tar or gzip; just use XMLParser.
+	*dest = buffer;
+	fclose(in_file);
+	return source_size;
+
+#else
+	source.seekg(0,std::ios::end);
+	buffer_size = source.tellg();
+	source.seekg(0,std::ios::beg);
+	*dest = new char[buffer_size];
+	source.read(*dest,buffer_size);
+	return buffer_size;
+#endif
+}
+
+std::iostream& mmpbsa_io::smart_read(std::iostream& dest, std::iostream& source, const std::string* filename)
+{
+	if(!dest.good())
+		throw mmpbsa::MMPBSAException("smart_read: cannot write to stream.");
+
+	if(!source.good())
+			throw mmpbsa::MMPBSAException("smart_read: cannot read input stream.");
+
+	if(filename == 0)
+	{
+		dest << source.rdbuf();
+		return dest;
+	}
+
+	bool should_gzip = (filename->find(".gz") != std::string::npos || filename->find(".tgz") != std::string::npos);
+	bool should_tar = (filename->find(".tgz") != std::string::npos || filename->find(".tar") != std::string::npos);
+	if(!should_gzip && !should_tar)//save time and not use buffers.
+	{
+		dest << source.rdbuf();
+		return dest;
+	}
+
+	char *buffer = 0;
+	size_t buffer_size = smart_read(&buffer,source,filename);
+	if(buffer_size != 0 && buffer != 0)
+	  dest.write(buffer,buffer_size);
+	delete [] buffer;
 	return dest;
 }
 

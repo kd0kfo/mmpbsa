@@ -199,8 +199,10 @@ void parseNumber(const std::string& word,size_t& data) throw (mmpbsa::SanderIOEx
 template <class T> std::ostream& write_snapshot(std::ostream& the_stream,const std::valarray<T>& dataArray,const std::string& ifbox_data);
 
 std::iostream& smart_write(std::iostream& dest, std::iostream& source, const std::string* filename = 0);
- std::iostream& smart_write(std::iostream& dest, const char* source, const size_t& buffer_size, const std::string* filename = 0);
+std::iostream& smart_write(std::iostream& dest, const char* source, const size_t& buffer_size, const std::string* filename = 0);
 
+size_t smart_read(char** dest, std::iostream& source, const std::string* filename = 0);
+std::iostream& smart_read(std::iostream& dest, std::iostream& source, const std::string* filename = 0);
 }//end namespace mmpbsa_io
 
 
