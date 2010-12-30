@@ -25,6 +25,7 @@
 #include "mmpbsa_utils.h"
 #include "mmpbsa_exceptions.h"
 #include "SanderParm.h"
+#include "Zipper.h"
 
 #ifdef USE_BOINC
 #if defined(_WIN32) || defined(__MINGW_WIN32__)
@@ -118,24 +119,8 @@ std::string getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAException);
  * @param radii
  * @param residues
  */
-void read_siz_file(std::fstream& theFile,
+void read_siz_file(std::iostream& theFile,
         std::map<std::string,float>& radii, std::map<std::string,std::string>& residues);
-
-/**
- * Opens a file using the provided fstream.
- *
- * If the program is compiled with the BOINC API, the return value of boinc_resolve_filename
- * is returned. Otherwise, the return values are 0 for success and 1 for failure.
- *
- * @param dataFile
- * @param dataArray
- * @param arrayLength
- * @param width
- * @param numberOfColumns
- * @return
- */
-int fileopen(const char* filename, const std::ios::openmode& mode,
-        std::fstream& file);
 
 
 /**
@@ -151,11 +136,11 @@ int fileopen(const char* filename, const std::ios::openmode& mode,
  * @param width
  * @return 
  */
-template <class T> bool loadValarray(std::fstream& dataFile,
+template <class T> bool loadValarray(std::iostream& dataFile,
         std::valarray<T>& dataArray, const size_t& arrayLength, const size_t& width,
         const size_t& numberOfColumns);
 
-template <> bool loadValarray<std::string>(std::fstream& dataFile,
+template <> bool loadValarray<std::string>(std::iostream& dataFile,
             std::valarray<std::string>& dataArray, const size_t& arrayLength, const size_t& width,
             const size_t& numberOfColumns);
 
@@ -212,6 +197,9 @@ void parseNumber(const std::string& word, mmpbsa_t& data) throw (mmpbsa::SanderI
 void parseNumber(const std::string& word,size_t& data) throw (mmpbsa::SanderIOException);
 
 template <class T> std::ostream& write_snapshot(std::ostream& the_stream,const std::valarray<T>& dataArray,const std::string& ifbox_data);
+
+std::iostream& smart_write(std::iostream& dest, std::iostream& source, const std::string* filename = 0);
+ std::iostream& smart_write(std::iostream& dest, const char* source, const size_t& buffer_size, const std::string* filename = 0);
 
 }//end namespace mmpbsa_io
 

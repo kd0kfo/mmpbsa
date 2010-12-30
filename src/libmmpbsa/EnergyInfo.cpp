@@ -198,8 +198,7 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
 
 void mmpbsa::EnergyInfo::get_first_energyinfo(const char* fileName)
 {
-    std::fstream mdout;
-    mmpbsa_io::fileopen(fileName,std::ios::in,mdout);
+    std::fstream mdout(fileName,std::ios::in);
     get_next_energyinfo(mdout);
     mdout.close();
 }

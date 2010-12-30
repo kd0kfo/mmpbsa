@@ -133,58 +133,15 @@ void study_cpu_time()
 void write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState& currState)
 {
 	const string& filename = get_filename(SANDER_MDOUT_TYPE,currState);
-#ifdef USE_GZIP
-	using mmpbsa_utils::Zipper;
-	FILE *tempfile,*out_file = fopen(filename.c_str(),"w");
-	if(out_file == 0)
-		throw mmpbsa::MMPBSAException("write_mmpbsa_data: could not open " + filename + " for writing.",mmpbsa::FILE_IO_ERROR);
-
 	std::string data = energy_data.toString();
-	bool should_gzip = (filename.find(".gz") != std::string::npos || filename.find(".tgz") != std::string::npos);
-	bool should_tar = (filename.find(".tgz") != std::string::npos || filename.find(".tar") != std::string::npos);
-	if(should_gzip || should_tar)
-	{
-		tempfile = tmpfile();
-
-		//Tar file
-		if(should_tar)
-		{
-			char header[512];
-			std::string decomp_filename;
-			struct stat the_stat = Zipper::default_stat(data.size());
-			if(!should_gzip)
-			{
-			  fclose(tempfile);
-			  tempfile = out_file;
-			}
-			if(filename.find(".tgz") != std::string::npos)
-				decomp_filename = filename.substr(0,filename.find(".tgz"));
-			else if(filename.find(".tar") != std::string::npos)
-				decomp_filename = filename.substr(0,filename.find(".tar"));
-			Zipper::create_header(header,data.c_str(),data.size(),the_stat,decomp_filename.c_str());
-			fwrite(header,1,sizeof(header),tempfile);
-			fwrite(data.c_str(),1,data.size(),tempfile);
-
-			Zipper::pad_tarfile(data.c_str(),tempfile);
-		}
-		else//if no gzip, put data in tempfile to be tar'ed
-			fputs(data.c_str(),tempfile);
-
-		//gzip file (or intermediate tar file)
-		if(should_gzip)
-		  {
-		    rewind(tempfile);
-		    Zipper::fzip(tempfile,out_file,Z_BEST_SPEED);
-		    fclose(tempfile);
-		  }
-	}
-	else//in this case, no tar or gzip
-		fputs(data.c_str(),out_file);
-
-	fclose(out_file);
-#else
-	energy_data.write(filename);
-#endif
+	std::ios::openmode the_mode = std::ios::out;
+	if(filename.find(".gz") != std::string::npos || filename.find(".tar") != std::string::npos || filename.find(".tgz") != std::string::npos)
+		the_mode |= std::ios::binary;
+	std::fstream out_file(filename.c_str(),the_mode);
+	if(!out_file.good())
+		throw mmpbsa::MMPBSAException("write_mmpbsa_data: unable to open " + filename + " for writing.",mmpbsa::FILE_IO_ERROR);
+	mmpbsa_io::smart_write(out_file,data.c_str(),data.size(),&filename);
+	out_file.close();
 }
 
 mmpbsa_utils::XMLNode* read_mmpbsa_data(const mmpbsa::MMPBSAState& currState)
