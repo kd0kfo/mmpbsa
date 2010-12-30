@@ -25,6 +25,7 @@
 #include "mmpbsa_utils.h"
 #include "mmpbsa_exceptions.h"
 #include "SanderParm.h"
+#include "Zipper.h"
 
 #ifdef USE_BOINC
 #if defined(_WIN32) || defined(__MINGW_WIN32__)
@@ -63,7 +64,7 @@ void write_crds(const char* fileName,const std::valarray<mmpbsa_t>& crds,
  * @param trajFile
  * @return title
  */
-std::string get_traj_title(std::fstream& trajFile);
+std::string get_traj_title(std::iostream& trajFile);
 
 /**
  * Counts the number of snap shots in the given file.
@@ -73,7 +74,7 @@ std::string get_traj_title(std::fstream& trajFile);
  * @param isPeriodic
  * @return
  */
-size_t count_snapshots(std::fstream& trajFile,const size_t& natoms, bool isPeriodic);
+size_t count_snapshots(std::iostream& trajFile,const size_t& natoms, bool isPeriodic);
 
 /**
  * Gets the next snapshot from the provided trajectory file. The snapshot data
@@ -86,7 +87,7 @@ size_t count_snapshots(std::fstream& trajFile,const size_t& natoms, bool isPerio
  * @param natoms
  * @return
  */
-bool get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
+bool get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa_t>& snapshot,
     const size_t& natoms,bool isPeriodic = false);
 
 /**
@@ -96,7 +97,7 @@ bool get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
  * @param natoms
  * @param isPeriodic
  */
-void skip_next_snap(std::fstream& trajFile, const size_t& natoms,
+void skip_next_snap(std::iostream& trajFile, const size_t& natoms,
         bool isPeriodic = false);
 
 /**
@@ -106,7 +107,7 @@ void skip_next_snap(std::fstream& trajFile, const size_t& natoms,
  * @param file
  * @return 
  */
-std::string getNextLine(std::fstream& file) throw (mmpbsa::MMPBSAException);
+std::string getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAException);
 
 
 /**
@@ -118,24 +119,8 @@ std::string getNextLine(std::fstream& file) throw (mmpbsa::MMPBSAException);
  * @param radii
  * @param residues
  */
-void read_siz_file(std::fstream& theFile,
+void read_siz_file(std::iostream& theFile,
         std::map<std::string,float>& radii, std::map<std::string,std::string>& residues);
-
-/**
- * Opens a file using the provided fstream.
- *
- * If the program is compiled with the BOINC API, the return value of boinc_resolve_filename
- * is returned. Otherwise, the return values are 0 for success and 1 for failure.
- *
- * @param dataFile
- * @param dataArray
- * @param arrayLength
- * @param width
- * @param numberOfColumns
- * @return
- */
-int fileopen(const char* filename, const std::ios::openmode& mode,
-        std::fstream& file);
 
 
 /**
@@ -151,11 +136,11 @@ int fileopen(const char* filename, const std::ios::openmode& mode,
  * @param width
  * @return 
  */
-template <class T> bool loadValarray(std::fstream& dataFile,
+template <class T> bool loadValarray(std::iostream& dataFile,
         std::valarray<T>& dataArray, const size_t& arrayLength, const size_t& width,
         const size_t& numberOfColumns);
 
-template <> bool loadValarray<std::string>(std::fstream& dataFile,
+template <> bool loadValarray<std::string>(std::iostream& dataFile,
             std::valarray<std::string>& dataArray, const size_t& arrayLength, const size_t& width,
             const size_t& numberOfColumns);
 
@@ -213,6 +198,11 @@ void parseNumber(const std::string& word,size_t& data) throw (mmpbsa::SanderIOEx
 
 template <class T> std::ostream& write_snapshot(std::ostream& the_stream,const std::valarray<T>& dataArray,const std::string& ifbox_data);
 
+std::iostream& smart_write(std::iostream& dest, std::iostream& source, const std::string* filename = 0);
+std::iostream& smart_write(std::iostream& dest, const char* source, const size_t& buffer_size, const std::string* filename = 0);
+
+size_t smart_read(char** dest, std::iostream& source, const std::string* filename = 0);
+std::iostream& smart_read(std::iostream& dest, std::iostream& source, const std::string* filename = 0);
 }//end namespace mmpbsa_io
 
 

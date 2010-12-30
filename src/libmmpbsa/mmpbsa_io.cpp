@@ -73,13 +73,13 @@ void mmpbsa_io::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& c
     outFile.close();
 }
 
-std::string mmpbsa_io::get_traj_title(std::fstream& trajFile)
+std::string mmpbsa_io::get_traj_title(std::iostream& trajFile)
 {
     trajFile.seekg(0,std::ios::beg);
     return getNextLine(trajFile);
 }
 
-std::string mmpbsa_io::getNextLine(std::fstream& file) throw (mmpbsa::MMPBSAException)
+std::string mmpbsa_io::getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAException)
 {
     if(!file.good())
         throw mmpbsa::MMPBSAException("Could not read from file");
@@ -89,7 +89,7 @@ std::string mmpbsa_io::getNextLine(std::fstream& file) throw (mmpbsa::MMPBSAExce
     return returnMe;
 }
 
-bool mmpbsa_io::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& snapshot,
+bool mmpbsa_io::get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa_t>& snapshot,
     const size_t& natoms,bool isPeriodic)
 {
     bool returnMe = loadValarray(trajFile,snapshot,natoms*3,8,10);
@@ -98,7 +98,7 @@ bool mmpbsa_io::get_next_snap(std::fstream& trajFile, std::valarray<mmpbsa_t>& s
     return returnMe;
 }
 
-size_t mmpbsa_io::count_snapshots(std::fstream& trajFile,const size_t& natoms, bool isPeriodic)
+size_t mmpbsa_io::count_snapshots(std::iostream& trajFile,const size_t& natoms, bool isPeriodic)
 {
     get_traj_title(trajFile);
     size_t snapcount = 0;
@@ -119,7 +119,7 @@ size_t mmpbsa_io::count_snapshots(std::fstream& trajFile,const size_t& natoms, b
     return snapcount;
 }
 
-void mmpbsa_io::skip_next_snap(std::fstream& trajFile, const size_t& natoms, bool isPeriodic)
+void mmpbsa_io::skip_next_snap(std::iostream& trajFile, const size_t& natoms, bool isPeriodic)
 {
     //This might seem excessive just to skip, but I want to verify a snapshot is
     //actually there.
@@ -187,7 +187,7 @@ void mmpbsa_io::parseNumber(const std::string& word,mmpbsa_t& returnData) throw 
 }
 
 
-template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
+template <class T> bool mmpbsa_io::loadValarray(std::iostream& dataFile,
         std::valarray<T>& dataArray, const size_t& arrayLength, const size_t& width,
         const size_t& numberOfColumns)
 {
@@ -239,7 +239,7 @@ template <class T> bool mmpbsa_io::loadValarray(std::fstream& dataFile,
 
 }
 
-template <> bool mmpbsa_io::loadValarray<std::string>(std::fstream& dataFile,
+template <> bool mmpbsa_io::loadValarray<std::string>(std::iostream& dataFile,
         std::valarray<std::string>& dataArray, const size_t& arrayLength, const size_t& width,
         const size_t& numberOfColumns)
 {
@@ -320,7 +320,7 @@ template <class T> std::ostream& mmpbsa_io::write_snapshot(std::ostream& the_str
 	return the_stream;
 }
 
-void mmpbsa_io::read_siz_file(std::fstream& theFile,
+void mmpbsa_io::read_siz_file(std::iostream& theFile,
         std::map<std::string,float>& radii, std::map<std::string,std::string>& residues)
 {
     using mmpbsa_utils::trimString;
@@ -372,15 +372,230 @@ void mmpbsa_io::read_siz_file(std::fstream& theFile,
 
 }
 
-int mmpbsa_io::fileopen(const char* filename, const std::ios::openmode& mode, std::fstream& file)
+
+std::iostream& mmpbsa_io::smart_write(std::iostream& dest, std::iostream& source, const std::string* filename)
 {
-    if(file.is_open())
-        file.close();
-    file.open(filename,mode);
-    if(file.is_open())
-        return 0;
-    else
-        return int(mmpbsa::FILE_IO_ERROR);
+
+	if(!dest.good())
+			throw mmpbsa::MMPBSAException("smart_write: cannot write to stream.");
+
+	if(filename == 0)
+	{
+		dest << source.rdbuf();
+		return dest;
+	}
+
+	bool should_gzip = (filename->find(".gz") != std::string::npos || filename->find(".tgz") != std::string::npos);
+	bool should_tar = (filename->find(".tgz") != std::string::npos || filename->find(".tar") != std::string::npos);
+	if(!should_gzip && !should_tar)//for efficiency's sake, if there is no compression, don't use buffers.
+	{
+		dest << source.rdbuf();
+		return dest;
+	}
+
+
+	size_t buffer_size;
+	char *buffer;
+	source.seekg(0,std::ios::end);
+	buffer_size = source.tellg();
+	source.seekg(0,std::ios::beg);
+	buffer = new char[buffer_size];
+
+	smart_write(dest,buffer,buffer_size,filename);
+
+	delete [] buffer;
+	return dest;
+}
+
+std::iostream& mmpbsa_io::smart_write(std::iostream& dest, const char* source,const size_t& buffer_size, const std::string* filename)
+{
+	if(!dest.good())
+		throw mmpbsa::MMPBSAException("smart_write: cannot write to stream.");
+
+	if(source == 0)
+		throw mmpbsa::MMPBSAException("smart_write: source buffer is a null pointer.",mmpbsa::NULL_POINTER);
+
+#ifdef USE_GZIP
+	using mmpbsa_utils::Zipper;
+	FILE *tempfile,*out_file = tmpfile();
+
+	bool should_gzip = (filename->find(".gz") != std::string::npos || filename->find(".tgz") != std::string::npos);
+	bool should_tar = (filename->find(".tgz") != std::string::npos || filename->find(".tar") != std::string::npos);
+	if(should_gzip || should_tar)
+	{
+		char header[TAR_BLOCK_SIZE],*buffer;
+		std::string decomp_filename = *filename;
+		struct stat the_stat = Zipper::default_stat(buffer_size);
+		size_t gzip_size;
+		tempfile = tmpfile();
+
+		//Tar file
+		if(should_tar)
+		{
+			if(decomp_filename.find(".tgz") != std::string::npos)
+				decomp_filename = decomp_filename.substr(0,decomp_filename.find(".tgz"));
+			else if(decomp_filename.find(".tar") != std::string::npos)
+				decomp_filename = decomp_filename.substr(0,decomp_filename.find(".tar"));
+			Zipper::create_header(header,source,the_stat.st_size,the_stat,decomp_filename.c_str());
+			fwrite(header,1,TAR_BLOCK_SIZE,tempfile);
+			fwrite(source,1,the_stat.st_size,tempfile);
+			Zipper::pad_tarfile(source,tempfile);
+			rewind(tempfile);
+		}
+
+		//gzip file (or intermediate tar file)
+		if(should_gzip)
+		{
+			Zipper::fzip(tempfile,out_file,Z_BEST_SPEED);
+			fclose(tempfile);
+		}
+		else
+		{
+			fclose(out_file);
+			out_file = tempfile;
+		}
+
+		fseek(out_file,0,SEEK_END);
+		gzip_size = ftell(out_file);
+		buffer = new char[gzip_size];
+		fseek(out_file,0,SEEK_SET);
+		fread(buffer,sizeof(char),gzip_size,out_file);
+		dest.write(buffer,gzip_size);
+		delete [] buffer;
+	}
+	else//in this case, no tar or gzip
+		dest << source;
+
+	fclose(out_file);
+#else
+	dest << source;
+#endif
+
+	return dest;
+}
+
+size_t mmpbsa_io::smart_read(char** dest, std::iostream& source, const std::string* filename)
+{
+	size_t buffer_size;
+#ifdef USE_GZIP
+	using mmpbsa_utils::Zipper;
+	FILE *tempfile,*in_file = tmpfile();
+
+	char* buffer;
+	size_t source_size;
+
+	//push the buffer into the FILE stream to be used by tar and/or gzip
+	source.seekg(0,std::ios::end);
+	source_size = source.tellg();
+	source.seekg(0,std::ios::beg);
+	buffer = new char[source_size];
+	source.read(buffer,source_size);
+	fwrite(buffer,sizeof(char),source_size,in_file);
+	rewind(in_file);
+
+	//Without an extension, do not try to decompress.
+	if(filename == 0)
+	{
+		fclose(in_file);
+		*dest = buffer;
+		return source_size;
+	}
+
+	bool should_gzip = (filename->find(".gz") != std::string::npos || filename->find(".tgz") != std::string::npos);
+	bool should_tar = (filename->find(".tgz") != std::string::npos || filename->find(".tar") != std::string::npos);
+	if(should_gzip || should_tar)
+	{
+		//gzip file (or intermediate tar file)
+		if(should_gzip)
+		{
+			tempfile = tmpfile();
+			int unzip_result = Zipper::funzip(in_file,tempfile);
+			if(unzip_result != Z_OK)
+			{
+				std::ostringstream error;
+				Zipper::zerr(unzip_result);
+				error << "write_mmpbsa_data: Error decompressing " << *filename << " zlib error number " << unzip_result;
+				throw mmpbsa::MMPBSAException(error);
+			}
+			rewind(tempfile);
+			fclose(in_file);
+		}
+		else
+			tempfile = in_file;
+
+		//Tar file
+		if(should_tar)
+		{
+			std::string decomp_filename;
+			if(filename->find(".tgz") != std::string::npos)
+				decomp_filename = filename->substr(0,filename->find(".tgz"));
+			else if(filename->find(".tar") != std::string::npos)
+				decomp_filename = filename->substr(0,filename->find(".tar"));
+			std::stringstream* tarstream = Zipper::funtar(tempfile,decomp_filename);
+			if(tarstream == 0)
+				throw mmpbsa::ZipperException("mmpbsa_io::smart_read: bad tar data in " + *filename,mmpbsa::FILE_IO_ERROR);
+			buffer_size = tarstream->str().size();
+			*dest = new char[buffer_size];
+			memcpy(*dest,tarstream->str().c_str(),buffer_size);
+			delete tarstream;
+		}
+		else
+		{
+			fseek(tempfile,0,SEEK_END);
+			buffer_size = ftell(tempfile);
+			fseek(tempfile,0,SEEK_SET);
+			*dest = new char[buffer_size];
+			fread(*dest,sizeof(char),buffer_size,tempfile);
+		}
+
+		fclose(tempfile);
+		delete [] buffer;
+		return buffer_size;
+	}//end should tar or should gzip
+
+	//If this point is reached, no tar or gzip; just use XMLParser.
+	*dest = buffer;
+	fclose(in_file);
+	return source_size;
+
+#else
+	source.seekg(0,std::ios::end);
+	buffer_size = source.tellg();
+	source.seekg(0,std::ios::beg);
+	*dest = new char[buffer_size];
+	source.read(*dest,buffer_size);
+	return buffer_size;
+#endif
+}
+
+std::iostream& mmpbsa_io::smart_read(std::iostream& dest, std::iostream& source, const std::string* filename)
+{
+	if(!dest.good())
+		throw mmpbsa::MMPBSAException("smart_read: cannot write to stream.");
+
+	if(!source.good())
+			throw mmpbsa::MMPBSAException("smart_read: cannot read input stream.");
+
+	if(filename == 0)
+	{
+		dest << source.rdbuf();
+		return dest;
+	}
+
+	bool should_gzip = (filename->find(".gz") != std::string::npos || filename->find(".tgz") != std::string::npos);
+	bool should_tar = (filename->find(".tgz") != std::string::npos || filename->find(".tar") != std::string::npos);
+	if(!should_gzip && !should_tar)//save time and not use buffers.
+	{
+		dest << source.rdbuf();
+		return dest;
+	}
+
+	char *buffer = 0;
+	size_t buffer_size = smart_read(&buffer,source,filename);
+	if(buffer_size != 0 && buffer != 0)
+	  dest.write(buffer,buffer_size);
+	delete [] buffer;
+	return dest;
 }
 
 int mmpbsa_io::resolve_filename(const std::string& unresolvedFilename, std::string& resolvedFilename)
@@ -425,8 +640,8 @@ int mmpbsa_io::resolve_filename(const char* unresolvedFilename, char* resolvedFi
 }
 
 //explicit instantiation
-template bool mmpbsa_io::loadValarray<size_t>(std::fstream&, std::valarray<size_t>&,const size_t&, const size_t&, const size_t&);
-template bool mmpbsa_io::loadValarray<int>(std::fstream&, std::valarray<int>&,const size_t&, const size_t&, const size_t&);
+template bool mmpbsa_io::loadValarray<size_t>(std::iostream&, std::valarray<size_t>&,const size_t&, const size_t&, const size_t&);
+template bool mmpbsa_io::loadValarray<int>(std::iostream&, std::valarray<int>&,const size_t&, const size_t&, const size_t&);
 
 
 

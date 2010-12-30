@@ -25,6 +25,11 @@
 #include "libmmpbsa/SanderInterface.h"
 #include "libmmpbsa/MMPBSAState.h"
 
+#if USE_GZIP //#ifndef USE_GZIP
+#include "libmmpbsa/Zipper.h"
+#endif
+
+
 #include "MEAD/FinDiffMethod.h"
 
 #ifdef USE_BOINC

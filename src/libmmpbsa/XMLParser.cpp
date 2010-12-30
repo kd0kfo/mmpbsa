@@ -56,10 +56,15 @@ void mmpbsa_utils::XMLParser::parse(const std::string& xmlFilename) throw (mmpbs
     delete head;head = 0;
     std::fstream xmlFile(xmlFilename.c_str(),std::ios::in);
     if(!xmlFile.good())
-    {
-        std::string error = "Could not open xml file: " + xmlFilename;
-        throw mmpbsa::XMLParserException(error,mmpbsa::FILE_IO_ERROR);
-    }
+    	throw mmpbsa::XMLParserException("mmpbsa_utils::XMLParser::parse: Could not open xml file: " + xmlFilename,mmpbsa::FILE_IO_ERROR);
+    head = parse(xmlFile);
+    if(head == 0)
+    	throw mmpbsa::XMLParserException("mmpbsa_utils::XMLParser::parse: Could not open xml file: " + xmlFilename,mmpbsa::FILE_IO_ERROR);
+    xmlFile.close();
+}
+
+mmpbsa_utils::XMLNode* mmpbsa_utils::XMLParser::parse(std::iostream& xmlFile)
+{
 
     using mmpbsa_io::getNextLine;
     using mmpbsa_utils::trimString;
@@ -70,7 +75,7 @@ void mmpbsa_utils::XMLParser::parse(const std::string& xmlFilename) throw (mmpbs
     bool isClosedTag = false;
     pair<string,string> currLine = parseLine(getNextLine(xmlFile),isClosedTag);
 
-    head = new XMLNode(currLine.first,currLine.second);
+    XMLNode* head = new XMLNode(currLine.first,currLine.second);
     XMLNode* currNode = head;
     if(isClosedTag)
         currNode = 0;
@@ -87,8 +92,7 @@ void mmpbsa_utils::XMLParser::parse(const std::string& xmlFilename) throw (mmpbs
             XMLNode* newNode = new XMLNode(currLine.first,currLine.second);
             if(currNode == 0)
             {
-                std::string error = "XML Error in " + xmlFilename +
-                        ": Missing top level tag. " + head->getName() + "should "
+                std::string error = "mmpbsa_utils::XMLParser::parse: Missing top level tag. " + head->getName() + "should "
                         "not have a sibling without a parent.";
                 throw mmpbsa::XMLParserException(error,mmpbsa::BAD_XML_TAG);
             }
@@ -105,10 +109,12 @@ void mmpbsa_utils::XMLParser::parse(const std::string& xmlFilename) throw (mmpbs
     }
     if(currNode != 0)
     {
-        std::string error = xmlFilename + " is a malformed XML file. Missing an end tag "
+        std::string error = "mmpbsa_utils::XMLParser::parse: is a malformed XML file. Missing an end tag "
                 "to go with " + head->getName();
         throw mmpbsa::XMLParserException(error,mmpbsa::BAD_XML_TAG);
     }
+
+    return head;
 }
 
 std::pair<std::string,std::string> mmpbsa_utils::XMLParser::parseLine(const std::string& _line,

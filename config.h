@@ -60,13 +60,13 @@
 #define PACKAGE_NAME "mmpbsa"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "mmpbsa 0.8.8"
+#define PACKAGE_STRING "mmpbsa 0.9.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "mmpbsa"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.8.8"
+#define PACKAGE_VERSION "0.9.0"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -80,6 +80,9 @@
 /* Define to create the graphics application. Requires BOINC and GL */
 /* #undef USE_GRAPHICS */
 
+/* Define to compile with libz and use GZIP. Requires libz. */
+#define USE_GZIP 1
+
 /* Define to use the JPEG library */
 /* #undef USE_JPEGLIB */
 
@@ -88,7 +91,7 @@
 #define USE_PTHREADS 1
 
 /* Version number of package */
-#define VERSION "0.8.8"
+#define VERSION "0.9.0"
 
 /* Define to prevent the use of molsurf, i.e. on Mac without proper signal.h
    */

@@ -88,7 +88,7 @@ int main(int argc, char** argv)
             std::cerr << "BOINC Error: " << boincerror(retval) << std::endl;
         boinc_finish(retval);
 #endif
-        std::cerr << PACKAGE_STRING <<" finished on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
+        std::cerr << PACKAGE_STRING <<" finished (" << retval << ") on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
         return retval;
     }    
     catch (mmpbsa::MMPBSAException e)
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 #ifdef USE_BOINC
         boinc_finish(e.getErrType());
 #endif
-        std::cerr << PACKAGE_STRING <<" finished on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
+        std::cerr << PACKAGE_STRING <<" finished (" << e.getErrType() << ") on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
         return e.getErrType();
 
     }
@@ -129,12 +129,41 @@ void writePDB(const mmpbsa::EmpEnerFun& energy,
 #include <unistd.h>
 void study_cpu_time()
 {
-#ifdef USE_BOINC
+#if 0//def USE_BOINC
 	double debug_cpu_time;
     pid_t the_pid = getpid();
     boinc_wu_cpu_time(debug_cpu_time);
     std::cout << "MMPBSA time: " << linux_cpu_time(the_pid) << " BOINC time: " << debug_cpu_time << std::endl;
 #endif
+}
+
+void write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState& currState)
+{
+	const string& filename = get_filename(SANDER_MDOUT_TYPE,currState);
+	std::string data = energy_data.toString();
+	std::ios::openmode the_mode = std::ios::out;
+	if(filename.find(".gz") != std::string::npos || filename.find(".tar") != std::string::npos || filename.find(".tgz") != std::string::npos)
+		the_mode |= std::ios::binary;
+	std::fstream out_file(filename.c_str(),the_mode);
+	if(!out_file.good())
+		throw mmpbsa::MMPBSAException("write_mmpbsa_data: unable to open " + filename + " for writing.",mmpbsa::FILE_IO_ERROR);
+	mmpbsa_io::smart_write(out_file,data.c_str(),data.size(),&filename);
+	out_file.close();
+}
+
+mmpbsa_utils::XMLNode* read_mmpbsa_data(const mmpbsa::MMPBSAState& currState)
+{
+	const string& filename = get_filename(SANDER_MDOUT_TYPE,currState);
+	std::stringstream data;
+	std::ios::openmode the_mode = std::ios::in;
+	if(filename.find(".gz") != std::string::npos || filename.find(".tar") != std::string::npos || filename.find(".tgz") != std::string::npos)
+		the_mode |= std::ios::binary;
+	std::fstream in_file(filename.c_str(),the_mode);
+	if(!in_file.good())
+		throw mmpbsa::MMPBSAException("read_mmpbsa_data: unable to open " + filename + " for writing.",mmpbsa::FILE_IO_ERROR);
+	mmpbsa_io::smart_read(data,in_file,&filename);
+	in_file.close();
+	return mmpbsa_utils::XMLParser::parse(data);
 }
 
 int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
@@ -156,9 +185,13 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     //append new data to it.
     mmpbsa_utils::XMLParser previousEnergyData;
     try{
-        previousEnergyData.parse(currState.filename_map[SANDER_MDOUT_TYPE]);
+    	mmpbsa_utils::XMLNode* old_data = read_mmpbsa_data(currState);
+    	if(old_data == 0)
+    		previousEnergyData.setHead(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
+    	else
+    		previousEnergyData.setHead(old_data);
     }
-    catch(mmpbsa::XMLParserException xmlpe)
+    catch(mmpbsa::MMPBSAException xmlpe)
     {
         if(xmlpe.getErrType() != mmpbsa::FILE_IO_ERROR)
         {
@@ -224,15 +257,21 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     map<std::string,std::string> residues;
     if(has_filename(RADII_TYPE,currState))
     {
-        std::fstream radiiFile(get_filename(RADII_TYPE,currState).c_str(),std::ios::in);
-        mmpbsa_io::read_siz_file(radiiFile,radii, residues);
+    	std::string radiiFilename = get_filename(RADII_TYPE,currState);
+        std::fstream radiiFile(radiiFilename.c_str(),std::ios::in);
+        std::stringstream radiiData;
+        mmpbsa_io::smart_read(radiiData,radiiFile,&radiiFilename);
         radiiFile.close();
+        mmpbsa_io::read_siz_file(radiiData,radii, residues);
     }
 
     //Load Trajectory.
     if(!has_filename(SANDER_INPCRD_TYPE,currState))
     	throw mmpbsa::MMPBSAException("mmpbsa_run: no trajectory file was given.",BROKEN_TRAJECTORY_FILE);
-    std::fstream trajFile(get_filename(SANDER_INPCRD_TYPE,currState).c_str(),std::ios::in);
+    std::fstream trajDiskFile(get_filename(SANDER_INPCRD_TYPE,currState).c_str(),std::ios::in);
+    std::stringstream trajFile;
+    mmpbsa_io::smart_read(trajFile,trajDiskFile,&(get_filename(SANDER_INPCRD_TYPE,currState)));
+    trajDiskFile.close();
     if(!trajFile.good())
         throw MMPBSAException("mmpbsa_run: Unable to read from trajectory file",BROKEN_TRAJECTORY_FILE);
 
@@ -303,8 +342,8 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         {
             if(e.getErrType() == UNEXPECTED_EOF)
             {
-                previousEnergyData.write(get_filename(SANDER_MDOUT_TYPE,currState));
-                return 0;
+            	write_mmpbsa_data(previousEnergyData,currState);
+            	return 0;
             }
         }
 
@@ -427,7 +466,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         currState.currentMolecule = MMPBSAState::COMPLEX;//Reset current molecule
         currState.currentSnap += 1;
 
-        previousEnergyData.write(get_filename(SANDER_MDOUT_TYPE,currState));
+        write_mmpbsa_data(previousEnergyData,currState);
 
         //clean up FinDiffMethods
         if(ligand_fdm != 0 && ligand_fdm != &comp_fdm)
@@ -441,9 +480,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     currState.fractionDone = 1.0;
     checkpoint_mmpbsa(currState);
 
-    trajFile.close();
-
-    previousEnergyData.write(get_filename(SANDER_MDOUT_TYPE,currState));
+    write_mmpbsa_data(previousEnergyData,currState);
 
 
     delete sp;

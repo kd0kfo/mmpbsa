@@ -35,9 +35,11 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+@BUILD_WITH_GZIP_TRUE@am__append_1 = Zipper.cpp
+@BUILD_WITH_GZIP_TRUE@am__append_2 = Zipper.h
 subdir = src/libmmpbsa
-DIST_COMMON = $(libmmpbsa_a_include_HEADERS) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in
+DIST_COMMON = $(am__libmmpbsa_a_include_HEADERS_DIST) \
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -59,6 +61,12 @@ AR = ar
 ARFLAGS = cru
 libmmpbsa_a_AR = $(AR) $(ARFLAGS)
 libmmpbsa_a_LIBADD =
+am__libmmpbsa_a_SOURCES_DIST = EmpEnerFun.cpp EMap.cpp EnergyInfo.cpp \
+	SanderInterface.cpp MeadInterface.cpp SanderParm.cpp \
+	mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp \
+	mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp \
+	StringTokenizer.cpp MMPBSAState.cpp Zipper.cpp
+@BUILD_WITH_GZIP_TRUE@am__objects_1 = libmmpbsa_a-Zipper.$(OBJEXT)
 am_libmmpbsa_a_OBJECTS = libmmpbsa_a-EmpEnerFun.$(OBJEXT) \
 	libmmpbsa_a-EMap.$(OBJEXT) libmmpbsa_a-EnergyInfo.$(OBJEXT) \
 	libmmpbsa_a-SanderInterface.$(OBJEXT) \
@@ -70,7 +78,7 @@ am_libmmpbsa_a_OBJECTS = libmmpbsa_a-EmpEnerFun.$(OBJEXT) \
 	libmmpbsa_a-XMLParser.$(OBJEXT) libmmpbsa_a-XMLNode.$(OBJEXT) \
 	libmmpbsa_a-mmpbsa_io.$(OBJEXT) \
 	libmmpbsa_a-StringTokenizer.$(OBJEXT) \
-	libmmpbsa_a-MMPBSAState.$(OBJEXT)
+	libmmpbsa_a-MMPBSAState.$(OBJEXT) $(am__objects_1)
 libmmpbsa_a_OBJECTS = $(am_libmmpbsa_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -81,7 +89,11 @@ CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
 SOURCES = $(libmmpbsa_a_SOURCES)
-DIST_SOURCES = $(libmmpbsa_a_SOURCES)
+DIST_SOURCES = $(am__libmmpbsa_a_SOURCES_DIST)
+am__libmmpbsa_a_include_HEADERS_DIST = EmpEnerFun.h EMap.h \
+	EnergyInfo.h SanderInterface.h MeadInterface.h SanderParm.h \
+	mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h \
+	StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h Zipper.h
 libmmpbsa_a_includeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(libmmpbsa_a_include_HEADERS)
 ETAGS = etags
@@ -98,6 +110,8 @@ AWK = @AWK@
 BOINC_CPPFLAGS = @BOINC_CPPFLAGS@
 BOINC_LDFLAGS = @BOINC_LDFLAGS@
 BOINC_LIBS = @BOINC_LIBS@
+BUILD_WITH_GZIP_FALSE = @BUILD_WITH_GZIP_FALSE@
+BUILD_WITH_GZIP_TRUE = @BUILD_WITH_GZIP_TRUE@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -180,9 +194,17 @@ target_alias = @target_alias@
 lib_LIBRARIES = libmmpbsa.a
 libmmpbsa_adir = $(libdir)
 libmmpbsa_a_CPPFLAGS = -Wall  $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ -I../ $(BOINC_CPPFLAGS)
-libmmpbsa_a_SOURCES = EmpEnerFun.cpp EMap.cpp EnergyInfo.cpp SanderInterface.cpp MeadInterface.cpp SanderParm.cpp mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp StringTokenizer.cpp MMPBSAState.cpp 
+libmmpbsa_a_SOURCES = EmpEnerFun.cpp EMap.cpp EnergyInfo.cpp \
+	SanderInterface.cpp MeadInterface.cpp SanderParm.cpp \
+	mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp \
+	mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp \
+	StringTokenizer.cpp MMPBSAState.cpp $(am__append_1)
 libmmpbsa_a_includedir = $(includedir)/libmmpbsa
-libmmpbsa_a_include_HEADERS = EmpEnerFun.h EMap.h EnergyInfo.h SanderInterface.h MeadInterface.h SanderParm.h mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h
+libmmpbsa_a_include_HEADERS = EmpEnerFun.h EMap.h EnergyInfo.h \
+	SanderInterface.h MeadInterface.h SanderParm.h \
+	mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h \
+	StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h \
+	$(am__append_2)
 all: all-am
 
 .SUFFIXES:
@@ -266,6 +288,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-StringTokenizer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-XMLNode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-XMLParser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-Zipper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-mmpbsa_exceptions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-mmpbsa_io.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-mmpbsa_utils.Po@am__quote@
@@ -480,6 +503,20 @@ libmmpbsa_a-MMPBSAState.obj: MMPBSAState.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='MMPBSAState.cpp' object='libmmpbsa_a-MMPBSAState.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-MMPBSAState.obj `if test -f 'MMPBSAState.cpp'; then $(CYGPATH_W) 'MMPBSAState.cpp'; else $(CYGPATH_W) '$(srcdir)/MMPBSAState.cpp'; fi`
+
+libmmpbsa_a-Zipper.o: Zipper.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-Zipper.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-Zipper.Tpo" -c -o libmmpbsa_a-Zipper.o `test -f 'Zipper.cpp' || echo '$(srcdir)/'`Zipper.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-Zipper.Tpo" "$(DEPDIR)/libmmpbsa_a-Zipper.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-Zipper.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Zipper.cpp' object='libmmpbsa_a-Zipper.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-Zipper.o `test -f 'Zipper.cpp' || echo '$(srcdir)/'`Zipper.cpp
+
+libmmpbsa_a-Zipper.obj: Zipper.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-Zipper.obj -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-Zipper.Tpo" -c -o libmmpbsa_a-Zipper.obj `if test -f 'Zipper.cpp'; then $(CYGPATH_W) 'Zipper.cpp'; else $(CYGPATH_W) '$(srcdir)/Zipper.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-Zipper.Tpo" "$(DEPDIR)/libmmpbsa_a-Zipper.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-Zipper.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Zipper.cpp' object='libmmpbsa_a-Zipper.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-Zipper.obj `if test -f 'Zipper.cpp'; then $(CYGPATH_W) 'Zipper.cpp'; else $(CYGPATH_W) '$(srcdir)/Zipper.cpp'; fi`
 uninstall-info-am:
 install-libmmpbsa_a_includeHEADERS: $(libmmpbsa_a_include_HEADERS)
 	@$(NORMAL_INSTALL)

@@ -53,7 +53,7 @@ public:
      *
      * @param prmtopFile
      */
-    void raw_read_amber_parm(std::fstream& prmtopFile) throw (mmpbsa::SanderIOException);
+    void raw_read_amber_parm(std::iostream& prmtopFile) throw (mmpbsa::SanderIOException);
 
     /**
      * Determines if the data loaded by loadSolventPointers makes sense.
@@ -168,7 +168,7 @@ private:
      * @param
      * @return
      */
-    void parseParmtopFile(std::fstream& prmtopFile,const std::string& flag,
+    void parseParmtopFile(std::iostream& prmtopFile,const std::string& flag,
             const std::string& format);
 
     /**
@@ -179,7 +179,7 @@ private:
      * @param flag
      * @param format
      */
-    void loadPointers(std::fstream& prmtopFile,const std::string& flag,
+    void loadPointers(std::iostream& prmtopFile,const std::string& flag,
             const std::string& format);
 
     /**
@@ -189,7 +189,7 @@ private:
      * @param flag
      * @param format
      */
-    void loadSolventPointers(std::fstream& prmtopFile,const std::string& flag,
+    void loadSolventPointers(std::iostream& prmtopFile,const std::string& flag,
             const std::string& format);
 
     /**
@@ -203,10 +203,10 @@ private:
      * @param size expected size of array.
      * @param offset If this value is non-zero, this offset will be added to the data.
      */
-    template <class T> static void loadPrmtopData(std::fstream& prmtopFile,
+    template <class T> static void loadPrmtopData(std::iostream& prmtopFile,
         std::valarray<T>& array, size_t size,const std::string& format);
 
-    static void loadPrmtopData(std::fstream& prmtopFile,std::valarray<std::string>& array,
+    static void loadPrmtopData(std::iostream& prmtopFile,std::valarray<std::string>& array,
     size_t size,const std::string& format);
 
     /**
@@ -226,7 +226,7 @@ private:
      * @param size
      * @param format
      */
-    template <class T> void loadPrmtopMaskedData(std::fstream& prmtopFile,
+    template <class T> void loadPrmtopMaskedData(std::iostream& prmtopFile,
         std::valarray<T>& array,std::valarray<bool>& maskArray,size_t size,const std::string& format);
 
         /**

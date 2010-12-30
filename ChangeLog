@@ -1,9 +1,14 @@
 Recent changes:
 
-	fixed bug in XMLNode::removeChild code for attempting to remove
-	a node that is not a child of calling Node.
+Added the ability to load files using tar and/or gzip. Does
+not yet apply to processes forked by SanderInterface, only
+mmpbsa.
+	
+fixed bug in XMLNode::removeChild code for attempting to remove
+a node that is not a child of calling Node.
 
-	Moved XMLParserException to XMLNode.h, thus allowing Node code to throw those exceptions too.
+Moved XMLParserException to XMLNode.h, thus allowing Node code 
+to throw those exceptions too.
 
 	
 Last git log:

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT([mmpbsa], [0.8.8], [David.Coss@stjude.org])
+AC_INIT([mmpbsa], [0.9.0], [David.Coss@stjude.org])
 AC_CONFIG_SRCDIR([src/libmmpbsa/])
 AC_CONFIG_SRCDIR([src/])
 AM_CONFIG_HEADER([config.h])
@@ -13,6 +13,7 @@ AH_TEMPLATE([USE_GRAPHICS],[Define to create the graphics application. Requires 
 AH_TEMPLATE([USE_JPEGLIB],[Define to use the JPEG library])
 AH_TEMPLATE([WITHOUT_MOLSURF],[Define to prevent the use of molsurf, i.e. on Mac without proper signal.h])
 AH_TEMPLATE([USE_PTHREADS],[Define to use pthreads for multithread MMPBSA calculations. (Has no effect on MD).])
+AH_TEMPLATE([USE_GZIP],[Define to compile with libz and use GZIP. Requires libz.])
 
 # Checks for programs.
 AC_PROG_CXX
@@ -20,6 +21,15 @@ AC_PROG_CC
 AC_PROG_RANLIB
 
 AC_SUBST(CUSTOM_CPPFLAGS,"-Wall")
+
+AC_ARG_WITH([gzip],AS_HELP_STRING([--with-gzip],[Includes the use of gzip'ed data files.]),
+[case "${withval}" in
+      yes) gzip=true ;;
+      no) gzip=false ;;
+      *) AC_MSG_ERROR(bad value ${withval} for --with-gzip) ;;
+esac]
+AC_DEFINE([USE_GZIP],[1]),[gzip=false])
+AM_CONDITIONAL([BUILD_WITH_GZIP],[test x$gzip = xtrue])
 
 AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Statically]),
 [AC_MSG_RESULT(Compiling MMPBSA statically)

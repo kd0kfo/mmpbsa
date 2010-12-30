@@ -307,16 +307,17 @@ mmpbsa::SanderParm& mmpbsa::SanderParm::operator=(const mmpbsa::SanderParm& orig
 
 void mmpbsa::SanderParm::raw_read_amber_parm(const std::string& file) throw (mmpbsa::SanderIOException)
 {
-    using std::fstream;
     using std::string;
     using namespace mmpbsa_utils;
 
-    fstream prmtopFile;
-    mmpbsa_io::fileopen(file.c_str(),fstream::in,prmtopFile);
+    std::fstream prmtopFile(file.c_str(),std::ios::in);
+    std::stringstream data;
+    mmpbsa_io::smart_read(data,prmtopFile,&file);
+    prmtopFile.close();
 
     try
     {
-        raw_read_amber_parm(prmtopFile);
+        raw_read_amber_parm(data);
     }
     catch(mmpbsa::SanderIOException sioe)
     {
@@ -324,22 +325,20 @@ void mmpbsa::SanderParm::raw_read_amber_parm(const std::string& file) throw (mmp
         buff << sioe.what() << std::endl << "Parmtop File = " << file;
         throw mmpbsa::SanderIOException(buff,sioe.getErrType());
     }
-    prmtopFile.close();
 }
 
-void mmpbsa::SanderParm::raw_read_amber_parm(std::fstream& prmtopFile) throw (mmpbsa::SanderIOException)
+void mmpbsa::SanderParm::raw_read_amber_parm(std::iostream& prmtopFile) throw (mmpbsa::SanderIOException)
 {
-    using std::fstream;
     using std::string;
     using namespace mmpbsa_utils;
     using mmpbsa_io::getNextLine;
 
-    if(!prmtopFile.is_open())
+    if(!prmtopFile.good())
         throw mmpbsa::SanderIOException("Could not open parmtop file.",mmpbsa::BROKEN_PRMTOP_FILE);
 
     string currentLine = getNextLine(prmtopFile);
-    if(!strcmp(currentLine.substr(0,9).c_str(),"%VERSION"))
-        throw mmpbsa::SanderIOException("Parmtop file is malformed. %%VERSION is missing.",mmpbsa::BROKEN_PRMTOP_FILE);
+    if(currentLine.substr(0,8) != "%VERSION")
+        throw mmpbsa::SanderIOException("Parmtop file is malformed. %VERSION is missing.",mmpbsa::BROKEN_PRMTOP_FILE);
 
     string flag;
     string format;
@@ -539,7 +538,7 @@ bool mmpbsa::SanderParm::sanityCheck() throw (mmpbsa::SanderIOException)
 
 }//end sanitycheck
 
-void mmpbsa::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::string& flag,
+void mmpbsa::SanderParm::parseParmtopFile(std::iostream& prmtopFile,const std::string& flag,
             const std::string& format)
 {
   using std::slice;
@@ -696,7 +695,7 @@ void mmpbsa::SanderParm::parseParmtopFile(std::fstream& prmtopFile,const std::st
 
 }
 
-void mmpbsa::SanderParm::loadPointers(std::fstream& prmtopFile,const std::string& flag,
+void mmpbsa::SanderParm::loadPointers(std::iostream& prmtopFile,const std::string& flag,
             const std::string& format)
 {
     using std::string;
@@ -745,7 +744,7 @@ void mmpbsa::SanderParm::loadPointers(std::fstream& prmtopFile,const std::string
 
 }
 
-void mmpbsa::SanderParm::loadSolventPointers(std::fstream& prmtopFile,const std::string& flag,
+void mmpbsa::SanderParm::loadSolventPointers(std::iostream& prmtopFile,const std::string& flag,
             const std::string& format)
 {
     using std::string;
@@ -816,7 +815,7 @@ template <class T> bool mmpbsa::SanderParm::bondCheck(const std::valarray<T>& ar
     return true;
 }
 
-void mmpbsa::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
+void mmpbsa::SanderParm::loadPrmtopData(std::iostream& prmtopFile,
         std::valarray<std::string>& array,size_t size,const std::string& format)
 {
     using std::valarray;
@@ -842,7 +841,7 @@ void mmpbsa::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
 
 }
 
-template <class T> void mmpbsa::SanderParm::loadPrmtopData(std::fstream& prmtopFile,
+template <class T> void mmpbsa::SanderParm::loadPrmtopData(std::iostream& prmtopFile,
         std::valarray<T>& array,size_t size,const std::string& format)
 {
     using std::valarray;
@@ -870,7 +869,7 @@ template <class T> void mmpbsa::SanderParm::loadPrmtopData(std::fstream& prmtopF
 
 
 
-template <class T> void mmpbsa::SanderParm::loadPrmtopMaskedData(std::fstream& prmtopFile,
+template <class T> void mmpbsa::SanderParm::loadPrmtopMaskedData(std::iostream& prmtopFile,
         std::valarray<T>& array,std::valarray<bool>& maskArray,size_t size,const std::string& format)
 {
     using std::valarray;
