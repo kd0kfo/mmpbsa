@@ -122,7 +122,7 @@ void writePDB(const mmpbsa::EmpEnerFun& energy,
 #include <unistd.h>
 void study_cpu_time()
 {
-#ifdef USE_BOINC
+#if 0//def USE_BOINC
 	double debug_cpu_time;
     pid_t the_pid = getpid();
     boinc_wu_cpu_time(debug_cpu_time);

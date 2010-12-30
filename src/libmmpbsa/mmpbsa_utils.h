@@ -16,6 +16,7 @@
 #include <valarray>
 #include <map>
 #include <algorithm>
+#include <sys/time.h>
 
 #include "mmpbsa_exceptions.h"
 #include "StringTokenizer.h"

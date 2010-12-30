@@ -300,11 +300,15 @@ void mmpbsa_utils::Zipper::pad_tarfile(const char* data_buffer, FILE* out_file)
 struct stat mmpbsa_utils::Zipper::default_stat(const size_t& file_size)
 {
 	struct stat file_stat;
-	file_stat.st_uid = getuid();
-	file_stat.st_gid = getgid();
+	file_stat.st_uid = 42;//getuid();
+	file_stat.st_gid = 42;//getgid();
 	file_stat.st_size = file_size;
 	file_stat.st_mtime = 394179000;//FIX THIS!!! Replace with real time of day stamp
+#if defined(S_IRWXU) && defined(S_IRGRP) &&  defined(S_IROTH)
 	file_stat.st_mode = S_IRWXU | S_IRGRP | S_IROTH;
+#else
+	file_stat.st_mode = 0x1ec;
+#endif
 	return file_stat;
 }
 
