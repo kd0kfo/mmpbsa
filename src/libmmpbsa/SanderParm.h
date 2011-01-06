@@ -1,5 +1,13 @@
-/* 
- * Sander parameter container.
+/**
+ * @class mmpbsa::SanderParm
+ * @brief Sander parameter container.
+ *
+ * SanderParm encapsulates data contained in a parmtop file.
+ * The entire dataset of the parmtop file is stored in 
+ * valarrays based on the catagory in the parmtop file.
+ * The use of valarrays facilitates mathematical functions
+ * which opearate on the topology data through valarray
+ * operator overloads.
  *
  * Created by David Coss <David.Coss@stjude.org> 2010
  */

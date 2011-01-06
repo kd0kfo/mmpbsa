@@ -1,5 +1,6 @@
-/* 
- * Molecular dynamics wrapper
+/**
+ * @class mmpbsa::EnergyInfo
+ * @brief Molecular dynamics wrapper
  *
  *
  * Created by David Coss <David.Coss@stjude.org> 2010

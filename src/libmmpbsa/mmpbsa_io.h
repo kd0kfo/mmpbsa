@@ -1,5 +1,6 @@
 /**
- * Handles IO for MMPBSA classes. 
+ * @namespace mmpbsa
+ * @brief Input Output functions used by mmpbsa.
  *
  * Created by David Coss <David.Coss@stjude.org> 2010
  */
@@ -198,10 +199,66 @@ void parseNumber(const std::string& word,size_t& data) throw (mmpbsa::SanderIOEx
 
 template <class T> std::ostream& write_snapshot(std::ostream& the_stream,const std::valarray<T>& dataArray,const std::string& ifbox_data);
 
+/**
+ * Based on the filename, smart_write decides whether or not compression should
+ * be used and if so calls the appropriate function. If neither of the streams
+ * represent a file, set the filename pointer to 0 (null).
+ * 
+ * iostream is used to extend the possible object to either file or string streams.
+ *
+ * @param std::iostream& dest Destination stream. 
+ * @param std::iostream& source source stream. 
+ * @param const std::string* pointer to filename string (default = NULL)
+ * @return std::iostream& reference to destination stream.
+ */
 std::iostream& smart_write(std::iostream& dest, std::iostream& source, const std::string* filename = 0);
+
+/**
+ * Based on the filename, smart_write decides whether or not compression should
+ * be used and if so calls the appropriate function. Uses the same procedure
+ * as the stream-source smart_write function, except a character array is 
+ * written. 
+ * If neither source nor destination represent a file, set the filename pointer to 0 (null).
+ * 
+ * iostream is used to extend the possible object to either file or string streams.
+ *
+ * @param std::iostream& dest Destination stream. 
+ * @param const char* source buffer (need not be null terminated)
+ * @param const size_t& buffer_size Size of the buffer, in units of sizeof(char)
+ * @param const std::string* pointer to filename string (default = NULL)
+ * @return std::iostream& reference to destination stream.
+ */
 std::iostream& smart_write(std::iostream& dest, const char* source, const size_t& buffer_size, const std::string* filename = 0);
 
+/**
+ * Based on the filename, smart_read decides whether or not compression should
+ * be used and if so calls the appropriate function. Uses the same procedure
+ * as the stream-destination smart_read function, except data is placed in  
+ * a char array.
+ * If neither source nor destination represent a file, set the filename pointer to 0 (null).
+ * 
+ * iostream is used to extend the possible object to either file or string streams.
+ *
+ * @param const char* destination buffer (need not be null terminated, i.e. binary data)
+ * @param std::iostream& dest source stream. 
+ * @param const std::string* pointer to filename string (default = NULL)
+ * @return size_t size of destination buffer.
+ */
 size_t smart_read(char** dest, std::iostream& source, const std::string* filename = 0);
+
+/**
+ * Based on the filename, smart_read decides whether or not compression should
+ * be used and if so calls the appropriate function. 
+ *
+ * If neither source nor destination represent a file, set the filename pointer to 0 (null).
+ * 
+ * iostream is used to extend the possible object to either file or string streams.
+ *
+ * @param std::iostream& destination stream.
+ * @param std::iostream& dest source stream. 
+ * @param const std::string* pointer to filename string (default = NULL)
+ * @return size_t size of destination buffer.
+ */
 std::iostream& smart_read(std::iostream& dest, std::iostream& source, const std::string* filename = 0);
 }//end namespace mmpbsa_io
 

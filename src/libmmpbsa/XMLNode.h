@@ -1,6 +1,12 @@
-/* 
- * Node used by XMLParser. Stores data and pointers to other 
- * nodes in the document tree, which XMLParser represents.
+/**
+ * @class mmpbsa_utils::XMLNode
+ * @brief Node used by XMLParser to created XML trees.
+ *
+ * Stores data and pointers to other nodes in the document tree.
+ * The XML tree is created using a linked list of XMLNodes
+ * using two pointers, children, which is the first child 
+ * node, and siblings, which is the next node in the list of 
+ * XMLNode objects with the same parent node.
  *
  * Created by David Coss (David.Coss@stjude.org) 2010
  */

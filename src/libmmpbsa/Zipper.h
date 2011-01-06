@@ -1,12 +1,30 @@
 /**
- * Zipper
+ * @class mmpbsa_utils::Zipper
+ * @brief Tar and GZip utility
  *
- * Compress routines. Can use a combination of tar and zlib archiving and compressions.
+ * Uses a combination of tar and zlib archiving and compressions.
+ * Tar files can be produce either from a list of pre-existing files
+ * (cf tar) or by prepending a tar header (cf create_header) to its 
+ * char array data.
  *
- * zip and unzip compression routines adapted from public source code from zlib's website, www.zlib.net
+ * GZip files are produced using the zlib library. These are c functions
+ * which act of FILE object. Therefore, the lowest level functions are fzip and
+ * funzip, which act on the FILE object directly. Alternatively, names of 
+ * prexisting files may be passed to zip and unzip to act as a wrapper
+ * of the compression and decompression processes.
+ *
+ * As zlib is a purely C library and MMPBSA was written with the 
+ * advantages of C++, extracting FILE data into C++ object can be 
+ * awkward. This inconvenience is alleviated by smart_read and smart_write
+ * functions in the mmpbsa_io namespace, which will decide whether a file
+ * uses TAR, GZIP or no compression and use the appropriate functions.
+ * For reading and writing objects, therefore, those functions are 
+ * easier and more appropriate to use.
+ *
+ * fzip and funzip compression routines adapted from public source code from zlib's website, www.zlib.net
  * These rouintes produce *gzip* files.
  *
- * Created by David Coss, 2007
+ * Created by David Coss 2010
  *
  */
 

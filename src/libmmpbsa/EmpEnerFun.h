@@ -1,5 +1,7 @@
-/*
- * Energy Abstraction. Encapsulates data from Sander Parmtop files which is then used to
+/**
+ * @class mmpbsa::EmpEnerFun
+ * @brief Energy Abstraction. 
+ * Encapsulates data from Sander Parmtop files which is then used to
  * perform MMPBSA calculations.
  *
  * Created by David Coss <David.Coss@stjude.org> 2010

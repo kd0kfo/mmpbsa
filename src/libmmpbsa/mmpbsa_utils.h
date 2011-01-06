@@ -1,9 +1,16 @@
-/* 
- * Utility functions and type/constant definitions for the MMPBSA library.
+/**
+ * @namespace mmpbsa_utils
+ * @brief Utility functions and type/constant definitions for the MMPBSA library.
  *
  * Created by David Coss <David.Coss@stjude.org> 2010
  */
 
+
+/**
+ * @mainpage MD/MMPBSA Library
+ * 
+ * Created by David Coss 2010
+ */
 
 #ifndef MMPBSA_UTILS_H
 #define	MMPBSA_UTILS_H
