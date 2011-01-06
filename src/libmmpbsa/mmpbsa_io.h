@@ -1,5 +1,6 @@
 /**
- * Handles IO for MMPBSA classes. 
+ * @namespace mmpbsa
+ * @brief Input Output functions used by mmpbsa.
  *
  * Created by David Coss <David.Coss@stjude.org> 2010
  */

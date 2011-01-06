@@ -1,8 +1,16 @@
-/* 
- * File:   SanderInterface.h
- * Author: dcoss
+/**
+ * @class mmpbsa::SanderInterface
+ * @brief Interface and thread controler for Sander
  *
- * Created on July 29, 2010, 9:30 AM
+ * For molecular dynamics, mmpbsa forks a Sander process. This 
+ * class starts, monitors and, if necessary, kills the Sander
+ * process. Process parameters, such as filenames, are stored
+ * as class members and used to automatically generate the 
+ * argument list for starting Sander. Additionally, there 
+ * are functions for checking polling the process status 
+ * and total cpu usage.
+ *
+ * Created by David Coss 2010
  */
 
 #ifndef SANDERINTERFACE_H

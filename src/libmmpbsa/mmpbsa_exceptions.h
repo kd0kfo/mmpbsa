@@ -1,5 +1,10 @@
-/* 
- * Various exceptions (hopefully not) thrown by mmpbsa classes.
+/**
+ * @class mmpbsa::MMPBSAException
+ * @brief Exception basis class and Error Codes
+ *
+ * Basis of exceptions (hopefully not) thrown by mmpbsa classes.
+ * MMPBSAErrorTypes enumerates various error codes used by 
+ * mmpbsa.
  *
  * Created by David Coss <David.Coss@stjude.org> 2010
  */

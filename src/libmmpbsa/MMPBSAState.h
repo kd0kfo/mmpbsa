@@ -1,3 +1,10 @@
+/**
+ * @class mmpbsa::MMPBSAState
+ * @brief State structure for Molecular Dynamics and MMPBSA
+ *
+ * Saves the state of the MD or MMPBSA calculation, which might
+ * be needed to restart calculations.
+ */
 #ifndef MMPBSASTATE_H
 #define MMPBSASTATE_H
 

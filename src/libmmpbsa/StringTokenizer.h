@@ -1,8 +1,8 @@
 /**
- * String Tokenizer
- * Borrowed from previous work.
+ * @class mmpbsa_utils::StringTokenizer
+ * @brief Tokenizes strings using an arbitrary delimiter
  *
- * Copyright David Coss 2010
+ * Created by David Coss 2007
 */
 
 #ifndef STRINGTOKENIZER_CPP

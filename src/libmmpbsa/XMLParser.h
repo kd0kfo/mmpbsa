@@ -1,15 +1,20 @@
-/* 
- * Custom XML Parser for use within the MMPBSA program.
+/**
+ * @class mmpbsa_utils::XMLParser
+ * @brief Custom XML Parser for use within the MMPBSA program.
  *
  * This class was made with its end use in mind. Therefore it is not made to be
- * a all purpose, general public use XML parser. It works with documents made for
+ * a all purpose, general use XML parser. It works with documents made for
  * MD/MMPBSA. It will not:
  *      --Pay attention to comment tags. IMPORTANT
- *      --Pay attention to character sets, i.e. UTF-8.
+ *      --Pay attention to differing character sets, i.e. UTF-8.
  *      --Allow multiple tags on one line (though tags can span multiple lines)
  *      --Use flags. For example <a href="test">...</a> would have the name 'a href="test"'
  *      --Output tags of the for <stuff/>
  * 
+ * What XMLParser will do is read an XML document and places the 
+ * tags in an XMLNode. Additionally, functions exist to facilitate
+ * reading and writing XML documents to and from streams or strings.
+ *
  * Created by David Coss (David.Coss@stjude.org) 2010
  * 
  */

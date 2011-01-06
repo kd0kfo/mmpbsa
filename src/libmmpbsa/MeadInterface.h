@@ -1,5 +1,6 @@
-/* 
- * Interface for the MEAD library
+/**
+ * @class mmpbsa::MeadInterface
+ * @brief Interface for the MEAD library
  *
  * Created by David Coss <David.Coss@stjude.org> 2010
  */
