@@ -6,6 +6,12 @@
  */
 
 
+/**
+ * @mainpage MD/MMPBSA Library
+ * 
+ * Created by David Coss 2010
+ */
+
 #ifndef MMPBSA_UTILS_H
 #define	MMPBSA_UTILS_H
 
