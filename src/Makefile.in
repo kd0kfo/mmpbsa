@@ -36,6 +36,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 bin_PROGRAMS = mmpbsa$(EXEEXT) mmpbsa_graphics$(EXEEXT)
 @BUILD_WITH_GZIP_TRUE@am__append_1 = -lz
+@BUILD_WITH_GROMACS_TRUE@am__append_2 = -I $(GROMACS_PATH)/include/ 
+@BUILD_WITH_GROMACS_TRUE@am__append_3 = -L $(GROMACS_PATH)/lib
+@BUILD_WITH_GROMACS_TRUE@am__append_4 = -lxml2 -lgmx_d -lgmxpreprocess_d -lpthread -ldl
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -81,6 +84,8 @@ AWK = @AWK@
 BOINC_CPPFLAGS = @BOINC_CPPFLAGS@
 BOINC_LDFLAGS = @BOINC_LDFLAGS@
 BOINC_LIBS = @BOINC_LIBS@
+BUILD_WITH_GROMACS_FALSE = @BUILD_WITH_GROMACS_FALSE@
+BUILD_WITH_GROMACS_TRUE = @BUILD_WITH_GROMACS_TRUE@
 BUILD_WITH_GZIP_FALSE = @BUILD_WITH_GZIP_FALSE@
 BUILD_WITH_GZIP_TRUE = @BUILD_WITH_GZIP_TRUE@
 CC = @CC@
@@ -105,6 +110,7 @@ EXEEXT = @EXEEXT@
 GRAPHICS_CPPFLAGS = @GRAPHICS_CPPFLAGS@
 GRAPHICS_LDFLAGS = @GRAPHICS_LDFLAGS@
 GRAPHICS_LIBS = @GRAPHICS_LIBS@
+GROMACS_PATH = @GROMACS_PATH@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -161,10 +167,15 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-mmpbsa_CPPFLAGS = $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ -I./libmmpbsa $(BOINC_CPPFLAGS) $(GRAPHICS_CPPFLAGS)
-mmpbsa_LDFLAGS = $(CUSTOM_LDFLAGS) -L$(MEAD_PATH)/lib  -L./libmmpbsa -L./molsurf $(BOINC_LDFLAGS) $(GRAPHICS_LDFLAGS) 
+mmpbsa_CPPFLAGS = $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ \
+	-I./libmmpbsa $(BOINC_CPPFLAGS) $(GRAPHICS_CPPFLAGS) \
+	$(am__append_2)
+mmpbsa_LDFLAGS = $(CUSTOM_LDFLAGS) -L$(MEAD_PATH)/lib -L./libmmpbsa \
+	-L./molsurf $(BOINC_LDFLAGS) $(GRAPHICS_LDFLAGS) \
+	$(am__append_3)
 mmpbsa_LDADD = -lmmpbsa -lmolsurf -lmead $(BOINC_LIBS) \
-	$(GRAPHICS_FLAGS) $(XML_LIBS) $(CUSTOM_LIBS) $(am__append_1)
+	$(GRAPHICS_FLAGS) $(XML_LIBS) $(CUSTOM_LIBS) $(am__append_1) \
+	$(am__append_4)
 mmpbsa_DEPENDENCIES = libmmpbsa
 mmpbsa_SOURCES = mmpbsa.cpp
 mmpbsa_graphics_CPPFLAGS = -Wall $(BOINC_CPPFLAGS) $(GRAPHICS_CPPFLAGS)
@@ -467,6 +478,10 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-binPROGRAMS uninstall-info-am
 
+
+#cc  -DHAVE_CONFIG_H -I. -I/home/dcoss/libraries/gromacs-4.5.3/include -I/home/dcoss/opt/gromacs/include -I/usr/include/libxml2 -I /home/dcoss/opt/fftw/include -pthread -c -o gmxdump.o gmxdump.c
+#cc -I /home/dcoss/opt/fftw/include -pthread -I./include -static -o gmxdump gmxdump.o  -L/home/dcoss/opt/fftw/lib  /home/dcoss/opt/fftw/lib/libfftw3.a -lxml2 -L /home/dcoss/opt/gromacs/lib -lgmx_d -lgmxpreprocess_d -lmd_d -ldl -lnsl -lm
+#endif
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

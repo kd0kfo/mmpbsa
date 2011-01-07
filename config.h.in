@@ -79,6 +79,10 @@
 /* Define to create the graphics application. Requires BOINC and GL */
 #undef USE_GRAPHICS
 
+/* Define to compile with gromacs to read gromacs topology and trajectory
+   files. */
+#undef USE_GROMACS
+
 /* Define to compile with libz and use GZIP. Requires libz. */
 #undef USE_GZIP
 

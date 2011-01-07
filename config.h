@@ -2,7 +2,7 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to 1 if you have the `floor' function. */
-#define HAVE_FLOOR 1
+/* #undef HAVE_FLOOR */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -15,10 +15,10 @@
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `pow' function. */
-#define HAVE_POW 1
+/* #undef HAVE_POW */
 
 /* Define to 1 if you have the `sqrt' function. */
-#define HAVE_SQRT 1
+/* #undef HAVE_SQRT */
 
 /* Define to 1 if stdbool.h conforms to C99. */
 #define HAVE_STDBOOL_H 1
@@ -60,13 +60,13 @@
 #define PACKAGE_NAME "mmpbsa"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "mmpbsa 0.8.8"
+#define PACKAGE_STRING "mmpbsa 0.9.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "mmpbsa"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.8.8"
+#define PACKAGE_VERSION "0.9.0"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -75,10 +75,14 @@
 #define STDC_HEADERS 1
 
 /* Define to use the BOINC library */
-#define USE_BOINC 1
+/* #undef USE_BOINC */
 
 /* Define to create the graphics application. Requires BOINC and GL */
 /* #undef USE_GRAPHICS */
+
+/* Define to compile with gromacs to read gromacs topology and trajectory
+   files. */
+#define USE_GROMACS 1
 
 /* Define to compile with libz and use GZIP. Requires libz. */
 #define USE_GZIP 1
@@ -87,7 +91,7 @@
 /* #undef USE_JPEGLIB */
 
 /* Version number of package */
-#define VERSION "0.8.8"
+#define VERSION "0.9.0"
 
 /* Define to prevent the use of molsurf, i.e. on Mac without proper signal.h
    */

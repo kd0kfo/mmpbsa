@@ -1,9 +1,11 @@
 #include "mmpbsa.h"
+#include "libmmpbsa/GromacsReader.h"
 
 int main(int argc, char** argv)
 {
 	using mmpbsa::MMPBSAState;
 	std::cerr << PACKAGE_STRING <<" started on " << mmpbsa_utils::get_human_time() << std::endl;
+
 	try
     {
         ::timeAtPreviousCheckpoint = 0;
