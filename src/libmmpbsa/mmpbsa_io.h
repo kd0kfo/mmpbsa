@@ -28,6 +28,10 @@
 #include "SanderParm.h"
 #include "Zipper.h"
 
+#ifdef USE_GROMACS
+#include "GromacsReader.h"
+#endif
+
 #ifdef USE_BOINC
 #if defined(_WIN32) || defined(__MINGW_WIN32__)
 #include "boinc/boinc_win.h"
@@ -36,6 +40,22 @@
 #endif
 
 namespace mmpbsa_io{
+
+typedef struct {
+	size_t curr_snap;
+	//for sander trajectories
+	std::iostream* sander_crd_stream;
+	mmpbsa::SanderParm* sander_parm;
+
+	//for gromacs trajectories
+	std::string* gromacs_filename;
+}trajectory_t;
+
+void seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos);
+
+void default_trajectory(mmpbsa_io::trajectory_t& traj);
+mmpbsa_io::trajectory_t open_trajectory(const std::string& filename);
+void destroy_trajectory(mmpbsa_io::trajectory_t& traj);
 
 /**
  * Reads the Coordinates or Velocities from the given file, using the first
@@ -66,6 +86,7 @@ void write_crds(const char* fileName,const std::valarray<mmpbsa_t>& crds,
  * @return title
  */
 std::string get_traj_title(std::iostream& trajFile);
+std::string get_traj_title(mmpbsa_io::trajectory_t& traj);
 
 /**
  * Counts the number of snap shots in the given file.

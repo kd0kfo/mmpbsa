@@ -263,12 +263,8 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     //Load Trajectory.
     if(!has_filename(SANDER_INPCRD_TYPE,currState))
     	throw mmpbsa::MMPBSAException("mmpbsa_run: no trajectory file was given.",BROKEN_TRAJECTORY_FILE);
-    std::fstream trajDiskFile(get_filename(SANDER_INPCRD_TYPE,currState).c_str(),std::ios::in);
-    std::stringstream trajFile;
-    mmpbsa_io::smart_read(trajFile,trajDiskFile,&(get_filename(SANDER_INPCRD_TYPE,currState)));
-    trajDiskFile.close();
-    if(!trajFile.good())
-        throw MMPBSAException("mmpbsa_run: Unable to read from trajectory file",BROKEN_TRAJECTORY_FILE);
+    mmpbsa_io::trajectory_t trajFile = mmpbsa_io::open_trajectory(has_filename(SANDER_INPCRD_TYPE,currState));
+    trajFile.sander_parm = sp;
 
     using namespace mmpbsa_io;
     get_traj_title(trajFile);//Don't need title, but this ensure we are at the top of the file. If the title is needed later, hook this.
@@ -277,39 +273,23 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     valarray<mmpbsa_t> receptorSnap(receptorSize*3);
     valarray<mmpbsa_t> ligandSnap(ligandSize*3);
 
-    bool isPeriodic = sp->ifbox > 0;//Are periodic boundary conditions used?
 
     //if the program is resuming a previously started calculation, advance to the
     //last snapshot.
     if(currState.currentSnap)//zero = one = start from beginning.
     {
-        for(size_t i = 0;i<currState.currentSnap-1;i++)
-            try
-            {
-                mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
-                ::updateMMPBSAProgress(currState,1);
-                report_boinc_progress();
-                study_cpu_time();
-            }
-            catch(MMPBSAException e)
-            {
-                if(e.getErrType() == UNEXPECTED_EOF)
-                {
-                  std::cout << "End of Snapshots Reached" << std::endl;
-                  return 0;
-                }
-            }//after this for loop, the trajFile is pointing to the beginning of currState.currentSnap
+        mmpbsa_io::seek(trajFile,currState.currentSnap-1);
     }
     else
     {
-    	currState.currentSnap = 1;//start from beginning if currentSnap was originally zero.
+    	trajFile.curr_snap = currState.currentSnap = 1;//start from beginning if currentSnap was originally zero.
     	currState.currentMolecule = MMPBSAState::COMPLEX;
     }
 
     mmpbsa_utils::XMLNode* outputXML = previousEnergyData.getHead();
 
     //Walk through the snapshots. This is where MMPBSA is actually done.
-    while(!trajFile.eof())
+    while(!mmpbsa_io::eof(trajFile))
     {
         try{
             //if a list of snaps to be run is provided, check to see if this snapshot
@@ -317,14 +297,14 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             if(currState.snapList.size())//check if the current snapshot should be skipped
                 if(!mmpbsa_utils::contains(currState.snapList,currState.currentSnap))
                 {
-                    mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
+                    mmpbsa_io::seek(trajFile,trajFile.curr_snap+1);
                     std::cout << "Skipping Snapshot #" << currState.currentSnap << std::endl;
                     currState.currentSnap += 1;
                     currState.currentMolecule = MMPBSAState::COMPLEX;
                     continue;
                 }
         
-            if(get_next_snap(trajFile, snapshot, sp->natom,isPeriodic))
+            if(get_next_snap(trajFile, snapshot))
                 std::cout << "Running Snapshot #" << currState.currentSnap << std::endl;
             else
             {
