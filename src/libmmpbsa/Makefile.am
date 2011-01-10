@@ -12,7 +12,7 @@ libmmpbsa_a_include_HEADERS += Zipper.h
 endif
 
 if BUILD_WITH_GROMACS
-libmmpbsa_a_SOURCES += GromacsReader.cpp
-libmmpbsa_a_include_HEADERS += GromacsReader.h
+libmmpbsa_a_SOURCES += FormatConverter.cpp GromacsReader.cpp
+libmmpbsa_a_include_HEADERS += FormatConverter.h GromacsReader.h
 libmmpbsa_a_CPPFLAGS += -I $(GROMACS_PATH)/include/
 endif

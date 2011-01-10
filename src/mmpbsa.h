@@ -22,11 +22,17 @@
 #include "libmmpbsa/MeadInterface.h"
 #include "libmmpbsa/XMLParser.h"
 #include "libmmpbsa/XMLNode.h"
+#include "libmmpbsa/SanderParm.h"
+#include "libmmpbsa/FormatConverter.h"
 #include "libmmpbsa/SanderInterface.h"
 #include "libmmpbsa/MMPBSAState.h"
 
 #if USE_GZIP //#ifndef USE_GZIP
 #include "libmmpbsa/Zipper.h"
+#endif
+
+#if USE_GROMACS
+#include "libmmpbsa/GromacsReader.h"
 #endif
 
 

@@ -5,18 +5,19 @@
 #ifdef USE_GROMACS
 #ifndef GROMACSREADER_H
 
-//mmpbsa stuff
-#include "SanderParm.h"
+#include "mmpbsa_utils.h"
 
+#include <string>
+#include <valarray>
+#include <iostream>
+
+#ifndef eCPP_OK
 //gromacs stuff
 #ifdef HAVE_CONFIG_H
 #include "gromacs/config.h"
 #endif
 
-#include <string.h>
-#include <valarray>
-
-#include "gromacs/macros.h"
+//#include "gromacs/macros.h"
 #include "gromacs/futil.h"
 #include "gromacs/statutil.h"
 #include "gromacs/sysstuff.h"
@@ -30,12 +31,12 @@
 #include "gromacs/tpxio.h"
 #include "gromacs/trnio.h"
 #include "gromacs/txtdump.h"
-#include "gromacs/gmxcpp.h"
+//#include "gromacs/gmxcpp.h"
 #include "gromacs/checkpoint.h"
 #include "gromacs/mtop_util.h"
 #include "gromacs/sparsematrix.h"
 #include "gromacs/mtxio.h"
-
+#endif//gromacs stuff
 
 #if 0
 #include <math.h>
@@ -45,7 +46,11 @@
 
 namespace mmpbsa_io{
 
-mmpbsa::SanderParm* gmxtop2parmtop(const std::string& filename);
+typedef struct {
+
+	std::map<std::string,size_t> indices;
+}gromacs_fileindex;
+
 
 /**
  * Reads Gromacs Trajectory Files (.trr)
@@ -56,6 +61,7 @@ mmpbsa::SanderParm* gmxtop2parmtop(const std::string& filename);
  */
 void load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>& crds,size_t frame_number);
 
+ gmxfile_index(std::iostream& ascii_file);
 
 }//end namespace mmpbsa_io
 

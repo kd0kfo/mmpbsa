@@ -1,5 +1,4 @@
 #include "mmpbsa.h"
-#include "libmmpbsa/GromacsReader.h"
 
 int main(int argc, char** argv)
 {
@@ -263,7 +262,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     //Load Trajectory.
     if(!has_filename(SANDER_INPCRD_TYPE,currState))
     	throw mmpbsa::MMPBSAException("mmpbsa_run: no trajectory file was given.",BROKEN_TRAJECTORY_FILE);
-    mmpbsa_io::trajectory_t trajFile = mmpbsa_io::open_trajectory(has_filename(SANDER_INPCRD_TYPE,currState));
+    mmpbsa_io::trajectory_t trajFile = mmpbsa_io::open_trajectory(get_filename(SANDER_INPCRD_TYPE,currState));
     trajFile.sander_parm = sp;
 
     using namespace mmpbsa_io;

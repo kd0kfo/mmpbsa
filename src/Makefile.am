@@ -17,7 +17,7 @@ endif
 
 if BUILD_WITH_GROMACS
 mmpbsa_CPPFLAGS += -I $(GROMACS_PATH)/include/ 
-mmpbsa_LDFLAGS += -L $(GROMACS_PATH)/lib
+mmpbsa_LDFLAGS += -L$(GROMACS_PATH)/lib
 mmpbsa_LDADD += -lxml2 -lgmx_d -lgmxpreprocess_d -lpthread -ldl
 endif
 

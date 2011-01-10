@@ -932,3 +932,5 @@ std::string mmpbsa::getResidueLabel(const size_t& index, const std::valarray<siz
 			<< "or the residue range list is incorrect." << std::endl;
 	throw MMPBSAException(error,DATA_FORMAT_ERROR);
 }
+
+

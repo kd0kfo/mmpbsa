@@ -267,5 +267,7 @@ std::string getResidueLabel(const size_t& index, const std::valarray<size_t>& re
 
 }//end namespace mmpbsa
 
+
+
 #endif	/* SANDERPARM_H */
 
