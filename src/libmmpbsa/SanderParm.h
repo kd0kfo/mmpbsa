@@ -72,6 +72,8 @@ public:
      */
     bool sanityCheck() throw (SanderIOException);
 
+    void initialize_arrays();
+
     SanderParm & operator=(const SanderParm& orig);
 
     //Here begin the many data types (public)

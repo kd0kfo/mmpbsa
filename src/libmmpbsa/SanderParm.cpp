@@ -538,6 +538,45 @@ bool mmpbsa::SanderParm::sanityCheck() throw (mmpbsa::SanderIOException)
 
 }//end sanitycheck
 
+
+void mmpbsa::SanderParm::initialize_arrays()
+{
+	atom_names.resize(natom);
+	charges.resize(natom);
+	masses.resize(natom);
+	number_excluded_atoms.resize(natom);
+	amber_atom_types.resize(natom);
+	atom_type_indices.resize(ntypes*ntypes);
+	nonbonded_parm_indices.resize(ntypes*ntypes);
+	nonbonded_parm_mask.resize(ntypes*ntypes);
+	lennard_jones_acoefs.resize(ntypes*(ntypes+1) >> 1);
+	lennard_jones_bcoefs.resize(ntypes*(ntypes+1) >> 1);
+	excluded_atoms_list.resize(nnb);
+	residue_labels.resize(nres);
+	residue_pointers.resize(nres);
+	bond_force_constants.resize(numbnd,0);
+	bond_equil_values.resize(numbnd,0);
+	angle_force_constants.resize(numang,0);
+	angle_equil_values.resize(numang,0);
+	dihedral_force_constants.resize(nptra,0);
+	dihedral_periodicities.resize(nptra,0);
+	dihedral_phases.resize(nptra,0);
+	bonds_inc_hydrogen.resize(nbonh*3);
+	bonds_without_hydrogen.resize(nbona*3);
+	angles_inc_hydrogen.resize(ntheth*4);
+	angles_without_hydrogen.resize(ntheta*4);
+	dihedrals_inc_hydrogen.resize(nphih*5);
+	dihedrals_without_hydrogen.resize(nphia*5);
+	dihedral_force_constants.resize(nptra,0);
+	dihedral_periodicities.resize(nptra,0);
+	dihedral_phases.resize(nptra,0);
+	dihedral_h_mask.resize(nphih,false);
+	dihedral_mask.resize(nphia,false);
+	hbond_acoefs.resize(nphb,0);
+	hbond_bcoefs.resize(nphb,0);
+	atoms_per_molecule.resize(nspm);
+}
+
 void mmpbsa::SanderParm::parseParmtopFile(std::iostream& prmtopFile,const std::string& flag,
             const std::string& format)
 {
@@ -589,9 +628,9 @@ void mmpbsa::SanderParm::parseParmtopFile(std::iostream& prmtopFile,const std::s
     else if(flag == "SOLTY")
         loadPrmtopData(prmtopFile,soltys,natyp,format);
     else if(flag == "LENNARD_JONES_ACOEF")
-        loadPrmtopData(prmtopFile,lennard_jones_acoefs,int(0.5*ntypes*(ntypes+1)),format);
+        loadPrmtopData(prmtopFile,lennard_jones_acoefs,int(ntypes*(ntypes+1) >> 1),format);
     else if(flag == "LENNARD_JONES_BCOEF")
-        loadPrmtopData(prmtopFile,lennard_jones_bcoefs,int(0.5*ntypes*(ntypes+1)),format);
+        loadPrmtopData(prmtopFile,lennard_jones_bcoefs,int(ntypes*(ntypes+1) >> 1),format);
     else if(flag == "BONDS_INC_HYDROGEN")
       {
         loadPrmtopData(prmtopFile,bonds_inc_hydrogen,nbonh*3,format);
@@ -867,8 +906,6 @@ template <class T> void mmpbsa::SanderParm::loadPrmtopData(std::iostream& prmtop
 
 }
 
-
-
 template <class T> void mmpbsa::SanderParm::loadPrmtopMaskedData(std::iostream& prmtopFile,
         std::valarray<T>& array,std::valarray<bool>& maskArray,size_t size,const std::string& format)
 {
@@ -932,5 +969,8 @@ std::string mmpbsa::getResidueLabel(const size_t& index, const std::valarray<siz
 			<< "or the residue range list is incorrect." << std::endl;
 	throw MMPBSAException(error,DATA_FORMAT_ERROR);
 }
+
+
+
 
 

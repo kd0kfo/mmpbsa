@@ -18,6 +18,9 @@ mmpbsa::EmpEnerFun::EmpEnerFun(mmpbsa::SanderParm * newparminfo, const mmpbsa_t&
     using namespace mmpbsa_utils;
     using namespace std;
 
+    if(newparminfo == 0 || newparminfo->natom == 0)
+    	throw MMPBSAException("mmpbsa::EmpEnerFun::EmpEnerFun: cannot construct energy function without md parameter data.",DATA_FORMAT_ERROR);
+
     parminfo = newparminfo;
     this->inv_scnb = 1.0 / scnb;
     this->inv_scee = 1.0 / scee;
@@ -27,7 +30,9 @@ mmpbsa::EmpEnerFun::EmpEnerFun(mmpbsa::SanderParm * newparminfo, const mmpbsa_t&
 
     const size_t& ntypes = parminfo->ntypes;
     const size_t& natom = parminfo->natom;
-    valarray<size_t> resptr = parminfo->residue_pointers - size_t(1); //sander file pointers are 1-indexed
+    size_t blahblahblah = parminfo->residue_pointers.min();
+    valarray<size_t> resptr(-1,parminfo->residue_pointers.size());
+    resptr += parminfo->residue_pointers; //sander file pointers are 1-indexed
     res_ranges.resize(2*resptr.size());
     res_ranges = get_res_ranges(resptr,natom); //ranges is of the type (min,max),(min,max),...
 

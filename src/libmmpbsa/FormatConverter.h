@@ -3,7 +3,15 @@
 
 #include "mmpbsa_exceptions.h"
 #include "mmpbsa_io.h"
+#include "mmpbsa_utils.h"
 #include "SanderParm.h"
+#include "GromacsReader.h"
+
+//gromacs stuff
+#ifdef USE_GROMACS
+#include "gromacs/types/idef.h"
+#include "gromacs/types/atoms.h"
+#endif
 
 namespace mmpbsa_io{
 
@@ -29,8 +37,9 @@ bool eof(trajectory_t& traj);
 
 std::string get_traj_title(mmpbsa_io::trajectory_t& traj);
 
-mmpbsa::SanderParm* gmxtop2parmtop(const std::string& filename);
-mmpbsa::SanderParm* gmxtop2parmtop(std::iostream& gmxtop);
+mmpbsa::SanderParm* gmxtpr2parmtop(const std::string& filename);
+mmpbsa::SanderParm* gmxtpr2parmtop(std::iostream& gmxtop);
+mmpbsa::SanderParm* gmxtpr2parmtop(const char* fn);
 
 }//end namespace mmpbsa_io
 

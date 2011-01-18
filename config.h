@@ -2,7 +2,7 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to 1 if you have the `floor' function. */
-#define HAVE_FLOOR 1
+/* #undef HAVE_FLOOR */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -15,10 +15,10 @@
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `pow' function. */
-#define HAVE_POW 1
+/* #undef HAVE_POW */
 
 /* Define to 1 if you have the `sqrt' function. */
-#define HAVE_SQRT 1
+/* #undef HAVE_SQRT */
 
 /* Define to 1 if stdbool.h conforms to C99. */
 #define HAVE_STDBOOL_H 1
@@ -36,7 +36,7 @@
 #define HAVE_STRING_H 1
 
 /* Define to 1 if you have the `strlcpy' function. */
-#define HAVE_STRLCPY 1
+/* #undef HAVE_STRLCPY */
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
@@ -88,7 +88,7 @@
 #define USE_GROMACS 1
 
 /* Define to compile with libz and use GZIP. Requires libz. */
-/* #undef USE_GZIP */
+#define USE_GZIP 1
 
 /* Define to use the JPEG library */
 /* #undef USE_JPEGLIB */

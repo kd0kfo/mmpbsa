@@ -77,3 +77,78 @@ void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>
   if(x != 0)
 	  sfree(x);
 }
+
+std::vector<size_t> mmpbsa_io::allowed_gmx_energies()
+{
+	std::vector<size_t> returnMe;
+	returnMe.push_back(F_BONDS);
+	returnMe.push_back(F_G96BONDS);
+	returnMe.push_back(F_ANGLES);
+	returnMe.push_back(F_G96ANGLES);
+	returnMe.push_back(F_PDIHS);
+	//returnMe.push_back(F_IDIHS);
+	returnMe.push_back(F_LJ14);
+	return returnMe;
+}
+
+void init(mmpbsa_io::gromacs_idx_offsets& offset)
+{
+	offset.atom = 0;
+
+	offset.f_bonds = offset.f_g96bonds = offset.f_angles = offset.f_g96angles = offset.f_pdihs = /*offset.f_idihs =*/ offset.f_lj14 = 0;
+	offset.residue = 0;
+	offset.bndh = offset.bnda = offset.thetah = offset.theta = offset.phih = offset.phia = offset.lj14 = 0 ;
+}
+
+size_t& mmpbsa_io::get_gmxarray_offset(mmpbsa_io::gromacs_idx_offsets& offsets,const size_t& gmx_bond_type)
+{
+	switch(gmx_bond_type)
+	{
+	case F_LJ14:
+		return offsets.lj14;
+	case F_BONDS: case F_G96BONDS:
+		return offsets.bndh;
+	case F_ANGLES: case F_G96ANGLES:
+		return offsets.thetah;
+	case F_PDIHS: /*case F_IDIHS:*/
+		return offsets.phih;
+	default:
+	{
+		std::ostringstream error;
+		error << "mmpbsa_io::get_gmxarray_offset: Unsupported gromacs interaction type: " << gmx_bond_type
+				<< std::endl << "See include/gromacs/types/idef.h for list of interaction types.";
+		throw mmpbsa::MMPBSAException(error);
+	}
+	}
+}
+
+size_t& mmpbsa_io::get_gmxfunct_offset(mmpbsa_io::gromacs_idx_offsets& offsets,const size_t& gmx_bond_type)
+{
+	switch(gmx_bond_type)
+	{
+	case F_LJ14:
+		return offsets.f_lj14;
+	case F_BONDS:
+		return offsets.f_bonds;
+	case F_G96BONDS:
+		return offsets.f_g96bonds;
+	case F_ANGLES:
+		return offsets.f_angles;
+	case F_G96ANGLES:
+		return offsets.f_g96angles;
+	case F_PDIHS:
+		return offsets.f_pdihs;
+	/*case F_IDIHS:
+		return offsets.f_idihs;*/
+	default:
+	{
+		std::ostringstream error;
+		error << "mmpbsa_io::get_gmxarray_offset: Unsupported gromacs interaction type: " << gmx_bond_type
+				<< std::endl << "See include/gromacs/types/idef.h for list of interaction types.";
+		throw mmpbsa::MMPBSAException(error);
+	}
+	}
+}
+
+
+

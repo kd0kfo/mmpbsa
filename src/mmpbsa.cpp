@@ -5,6 +5,15 @@ int main(int argc, char** argv)
 	using mmpbsa::MMPBSAState;
 	std::cerr << PACKAGE_STRING <<" started on " << mmpbsa_utils::get_human_time() << std::endl;
 
+	mmpbsa::SanderParm * sp = mmpbsa_io::gmxtpr2parmtop(argv[1]);
+	std::cout << "Natoms = " << sp->natom << std::endl;
+	for(size_t i = 0;i<sp->bonds_inc_hydrogen.size();i+=3)
+		std::cout << sp->bonds_inc_hydrogen[i] << ", " << sp->bonds_inc_hydrogen[i+1] << ", " << sp->bonds_inc_hydrogen[i+2] << std::endl;
+	std::cout << "#bonds = " << sp->bonds_inc_hydrogen.size() << std::endl;
+	mmpbsa::EmpEnerFun efun(sp);
+
+	exit(0);
+
 	try
     {
         ::timeAtPreviousCheckpoint = 0;
