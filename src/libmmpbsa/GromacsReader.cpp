@@ -1,6 +1,6 @@
 #include "GromacsReader.h"
 
-void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>& crds,size_t frame_number)
+void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>& crds,size_t frame_number,const size_t* natom_limit)
 {
   t_fileio    *fpread/* ,*fpwrite */;
   size_t         nframe/*,indent*/;
@@ -9,6 +9,9 @@ void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>
   t_trnheader trn;
   gmx_bool        bOK;
   size_t natoms;
+
+  if(filename.size() == 0)
+	  throw mmpbsa::MMPBSAException("mmpbsa_io::load_gmx_trr: File name required.");
 
   fpread  = open_trn(filename.c_str(),"r");
   //fpwrite = open_tpx(NULL,"w");
@@ -64,6 +67,9 @@ void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>
     std::cerr << "mmpbsa_io::load_gmx_trr: WARNING: Incomplete frame header: nr " << nframe << ", t=" << trn.t << std::endl;
 
   close_trn(fpread);
+
+  if(natom_limit != 0)
+	  natoms = *natom_limit;
 
   if(natoms != 0 && x != 0)
   {

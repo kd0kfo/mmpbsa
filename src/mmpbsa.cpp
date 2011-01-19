@@ -7,11 +7,11 @@ int main(int argc, char** argv)
 
 	mmpbsa::SanderParm * sp = mmpbsa_io::gmxtpr2parmtop(argv[1]);
 	std::cout << "Natoms = " << sp->natom << std::endl;
-	for(size_t i = 0;i<sp->bonds_inc_hydrogen.size();i+=3)
-		std::cout << sp->bonds_inc_hydrogen[i] << ", " << sp->bonds_inc_hydrogen[i+1] << ", " << sp->bonds_inc_hydrogen[i+2] << std::endl;
-	std::cout << "#bonds = " << sp->bonds_inc_hydrogen.size() << std::endl;
 	mmpbsa::EmpEnerFun efun(sp);
-
+	std::valarray<mmpbsa_t> coords(sp->natom*3);
+	mmpbsa_io::load_gmx_trr(argv[2],coords,0,&sp->natom);
+	std::cout << coords[0] << ", " << coords[1] << ", " << coords[2] << std::endl;
+	std::cout << efun.ereport(coords);
 	exit(0);
 
 	try

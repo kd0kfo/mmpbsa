@@ -223,7 +223,7 @@ void insert_molecule(mmpbsa::SanderParm* sp,const gmx_molblock_t* molblock, cons
 		//Iterate through interaction lists and update SanderParm array.
 		for(size_t i = 0,i_0;i<ilist->nr + ilist->nr_nonperturbed;i += funct_natoms + 1)
 		{
-			i_0 = i/3;//i_0 represents the first entry in the current set if ilist values.
+			i_0 = i/(funct_natoms+1);//i_0 represents the first entry in the current set if ilist values.
 			arr_beginning = (funct_natoms+1)*(array_offset + i_0);//beginning of the i-th atom's data in the sanderparm array
 			if(interaction_array != 0 && arr_beginning + funct_natoms >= interaction_array->size())
 			{
@@ -389,6 +389,9 @@ mmpbsa::SanderParm* mmpbsa_io::gmxtpr2parmtop(const char* fn)
 	      }
 	      for(size_t mt = 0;mt<mtop.nmoltype;mt++)
 	      {
+	    	  if(mtop.moltype[mt].name != 0 && strcmp(*mtop.moltype[mt].name,"SOL") == 0)//ignore solvent.
+	    		  continue;
+
 	    	  if(mtop.moltype[mt].excls.nra != 0)
 	    		  returnMe->nnb += mtop.moltype[mt].excls.nra;
 	    	  returnMe->nres += mtop.moltype[mt].atoms.nres;
@@ -398,13 +401,13 @@ mmpbsa::SanderParm* mmpbsa_io::gmxtpr2parmtop(const char* fn)
 	    		  switch(*interaction_type)
 	    		  	{
 	    		  	case F_BONDS: case F_G96BONDS:
-	    		  		returnMe->nbonh += mtop.moltype[mt].ilist[*interaction_type].nr;
+	    		  		returnMe->nbonh += mtop.moltype[mt].ilist[*interaction_type].nr/3;
 	    		  		break;
 	    		  	case F_ANGLES: case F_G96ANGLES:
-	    		  		returnMe->ntheth += mtop.moltype[mt].ilist[*interaction_type].nr;
+	    		  		returnMe->ntheth += mtop.moltype[mt].ilist[*interaction_type].nr/4;
 	    		  		break;
 	    		  	case F_PDIHS:/* case F_IDIHS:*/
-	    		  		returnMe->nphih += mtop.moltype[mt].ilist[*interaction_type].nr;
+	    		  		returnMe->nphih += mtop.moltype[mt].ilist[*interaction_type].nr/5;
 	    		  		break;
 	    		  	case F_LJ14:
 	    		  		break;

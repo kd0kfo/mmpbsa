@@ -71,7 +71,7 @@ typedef struct {
  * file. If the requested frame is beyond the total number of frames, crds is set to an
  * empty array.
  */
-void load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>& crds,size_t frame_number);
+void load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>& crds,size_t frame_number,const size_t* natom_limit = 0);
 
 //void gmxfile_index(std::iostream& ascii_file);
 
