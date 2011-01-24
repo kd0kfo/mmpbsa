@@ -30,7 +30,6 @@ mmpbsa::EmpEnerFun::EmpEnerFun(mmpbsa::SanderParm * newparminfo, const mmpbsa_t&
 
     const size_t& ntypes = parminfo->ntypes;
     const size_t& natom = parminfo->natom;
-    size_t blahblahblah = parminfo->residue_pointers.min();
     valarray<size_t> resptr(-1,parminfo->residue_pointers.size());
     resptr += parminfo->residue_pointers; //sander file pointers are 1-indexed
     res_ranges.resize(2*resptr.size());
@@ -609,237 +608,150 @@ mmpbsa::EmpEnerFun mmpbsa::EmpEnerFun::stripEnerFun(const std::valarray<bool>& k
     return returnMe;
 }//end stripEnerFun(...)
 
-//Energy Calculations
-mmpbsa_t mmpbsa::EmpEnerFun::bond_inc_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_bond_energy(const std::valarray<mmpbsa_t>& crds)const
 {
-    return bond_energy_calc(crds,parminfo->bonds_inc_hydrogen);
+
+	//Make Structs
+	std::vector<mmpbsa::bond_t> bonds_with_H,bonds_without_H;
+	mmpbsa::bond_energy_t bond_energy_data[parminfo->numbnd];
+	bond_t new_bond;
+	for(size_t i = 0;i<parminfo->numbnd;i++)
+	{
+		bond_energy_data[i].energy_const = parminfo->bond_force_constants[i];
+		bond_energy_data[i].eq_distance = parminfo->bond_equil_values[i];
+	}
+	size_t limit =  parminfo->bonds_inc_hydrogen.size();
+	for(size_t i = 0;i<limit;i += 3)
+	{
+		new_bond.atom_i = parminfo->bonds_inc_hydrogen[i];
+		new_bond.atom_j = parminfo->bonds_inc_hydrogen[i+1];
+		new_bond.bond_energy = &bond_energy_data[ parminfo->bonds_inc_hydrogen[i+2] ];
+		bonds_with_H.push_back(new_bond);
+	}
+	limit = parminfo->bonds_without_hydrogen.size();
+	for(size_t i = 0;i<limit;i += 3)
+	{
+		new_bond.atom_i = parminfo->bonds_without_hydrogen[i];
+		new_bond.atom_j = parminfo->bonds_without_hydrogen[i+1];
+		new_bond.bond_energy = &bond_energy_data[ parminfo->bonds_without_hydrogen[i+2] ];
+		bonds_without_H.push_back(new_bond);
+	}
+
+
+	return mmpbsa::bond_energy_calc(bonds_with_H,crds)
+			+
+			mmpbsa::bond_energy_calc(bonds_without_H,crds);
 }
 
-mmpbsa_t mmpbsa::EmpEnerFun::bond_without_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_angle_energy(const std::valarray<mmpbsa_t>& crds)const
 {
-    return bond_energy_calc(crds,parminfo->bonds_without_hydrogen);
+	//Make Structs
+	std::vector<mmpbsa::angle_t> angles_with_H,angles_without_H;
+	mmpbsa::bond_energy_t angle_energy_data[parminfo->numang];
+	mmpbsa::angle_t new_angle;
+	for(size_t i = 0;i<parminfo->numang;i++)
+	{
+		angle_energy_data[i].energy_const = parminfo->angle_force_constants[i];
+		angle_energy_data[i].eq_distance = parminfo->angle_equil_values[i];
+	}
+	size_t limit =  parminfo->angles_inc_hydrogen.size();
+	for(size_t i = 0;i<limit;i += 4)
+	{
+		new_angle.atom_i = parminfo->angles_inc_hydrogen[i];
+		new_angle.atom_j = parminfo->angles_inc_hydrogen[i+1];
+		new_angle.atom_k = parminfo->angles_inc_hydrogen[i+2];
+		new_angle.angle_energy = &angle_energy_data[ parminfo->angles_inc_hydrogen[i+3] ];
+		angles_with_H.push_back(new_angle);
+	}
+	limit = parminfo->angles_without_hydrogen.size();
+	for(size_t i = 0;i<limit;i += 4)
+	{
+		new_angle.atom_i = parminfo->angles_without_hydrogen[i];
+		new_angle.atom_j = parminfo->angles_without_hydrogen[i+1];
+		new_angle.atom_k = parminfo->angles_without_hydrogen[i+2];
+		new_angle.angle_energy = &angle_energy_data[ parminfo->angles_without_hydrogen[i+3] ];
+		angles_without_H.push_back(new_angle);
+	}
+
+	//calculate energy
+	return mmpbsa::angle_energy_calc(angles_with_H,crds)
+	+
+	mmpbsa::angle_energy_calc(angles_without_H,crds);
 }
 
-mmpbsa_t mmpbsa::EmpEnerFun::bond_energy_calc(const std::valarray<mmpbsa_t>& crds,
-        const std::valarray<size_t>& bondIndices)const
+mmpbsa::dihedral_energy_t* mmpbsa::EmpEnerFun::extract_dihedral_structs(std::vector<mmpbsa::dihedral_t>& dihedrals_with_H,std::vector<mmpbsa::dihedral_t>& dihedrals_without_H)const
 {
-    if(crds.size() % 3 != 0)
-        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
-                "bond_energy_calc was given one that was not.",INVALID_ARRAY_SIZE);
-    
-    size_t numBonds = size_t(bondIndices.size()/3);
-    
-    mmpbsa_t totalEnergy = 0;
-    size_t bndi,bndj,bondid;
-    mmpbsa_t ix,iy,iz,jx,jy,jz,bconst,beq,disp;//disp = displacement
-    for(size_t i = 0;i<numBonds;i++)
-    {
-        bndi = bondIndices[3*i];bndj = bondIndices[3*i+1];
-        bondid = bondIndices[3*i+2];
-        ix = crds[3*bndi];iy = crds[3*bndi+1];iz = crds[3*bndi+2];
-        jx = crds[3*bndj];jy = crds[3*bndj+1];jz = crds[3*bndj+2];
-        bconst = parminfo->bond_force_constants[bondid];
-        beq = parminfo->bond_equil_values[bondid];
-        disp = sqrt(pow(ix-jx,2)+pow(iy-jy,2)+pow(iz-jz,2))-beq;
-        totalEnergy += bconst*disp*disp;
-    }
+	mmpbsa::dihedral_energy_t* dihedral_energy_data = new mmpbsa::dihedral_energy_t[parminfo->nptra];
+	dihedral_t new_dihedral;
+	size_t atomtype_i,atomtype_l;
+	for(size_t i = 0;i<parminfo->nptra;i++)
+	{
+		dihedral_energy_data[i].energy_const = parminfo->dihedral_force_constants[i];
+		dihedral_energy_data[i].periodicity = parminfo->dihedral_periodicities[i];
+		dihedral_energy_data[i].phase = parminfo->dihedral_phases[i];
+	}
+	size_t limit =  parminfo->dihedrals_inc_hydrogen.size();
+	for(size_t i = 0;i<limit;i += 5)
+	{
+		new_dihedral.atom_i = parminfo->dihedrals_inc_hydrogen[i];
+		new_dihedral.atom_j = parminfo->dihedrals_inc_hydrogen[i+1];
+		new_dihedral.atom_k = parminfo->dihedrals_inc_hydrogen[i+2];
+		new_dihedral.atom_l = parminfo->dihedrals_inc_hydrogen[i+3];
+		new_dihedral.dihedral_energy = &dihedral_energy_data[ parminfo->dihedrals_inc_hydrogen[i+4] ];
+		new_dihedral.nonbonded_masks.should_ignore_end_grp = parminfo->dihedral_h_mask[i+2];
+		new_dihedral.nonbonded_masks.is_improper = parminfo->dihedral_h_mask[i+3];
 
-    return totalEnergy;
+		atomtype_i = parminfo->atom_type_indices[new_dihedral.atom_i]-1;
+		atomtype_l = parminfo->atom_type_indices[new_dihedral.atom_l]-1;
+		new_dihedral.lj.c12 = this->LJA[atomtype_i*parminfo->ntypes + atomtype_l];
+		new_dihedral.lj.c6 = this->LJB[atomtype_i*parminfo->ntypes + atomtype_l];
+		dihedrals_with_H.push_back(new_dihedral);
+	}
+	limit = parminfo->dihedrals_without_hydrogen.size();
+	for(size_t i = 0;i<limit;i += 5)
+	{
+		new_dihedral.atom_i = parminfo->dihedrals_without_hydrogen[i];
+		new_dihedral.atom_j = parminfo->dihedrals_without_hydrogen[i+1];
+		new_dihedral.atom_k = parminfo->dihedrals_without_hydrogen[i+2];
+		new_dihedral.atom_l = parminfo->dihedrals_without_hydrogen[i+3];
+		new_dihedral.dihedral_energy = &dihedral_energy_data[ parminfo->dihedrals_without_hydrogen[i+4] ];
+		new_dihedral.nonbonded_masks.should_ignore_end_grp = parminfo->dihedral_mask[i+2];
+		new_dihedral.nonbonded_masks.is_improper = parminfo->dihedral_mask[i+3];
 
+		atomtype_i = parminfo->atom_type_indices[new_dihedral.atom_i]-1;
+		atomtype_l = parminfo->atom_type_indices[new_dihedral.atom_l]-1;
+		new_dihedral.lj.c12 = this->LJA[atomtype_i*parminfo->ntypes + atomtype_l];
+		new_dihedral.lj.c6 = this->LJB[atomtype_i*parminfo->ntypes + atomtype_l];
+		dihedrals_without_H.push_back(new_dihedral);
+	}
+
+	return dihedral_energy_data;
 }
 
-mmpbsa_t mmpbsa::EmpEnerFun::angle_inc_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_dihedral_energy(const std::valarray<mmpbsa_t>& crds)const
 {
-    return angle_energy_calc(crds,parminfo->angles_inc_hydrogen);
+	//Make Structs
+	std::vector<mmpbsa::dihedral_t> dihedrals_with_H,dihedrals_without_H;
+	mmpbsa::dihedral_energy_t * delete_this = this->extract_dihedral_structs(dihedrals_with_H,dihedrals_without_H);
+	mmpbsa_t returnMe = mmpbsa::dihedral_energy_calc(dihedrals_with_H,crds)
+	+
+	mmpbsa::dihedral_energy_calc(dihedrals_without_H,crds);
+
+	delete [] delete_this;
+	return returnMe;
 }
 
-mmpbsa_t mmpbsa::EmpEnerFun::angle_without_H(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_vdw14_energy(const std::valarray<mmpbsa_t>& crds)const
 {
-    return angle_energy_calc(crds,parminfo->angles_without_hydrogen);
-}
+	//Make Structs
+	std::vector<mmpbsa::dihedral_t> dihedrals_with_H,dihedrals_without_H;
+	mmpbsa::dihedral_energy_t * delete_this = this->extract_dihedral_structs(dihedrals_with_H,dihedrals_without_H);
+	mmpbsa_t returnMe = mmpbsa::vdw14_energy_calc(dihedrals_with_H,crds,this->inv_scnb)
+	+
+	mmpbsa::vdw14_energy_calc(dihedrals_without_H,crds,this->inv_scnb);
 
-mmpbsa_t mmpbsa::EmpEnerFun::angle_energy_calc(const std::valarray<mmpbsa_t>& crds,
-        const std::valarray<size_t>& angleIndices)const
-{
-    if(crds.size() % 3 != 0)
-        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
-                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
-    
-    size_t numAngles = size_t(angleIndices.size()/4);
-    mmpbsa_t totalEnergy = 0;//total energy = \sum^N_m (const_m*(angle_m-eq_m)^2)
-    size_t angle_id,atom_i,atom_j,atom_k;
-    mmpbsa_t ix,iy,iz,jx,jy,jz,kx,ky,kz,r_ij,r_jk,dotprod,net_angle,angle_eq,angle_const;
-    for(size_t i = 0;i<numAngles;i++)
-    {
-        atom_i = angleIndices[4*i];atom_j = angleIndices[4*i+1];atom_k = angleIndices[4*i+2];
-        angle_id = angleIndices[4*i+3];
-        ix = crds[3*atom_i];iy = crds[3*atom_i+1];iz = crds[3*atom_i+2];
-        jx = crds[3*atom_j];jy = crds[3*atom_j+1];jz = crds[3*atom_j+2];
-        kx = crds[3*atom_k];ky = crds[3*atom_k+1];kz = crds[3*atom_k+2];
-        r_ij = sqrt(pow(ix-jx,2)+pow(iy-jy,2)+pow(iz-jz,2));
-        r_jk = sqrt(pow(kx-jx,2)+pow(ky-jy,2)+pow(kz-jz,2));
-        dotprod = (ix-jx)*(kx-jx)+(iy-jy)*(ky-jy)+(iz-jz)*(kz-jz);
-        angle_eq = parminfo->angle_equil_values[angle_id];
-        net_angle = acos(dotprod/(r_ij*r_jk)) - angle_eq;
-        angle_const = parminfo->angle_force_constants[angle_id];
-        totalEnergy += angle_const*net_angle*net_angle;
-    }
-
-    return totalEnergy;
-}
-
-mmpbsa_t mmpbsa::EmpEnerFun::dihedral_inc_H(const std::valarray<mmpbsa_t>& crds)const
-{
-    return dihedral_energy_calc(crds,parminfo->dihedrals_inc_hydrogen);
-}
-
-mmpbsa_t mmpbsa::EmpEnerFun::dihedral_without_H(const std::valarray<mmpbsa_t>& crds)const
-{
-    return dihedral_energy_calc(crds,parminfo->dihedrals_without_hydrogen);
-}
-
-mmpbsa_t mmpbsa::EmpEnerFun::dihedral_energy_calc(const std::valarray<mmpbsa_t>& crds,
-        const std::valarray<size_t>& dihedralIndices)const
-{
-    if(crds.size() % 3 != 0)
-        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
-                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
-
-    using namespace mmpbsa_utils;
-    mmpbsa_t * r_ij = new mmpbsa_t[3];//simply easier to put coordinates into an array
-    mmpbsa_t * r_kj = new mmpbsa_t[3];//and use a separate method to calculate
-    mmpbsa_t * r_kl = new mmpbsa_t[3];//cross product
-
-    mmpbsa_t * d;//for use with cross products
-    mmpbsa_t * g;//for use with cross products
-    mmpbsa_t * s;
-    mmpbsa_t totalEnergy,nphi,phi,ap0,ct1,gmag,dmag,dotprod,periodicity,dihedral_constant,phase;
-    size_t d_i,d_j,d_l,d_k,d_id;
-    size_t numDihedrals = size_t(dihedralIndices.size()/5);
-    totalEnergy = 0;
-    for(size_t i = 0;i<numDihedrals;i++)
-    {
-        d_i = dihedralIndices[5*i];d_j = dihedralIndices[5*i+1];d_k = dihedralIndices[5*i+2];d_l = dihedralIndices[5*i+3];
-        d_id = dihedralIndices[5*i+4];
-        for(size_t j = 0;j<3;j++)//fill vectors
-        {
-            r_ij[j] = crds[3*d_i+j]-crds[3*d_j+j];
-            r_kj[j] = crds[3*d_k+j]-crds[3*d_j+j];
-            r_kl[j] = crds[3*d_k+j]-crds[3*d_l+j];
-        }
-        d = cross_product(r_ij,r_kj,3);
-        g = cross_product(r_kl,r_kj,3);
-        dotprod = d[0]*g[0]+d[1]*g[1]+d[2]*g[2];
-        dmag = sqrt(d[0]*d[0]+d[1]*d[1]+d[2]*d[2]);
-        gmag = sqrt(g[0]*g[0]+g[1]*g[1]+g[2]*g[2]);
-        ct1 = dotprod/(dmag*gmag);
-        
-        if(std::abs(ct1) > 1.1)
-        {
-            std::ostringstream error;
-            error << "dihedral routine fails on ";
-            for(size_t concatIndices = 5*i;concatIndices<5*i+4;concatIndices++)
-                    error << dihedralIndices[concatIndices] << ", ";
-            error << dihedralIndices[5*i+4] << ": ct1 = " << ct1;
-            throw mmpbsa::MMPBSAException(error,mmpbsa::DATA_FORMAT_ERROR);
-        }
-
-        if(ct1 > 1)
-        {
-            ap0 = 0;
-            std::cerr << "Warning: In dihedral";
-            for(size_t concatIndices = 5*i;concatIndices < 5*i+4;concatIndices++)
-                std::cerr << dihedralIndices[concatIndices] << " ";
-            std::cerr << dihedralIndices[5*i+4]
-                    <<" cosine comes to " << ct1
-                    << ". By default, arccos is set to zero." << std::endl;
-        }
-        else if(ct1 < -1)
-        {
-            ap0 = MMPBSA_PI;
-            std::cerr << "Warning: In dihedral"<< dihedralIndices[5*i]<< " " <<
-                    dihedralIndices[5*i+1]<< " " << dihedralIndices[5*i+2] <<
-                    " " << dihedralIndices[5*i+3] << " " << dihedralIndices[5*i+4] <<
-                    " cos comes to " << ct1 << ", taking arccos as " << MMPBSA_PI << std::endl;
-        }
-        else
-            ap0 = acos(ct1);
-
-        s = cross_product(g,d,3);
-        s[0] *= r_kj[0];s[1] *= r_kj[1];s[2] *= r_kj[2];
-        if(s[0]+s[1]+s[2] < 0)
-            phi = MMPBSA_PI+ap0;
-        else
-            phi = MMPBSA_PI-ap0;
-        periodicity = std::abs(parminfo->dihedral_periodicities[d_id]);
-        nphi = periodicity * phi;
-        dihedral_constant = parminfo->dihedral_force_constants[d_id];
-        phase = parminfo->dihedral_phases[d_id];
-        totalEnergy += dihedral_constant * (1+cos(nphi)*cos(phase)+sin(nphi)*sin(phase));
-
-        delete [] s;
-        delete [] d;
-        delete [] g;
-    }
-
-    delete [] r_ij;
-    delete [] r_kj;
-    delete [] r_kl;
-
-    return totalEnergy;
-}
-
-mmpbsa_t mmpbsa::EmpEnerFun::vdw14_inc_H(const std::valarray<mmpbsa_t>& crds)const
-{
-    return vdw14_energy_calc(crds,parminfo->dihedrals_inc_hydrogen,parminfo->dihedral_h_mask);
-}
-
-mmpbsa_t mmpbsa::EmpEnerFun::vdw14_without_H(const std::valarray<mmpbsa_t>& crds)const
-{
-    return vdw14_energy_calc(crds,parminfo->dihedrals_without_hydrogen,parminfo->dihedral_mask);
-}
-
-
-mmpbsa_t mmpbsa::EmpEnerFun::vdw14_energy_calc(const std::valarray<mmpbsa_t>& crds,
-        const std::valarray<size_t>& dihedralIndices,const std::valarray<bool>& phi_mask)const
-{
-    if(crds.size() % 3 != 0)
-        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
-                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
-
-    const size_t& ntypes = parminfo->ntypes;
-    size_t numDihedrals = size_t(dihedralIndices.size()/5);
-    size_t d_i,d_l,d_m,type_i,type_l,flindex;
-    mmpbsa_t rsqrd,a,b,inv_r6,inv_r12;
-    mmpbsa_t totalEnergy = 0;
-    bool imp_mask,igend_mask,period_mask,mask;
-    for(size_t i = 0;i<numDihedrals;i++)
-    {
-        d_i = dihedralIndices[5*i];
-        d_l = dihedralIndices[5*i+3];
-        d_m = dihedralIndices[5*i+4];
-        imp_mask = phi_mask[5*i+3];
-        igend_mask = phi_mask[5*i+2];
-        period_mask = parminfo->dihedral_periodicities[d_m] < 0;
-        mask = imp_mask || igend_mask || period_mask;
-        if (!mask)
-        {
-            rsqrd = 0;
-            for (size_t j = 0; j < 3; j++)
-                rsqrd += pow(crds[3*d_i+j] - crds[3*d_l+j], 2);
-            type_i = parminfo->atom_type_indices[d_i] - 1;//There is an offset. See Amber 8 manual appendix C
-            type_l = parminfo->atom_type_indices[d_l] - 1;
-            flindex = type_i*ntypes + type_l; 
-            a = LJA[flindex];
-            b = LJB[flindex];
-            inv_r6 = 1/pow(rsqrd, 3);
-            inv_r12 = inv_r6*inv_r6;
-            totalEnergy += a*inv_r12 - b*inv_r6;
-            
-        }
-    }
-    return totalEnergy*inv_scnb;
-
+	delete [] delete_this;
+	return returnMe;
 }
 
 mmpbsa_t mmpbsa::EmpEnerFun::elstat14_inc_H(const std::valarray<mmpbsa_t>& crds)const
@@ -897,7 +809,7 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>&
     size_t ntypes = parminfo->ntypes;
     size_t type,type_2;
     mmpbsa_t x,y,z,rsqrd,a,b,atomEnergy;
-    
+
     for(size_t i = 0;i<natom;i++)
     {
         x = crds[3*i];y = crds[3*i+1];z = crds[3*i+2];
@@ -912,7 +824,7 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>&
                 rsqrd = pow(x-crds[3*j],2) + pow(y-crds[3*j+1],2) + pow(z-crds[3*j+2],2);
                 atomEnergy += a/pow(rsqrd,6) - b/pow(rsqrd,3);
             }
-                
+
         }
 
         totalEnergy += atomEnergy;
@@ -948,6 +860,7 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_elstat_energy(const std::valarray<mmpbsa_t>& 
 
     return totalEnergy;//Amber's charge units give kcal/mol without extra factor.
 }
+
 
 
 template <class M> void mmpbsa::EmpEnerFun::internalConvert(

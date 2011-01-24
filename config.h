@@ -65,9 +65,6 @@
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "mmpbsa"
 
-/* Define to the home page for this package. */
-#define PACKAGE_URL ""
-
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "0.9.0"
 
@@ -106,5 +103,5 @@
 /* Define to rpl_malloc if the replacement function should be used. */
 /* #undef malloc */
 
-/* Define to `unsigned int' if <sys/types.h> does not define. */
+/* Define to `unsigned' if <sys/types.h> does not define. */
 /* #undef size_t */

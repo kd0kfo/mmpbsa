@@ -17,6 +17,8 @@
 #include "mmpbsa_utils.h"
 #include "mmpbsa_io.h"
 #include "SanderParm.h"
+#include "structs.h"
+#include "Energy.h"
 #include "XMLNode.h"
 #include "XMLParser.h"
 
@@ -121,11 +123,8 @@ public:
      * @param crds
      * @return 
      */
-    mmpbsa_t total_bond_energy(const std::valarray<mmpbsa_t>& crds)const{return bond_inc_H(crds)+bond_without_H(crds);}
-    mmpbsa_t bond_inc_H(const std::valarray<mmpbsa_t>& crds)const;
-    mmpbsa_t bond_without_H(const std::valarray<mmpbsa_t>& crds)const;
-    mmpbsa_t bond_energy_calc(const std::valarray<mmpbsa_t>& crds,
-        const std::valarray<size_t>& bondIndices)const;
+    mmpbsa_t total_bond_energy(const std::valarray<mmpbsa_t>& crds)const;
+
 
     /**
      * Calculates the total angle energy for the given snapshot coordinates
@@ -133,11 +132,7 @@ public:
      * @param crds
      * @return
      */
-    mmpbsa_t total_angle_energy(const std::valarray<mmpbsa_t>& crds)const{return angle_inc_H(crds)+angle_without_H(crds);}
-    mmpbsa_t angle_inc_H(const std::valarray<mmpbsa_t>& crds)const;
-    mmpbsa_t angle_without_H(const std::valarray<mmpbsa_t>& crds)const;
-    mmpbsa_t angle_energy_calc(const std::valarray<mmpbsa_t>& crds,
-        const std::valarray<size_t>& angleIndices)const;
+    mmpbsa_t total_angle_energy(const std::valarray<mmpbsa_t>& crds)const;
 
     /**
      * Calculates the total dihedral energy for the given snapshot coordinates
@@ -145,11 +140,9 @@ public:
      * @param crds
      * @return
      */
-    mmpbsa_t total_dihedral_energy(const std::valarray<mmpbsa_t>& crds)const{return dihedral_inc_H(crds)+dihedral_without_H(crds);}
-    mmpbsa_t dihedral_inc_H(const std::valarray<mmpbsa_t>& crds)const;
-    mmpbsa_t dihedral_without_H(const std::valarray<mmpbsa_t>& crds)const;
-    mmpbsa_t dihedral_energy_calc(const std::valarray<mmpbsa_t>& crds,
-        const std::valarray<size_t>& dihedralIndices)const;
+    mmpbsa_t total_dihedral_energy(const std::valarray<mmpbsa_t>& crds)const;
+
+    mmpbsa::dihedral_energy_t* extract_dihedral_structs(std::vector<mmpbsa::dihedral_t>& dihedrals_with_H,std::vector<mmpbsa::dihedral_t>& dihedrals_without_H)const;
 
     /**
      * Calculates the total Van der Waals energy between 1-4 pairs for the given snapshot coordinates
@@ -157,11 +150,7 @@ public:
      * @param crds
      * @return
      */
-    mmpbsa_t total_vdw14_energy(const std::valarray<mmpbsa_t>& crds)const{return vdw14_inc_H(crds)+vdw14_without_H(crds);}
-    mmpbsa_t vdw14_inc_H(const std::valarray<mmpbsa_t>& crds)const;
-    mmpbsa_t vdw14_without_H(const std::valarray<mmpbsa_t>& crds)const;
-    mmpbsa_t vdw14_energy_calc(const std::valarray<mmpbsa_t>& crds,
-        const std::valarray<size_t>& dihedralIndices,const std::valarray<bool>& phi_mask)const;
+    mmpbsa_t total_vdw14_energy(const std::valarray<mmpbsa_t>& crds)const;
 
     /**
      * Calculates the total Electrostatic energy between 1-4 pairs for the given snapshot coordinates

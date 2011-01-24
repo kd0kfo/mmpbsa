@@ -5,15 +5,6 @@ int main(int argc, char** argv)
 	using mmpbsa::MMPBSAState;
 	std::cerr << PACKAGE_STRING <<" started on " << mmpbsa_utils::get_human_time() << std::endl;
 
-	mmpbsa::SanderParm * sp = mmpbsa_io::gmxtpr2parmtop(argv[1]);
-	std::cout << "Natoms = " << sp->natom << std::endl;
-	mmpbsa::EmpEnerFun efun(sp);
-	std::valarray<mmpbsa_t> coords(sp->natom*3);
-	mmpbsa_io::load_gmx_trr(argv[2],coords,0,&sp->natom);
-	std::cout << coords[0] << ", " << coords[1] << ", " << coords[2] << std::endl;
-	std::cout << efun.ereport(coords);
-	exit(0);
-
 	try
     {
         ::timeAtPreviousCheckpoint = 0;
