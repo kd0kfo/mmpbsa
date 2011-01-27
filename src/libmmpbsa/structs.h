@@ -49,9 +49,27 @@ typedef struct {
 }dihedral_t;
 
 
+typedef struct {
+	//indices
+	std::vector<bond_t> bonds_with_H,bonds_without_H;
+	std::vector<angle_t> angles_with_H,angles_without_H;
+	std::vector<dihedral_t> dihedrals_with_H,dihedrals_without_H;
+	std::vector<lj_params_t> atom_lennard_jones;
 
+	//Data
+	mmpbsa::bond_energy_t *bond_energy_data,*angle_energy_data;
+	mmpbsa::dihedral_energy_t *dihedral_energy_data;
+	std::vector<mmpbsa::lj_params_t> lj_params;
+
+	//Constants
+	mmpbsa_t inv_scnb, inv_scee, dielc, coulomb_const;
+}forcefield_t;
 
 }//end namespace mmpbsa
+
+void init(mmpbsa::forcefield_t* ff);
+void destroy(mmpbsa::forcefield_t* ff);
+
 
 #endif//MMPBSA_STRUCTS_H
 

@@ -124,7 +124,7 @@ public:
      * @return 
      */
     mmpbsa_t total_bond_energy(const std::valarray<mmpbsa_t>& crds)const;
-
+    mmpbsa::bond_energy_t* extract_bond_structs(std::vector<bond_t>& bonds_with_H,std::vector<bond_t>& bonds_without_H)const;
 
     /**
      * Calculates the total angle energy for the given snapshot coordinates
@@ -133,7 +133,7 @@ public:
      * @return
      */
     mmpbsa_t total_angle_energy(const std::valarray<mmpbsa_t>& crds)const;
-
+    bond_energy_t* extract_angle_structs(std::vector<mmpbsa::angle_t>& angles_with_H, std::vector<mmpbsa::angle_t>& angles_without_H)const;
     /**
      * Calculates the total dihedral energy for the given snapshot coordinates
      *
@@ -191,6 +191,9 @@ public:
      */
     std::string ereport(const std::valarray<mmpbsa_t>& crds);
 
+    void extract_lj_params(std::vector<mmpbsa::lj_params_t>& lj_params)const;
+
+    void extract_force_field(mmpbsa::forcefield_t& ff)const;
 
     /**
      * Returns a valarray containing the residue ranges. The array is of the form:

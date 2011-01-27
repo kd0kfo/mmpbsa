@@ -608,12 +608,10 @@ mmpbsa::EmpEnerFun mmpbsa::EmpEnerFun::stripEnerFun(const std::valarray<bool>& k
     return returnMe;
 }//end stripEnerFun(...)
 
-mmpbsa_t mmpbsa::EmpEnerFun::total_bond_energy(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa::bond_energy_t* mmpbsa::EmpEnerFun::extract_bond_structs(std::vector<bond_t>& bonds_with_H,std::vector<bond_t>& bonds_without_H)const
 {
-
 	//Make Structs
-	std::vector<mmpbsa::bond_t> bonds_with_H,bonds_without_H;
-	mmpbsa::bond_energy_t bond_energy_data[parminfo->numbnd];
+	mmpbsa::bond_energy_t* bond_energy_data = new mmpbsa::bond_energy_t[parminfo->numbnd];
 	bond_t new_bond;
 	for(size_t i = 0;i<parminfo->numbnd;i++)
 	{
@@ -636,18 +634,25 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_bond_energy(const std::valarray<mmpbsa_t>& cr
 		new_bond.bond_energy = &bond_energy_data[ parminfo->bonds_without_hydrogen[i+2] ];
 		bonds_without_H.push_back(new_bond);
 	}
-
-
-	return mmpbsa::bond_energy_calc(bonds_with_H,crds)
-			+
-			mmpbsa::bond_energy_calc(bonds_without_H,crds);
+	return bond_energy_data;
 }
 
-mmpbsa_t mmpbsa::EmpEnerFun::total_angle_energy(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_bond_energy(const std::valarray<mmpbsa_t>& crds)const
+{
+	std::vector<bond_t> bonds_with_H, bonds_without_H;
+	mmpbsa::bond_energy_t* energy_data = extract_bond_structs(bonds_with_H,bonds_without_H);
+
+	mmpbsa_t returnMe = mmpbsa::bond_energy_calc(bonds_with_H,crds)
+			+
+			mmpbsa::bond_energy_calc(bonds_without_H,crds);
+	delete [] energy_data;
+	return returnMe;
+}
+
+mmpbsa::bond_energy_t* mmpbsa::EmpEnerFun::extract_angle_structs(std::vector<mmpbsa::angle_t>& angles_with_H, std::vector<mmpbsa::angle_t>& angles_without_H)const
 {
 	//Make Structs
-	std::vector<mmpbsa::angle_t> angles_with_H,angles_without_H;
-	mmpbsa::bond_energy_t angle_energy_data[parminfo->numang];
+	mmpbsa::bond_energy_t* angle_energy_data = new mmpbsa::bond_energy_t[parminfo->numang];
 	mmpbsa::angle_t new_angle;
 	for(size_t i = 0;i<parminfo->numang;i++)
 	{
@@ -672,11 +677,20 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_angle_energy(const std::valarray<mmpbsa_t>& c
 		new_angle.angle_energy = &angle_energy_data[ parminfo->angles_without_hydrogen[i+3] ];
 		angles_without_H.push_back(new_angle);
 	}
+	return angle_energy_data;
+}
 
-	//calculate energy
-	return mmpbsa::angle_energy_calc(angles_with_H,crds)
+mmpbsa_t mmpbsa::EmpEnerFun::total_angle_energy(const std::valarray<mmpbsa_t>& crds)const
+{
+	std::vector<mmpbsa::angle_t> angles_with_H, angles_without_H;
+	mmpbsa::bond_energy_t* angle_bond_energies = extract_angle_structs(angles_with_H, angles_without_H);
+
+	mmpbsa_t returnMe = mmpbsa::angle_energy_calc(angles_with_H,crds)
 	+
 	mmpbsa::angle_energy_calc(angles_without_H,crds);
+
+	delete[] angle_bond_energies;
+	return returnMe;
 }
 
 mmpbsa::dihedral_energy_t* mmpbsa::EmpEnerFun::extract_dihedral_structs(std::vector<mmpbsa::dihedral_t>& dihedrals_with_H,std::vector<mmpbsa::dihedral_t>& dihedrals_without_H)const
@@ -785,20 +799,25 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_elstat14_energy(const std::valarray<mmpbsa_t>
 	return returnMe;
 }
 
-
-mmpbsa_t mmpbsa::EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>& crds)const
+void mmpbsa::EmpEnerFun::extract_lj_params(std::vector<mmpbsa::lj_params_t>& lj_params)const
 {
 	mmpbsa::lj_params_t lj_param;
-	std::vector<mmpbsa::atom_t> atoms;
-	extract_atom_structs(atoms);
-
-	std::vector<mmpbsa::lj_params_t> lj_params;
 	for(size_t i = 0;i<LJA.size();i++)
 	{
 		lj_param.c12 = LJA[i];
 		lj_param.c6 = LJB[i];
 		lj_params.push_back(lj_param);
 	}
+}
+
+mmpbsa_t mmpbsa::EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>& crds)const
+{
+	std::vector<mmpbsa::atom_t> atoms;
+	std::vector<mmpbsa::lj_params_t> lj_params;
+
+	extract_atom_structs(atoms);
+	extract_lj_params(lj_params);
+
 	return mmpbsa::vdwaals_energy(atoms,lj_params,crds);
 }
 
@@ -816,7 +835,17 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_elstat_energy(const std::valarray<mmpbsa_t>& 
     return mmpbsa::total_elstat_energy(atoms,crds);//Amber's charge units give kcal/mol without extra factor.
 }
 
-
+void mmpbsa::EmpEnerFun::extract_force_field(mmpbsa::forcefield_t& ff)const
+{
+	ff.bond_energy_data = extract_bond_structs(ff.bonds_with_H,ff.bonds_without_H);
+	ff.angle_energy_data = extract_angle_structs(ff.angles_with_H,ff.angles_without_H);
+	ff.dihedral_energy_data = extract_dihedral_structs(ff.dihedrals_with_H,ff.dihedrals_without_H);
+	extract_lj_params(ff.lj_params);
+	ff.inv_scee = inv_scee;
+	ff.inv_scnb = inv_scnb;
+	ff.dielc = dielc;
+	ff.coulomb_const = 1;//amber puts constant into charge units.
+}
 
 template <class M> void mmpbsa::EmpEnerFun::internalConvert(
     std::valarray<M>& newIndices,
