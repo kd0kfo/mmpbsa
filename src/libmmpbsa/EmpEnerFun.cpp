@@ -806,29 +806,14 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>&
 mmpbsa_t mmpbsa::EmpEnerFun::total_elstat_energy(const std::valarray<mmpbsa_t>& crds)const
 {
     if(crds.size() % 3 != 0)
-        throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
+        throw mmpbsa::MMPBSAException("mmpbsa::EmpEnerFun::total_elstat_energy: Coordinate arrays must be a multiple of 3. "
                 "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
-    mmpbsa_t totalEnergy = 0;
-    size_t natom = parminfo->natom;
-    mmpbsa_t q_i,q_j,x,y,z,r;
-    for(size_t i = 0;i<natom;i++)
-    {
-        q_i = parminfo->charges[i];
-        x = crds[3*i];y = crds[3*i+1];z = crds[3*i+2];
+    mmpbsa::lj_params_t lj_param;
+    std::vector<mmpbsa::atom_t> atoms;
+    extract_atom_structs(atoms);
 
-        for(size_t j = i+1;j<natom;j++)//sum over all other atoms after the i-th atom
-        {
-            if(!mmpbsa_utils::contains(exclst.at(i),j-i-1))
-            {
-                q_j = parminfo->charges[j];
-                r = sqrt( pow(x-crds[3*j],2) + pow(y-crds[3*j+1],2) + pow(z-crds[3*j+2],2) );
-                totalEnergy += q_i*q_j/r;
-            }
-        }
-    }
-
-    return totalEnergy;//Amber's charge units give kcal/mol without extra factor.
+    return mmpbsa::total_elstat_energy(atoms,crds);//Amber's charge units give kcal/mol without extra factor.
 }
 
 

@@ -228,6 +228,33 @@ mmpbsa_t mmpbsa::vdwaals_energy(const std::vector<atom_t>& atoms, const std::vec
 }
 
 
+mmpbsa_t mmpbsa::total_elstat_energy(const std::vector<mmpbsa::atom_t>& atoms, const std::valarray<mmpbsa_t>& crds, const mmpbsa_t& coulomb_const)
+{
+    if(crds.size() % 3 != 0)
+        throw mmpbsa::MMPBSAException("mmpbsa::total_elstat_energy: Coordinate arrays must be a multiple of 3. "
+                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
+    mmpbsa_t totalEnergy = 0,atom_potential;
+    mmpbsa_t x,y,z,rsqrd,a,b,atomEnergy;
 
+    size_t natom = atoms.size();
+    for(size_t i = 0;i<natom;i++)
+    {
+    	const std::set<size_t>& exclusion_list = atoms.at(i).exclusion_list;
+    	x = crds[3*i];y = crds[3*i+1];z = crds[3*i+2];
+    	atom_potential = 0;
+    	for(size_t j = i+1;j<natom;j++)//sum over all other atoms after the i-th atom
+    	{
+    		if(exclusion_list.find(j) == exclusion_list.end())
+    		{
+    			const atom_t& atom = atoms.at(j);
+    			rsqrd = pow(x-crds[3*j],2) + pow(y-crds[3*j+1],2) + pow(z-crds[3*j+2],2);
+    			atom_potential += atom.charge/sqrt(rsqrd);
+    		}
+    	}
+
+    	totalEnergy += atom_potential * atoms.at(i).charge;
+    }
+    return coulomb_const * totalEnergy;
+}
 
