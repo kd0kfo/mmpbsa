@@ -14,6 +14,7 @@
 #define PACKAGE_STRING "MD/MMPBSA"
 #endif
 
+#include "libmmpbsa/structs.h"
 #include "libmmpbsa/mmpbsa_exceptions.h"
 #include "libmmpbsa/mmpbsa_io.h"
 #include "libmmpbsa/EnergyInfo.h"

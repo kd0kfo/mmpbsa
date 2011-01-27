@@ -106,6 +106,11 @@ public:
         const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
         const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException);
 
+    static EMap full_EMap(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds,
+            const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
+            const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
+            const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException);
+
     /**
      * Returns an array containing PB Solvation Energy and surface area, respectively.
      * 
@@ -127,7 +132,7 @@ public:
     		const std::valarray<mmpbsa_t>& crds,
     		const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
     		const std::map<std::string,std::string>& residueMap,
-    		const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius) throw (mmpbsa::MeadException);
+    		const mmpbsa_t& interactionStrength = 0.0, const mmpbsa_t& exclusionRadius = 2.0) throw (mmpbsa::MeadException);
 
     //mmpbsa_t bondi_lookup(const std::string& atomName)const;
 

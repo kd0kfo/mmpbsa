@@ -125,6 +125,20 @@ mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const mmpbsa::EmpEnerFun& efun, co
     return returnMe;
 }
 
+mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds,
+        const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
+        const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
+        const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException)
+{
+    mmpbsa::EMap returnMe(atoms,ff,crds);
+    mmpbsa_t * pbsa_values = pbsa_solvation(atoms,ff,crds,fdm,radii,residueMap,interactionStrength);
+    returnMe.set_elstat_solv(pbsa_values[0]);
+    returnMe.set_area(pbsa_values[1]);
+    returnMe.set_sasol(pbsa_values[1]*surfTension+surfOffset);
+    delete [] pbsa_values;
+    return returnMe;
+}
+
 mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
         const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
         const std::map<std::string,std::string>& residueMap,

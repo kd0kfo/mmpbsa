@@ -11,9 +11,9 @@ bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbs
 	}
 #endif
 
-	if(traj.sander_parm == 0 || traj.sander_crd_stream == 0)
+	if(traj.natoms == 0 || traj.sander_crd_stream == 0)
 		throw mmpbsa::MMPBSAException("mmpbsa_io::get_next_snap: Sander parameters and/or sander coordinate stream is missing.",mmpbsa::DATA_FORMAT_ERROR);
-	return get_next_snap(*traj.sander_crd_stream,snapshot,traj.sander_parm->natom,(traj.sander_parm->ifbox > 0));
+	return get_next_snap(*traj.sander_crd_stream,snapshot,traj.natoms,(traj.ifbox > 0));
 }
 
 
@@ -22,14 +22,14 @@ void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos)
 	size_t i = traj.curr_snap;
 	if(traj.sander_crd_stream != 0)
 	{
-		if(traj.sander_parm == 0)
+		if(traj.natoms == 0)
 			throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Trajectory cannot be read without paramters. However, sander paramter object is a null pointer.",mmpbsa::NULL_POINTER);
-		bool isPeriodic = (traj.sander_parm->ifbox > 0);//Are periodic boundary conditions used?
+		bool isPeriodic = (traj.ifbox > 0);//Are periodic boundary conditions used?
 		try
 		{
 			for(;i<snap_pos;i++)
 			{
-				mmpbsa_io::skip_next_snap(*traj.sander_crd_stream,traj.sander_parm->natom,isPeriodic);
+				mmpbsa_io::skip_next_snap(*traj.sander_crd_stream,traj.natoms,isPeriodic);
 
 			}//after this for loop, the trajFile is pointing to the beginning of currState.currentSnap
 		}
@@ -50,7 +50,8 @@ void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos)
 void mmpbsa_io::default_trajectory(mmpbsa_io::trajectory_t& traj)
 {
 	traj.sander_crd_stream = 0;
-	traj.sander_parm = 0;
+	traj.natoms = 0;
+	traj.ifbox = 0;
 
 	traj.gromacs_filename = 0;
 	traj.curr_snap = 0;
@@ -59,7 +60,6 @@ void mmpbsa_io::default_trajectory(mmpbsa_io::trajectory_t& traj)
 void mmpbsa_io::destroy_trajectory(mmpbsa_io::trajectory_t& traj)
 {
 	delete traj.sander_crd_stream;
-	//don't delete sander_parm!
 	delete traj.gromacs_filename;
 }
 

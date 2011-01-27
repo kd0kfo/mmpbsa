@@ -19,7 +19,8 @@ typedef struct {
 	size_t curr_snap;
 	//for sander trajectories
 	std::iostream* sander_crd_stream;
-	mmpbsa::SanderParm* sander_parm;
+	size_t natoms;
+	int ifbox;
 
 	//for gromacs trajectories
 	std::string* gromacs_filename;
