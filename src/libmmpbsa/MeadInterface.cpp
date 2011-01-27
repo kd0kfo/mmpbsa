@@ -130,6 +130,24 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, 
         const std::map<std::string,std::string>& residueMap,
         const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius) throw (mmpbsa::MeadException)
 {
+	mmpbsa_t* returnMe;
+	std::vector<mmpbsa::atom_t> atoms;
+	mmpbsa::forcefield_t ff;
+	efun.extract_force_field(ff);
+	efun.extract_atom_structs(atoms);
+
+	returnMe = pbsa_solvation(atoms, ff,crds,fdm,radii,residueMap,interactionStrength,exclusionRadius);
+
+	destroy(&ff);
+	return returnMe;
+}
+
+mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff,
+		const std::valarray<mmpbsa_t>& crds,
+		const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
+		const std::map<std::string,std::string>& residueMap,
+		const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius) throw (mmpbsa::MeadException)
+{
     if(crds.size() % 3 != 0)
         throw mmpbsa::MeadException("Coordinates supplied to pbsa_solvation must be "
                 "3-D coordinates.", DATA_FORMAT_ERROR);
@@ -139,15 +157,17 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, 
     mmpbsa::MeadInterface MI;//stores bond info for atoms not in radii.
     //PB
     AtomSet atmSet;
-    const mmpbsa::SanderParm * parminfo = efun.parminfo;
-    for(size_t i = 0;i<parminfo->natom;i++)
+    std::vector<mmpbsa::atom_t>::const_iterator atom;
+
+    size_t i = 0;
+    for(atom = atoms.begin();atom != atoms.end();atom++,i++)
     {
         Atom currAtom;
-        currAtom.atname = parminfo->atom_names[i];
+        currAtom.atname = atom->name;
         currAtom.resname = "FOO";//FIX ME???
         currAtom.resnum = i+1;//FIX ME???
         currAtom.coord = Coord(crds[3*i],crds[3*i+1],crds[3*i+2]);
-        currAtom.charge = parminfo->charges[i];
+        currAtom.charge = atom->charge;
         currAtom.rad = mmpbsa_utils::lookup_radius(currAtom.atname,radii);
 
         if(currAtom.rad < 0.1 || currAtom.rad > 3.0)
@@ -181,7 +201,7 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, 
         xs[i] = crds[3*i];
         ys[i] = crds[3*i+1];
         zs[i] = crds[3*i+2];
-        rads[i] = mmpbsa_utils::lookup_radius(efun.parminfo->atom_names[i],MI.brad) + 1.4;//SA radii are not necessarily the same as PB radii
+        rads[i] = mmpbsa_utils::lookup_radius(atoms.at(i).name,MI.brad) + 1.4;//SA radii are not necessarily the same as PB radii
     }
     //Surface Area
     returnMe[area] = molsurf(xs,ys,zs,rads,numCoords,0);//replace with molsurf stuff
