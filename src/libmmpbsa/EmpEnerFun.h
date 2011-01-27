@@ -143,6 +143,7 @@ public:
     mmpbsa_t total_dihedral_energy(const std::valarray<mmpbsa_t>& crds)const;
 
     mmpbsa::dihedral_energy_t* extract_dihedral_structs(std::vector<mmpbsa::dihedral_t>& dihedrals_with_H,std::vector<mmpbsa::dihedral_t>& dihedrals_without_H)const;
+    void extract_atom_structs(std::vector<mmpbsa::atom_t>& atoms)const;
 
     /**
      * Calculates the total Van der Waals energy between 1-4 pairs for the given snapshot coordinates
@@ -158,11 +159,7 @@ public:
      * @param crds
      * @return
      */
-    mmpbsa_t total_elstat14_energy(const std::valarray<mmpbsa_t>& crds)const{return elstat14_inc_H(crds)+elstat14_without_H(crds);}
-    mmpbsa_t elstat14_inc_H(const std::valarray<mmpbsa_t>& crds)const;
-    mmpbsa_t elstat14_without_H(const std::valarray<mmpbsa_t>& crds)const;
-    mmpbsa_t elstat14_energy_calc(const std::valarray<mmpbsa_t>& crds,
-        const std::valarray<size_t>& dihedralIndices, const std::valarray<bool>& phi_mask)const;
+    mmpbsa_t total_elstat14_energy(const std::valarray<mmpbsa_t>& crds)const;
 
     /**
      * Calculates the total Van der Waals energy of the system for the given snapshot coordinates

@@ -1,13 +1,23 @@
 #ifndef MMPBSA_STRUCTS_H
 #define MMPBSA_STRUCTS_H
 
+#include <string>
+#include <set>
+
 #include "mmpbsa_utils.h"
 
 namespace mmpbsa{
 
+typedef struct{
+	mmpbsa_t c6,c12;
+}lj_params_t;
+
 typedef struct {
-	size_t name_index;///<Index into name array
+	std::string name;///<Index into name array
 	int atomic_number;
+	mmpbsa_t charge;
+	size_t atom_type;///<For Lennard Jones Parameters, etc
+	std::set<size_t> exclusion_list;
 }atom_t;
 
 typedef struct {

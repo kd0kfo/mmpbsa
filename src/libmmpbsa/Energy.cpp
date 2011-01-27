@@ -164,4 +164,70 @@ mmpbsa_t mmpbsa::vdw14_energy_calc(const std::vector<dihedral_t>& dihedrals,cons
 
 }
 
+mmpbsa_t mmpbsa::elstat14_energy_calc(const std::vector<dihedral_t>& dihedrals, const std::vector<atom_t>& atoms, const std::valarray<mmpbsa_t>& crds, const mmpbsa_t& inv_scee, const mmpbsa_t& dielc)
+{
+    if(crds.size() % 3 != 0)
+        throw mmpbsa::MMPBSAException("mmpbsa::elstat14_energy_calc: Coordinate arrays must be a multiple of 3. "
+                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
+
+
+    mmpbsa_t rsqrd,q_i,q_l;
+    mmpbsa_t totalEnergy = 0;
+    bool mask,period_mask;
+
+    std::vector<dihedral_t>::const_iterator dihedral;
+    for(dihedral = dihedrals.begin();dihedral != dihedrals.end();dihedral++)
+    {
+    	period_mask = (dihedral->dihedral_energy->periodicity < 0);
+    	mask = dihedral->nonbonded_masks.is_improper || dihedral->nonbonded_masks.should_ignore_end_grp || period_mask;
+    	if(!mask)
+        {
+            rsqrd = 0;
+            for(size_t j = 0; j < 3; j++)
+                rsqrd += pow(crds[3*dihedral->atom_i+j] - crds[3*dihedral->atom_l+j], 2);
+            q_i = atoms.at(dihedral->atom_i).charge;
+            q_l = atoms.at(dihedral->atom_l).charge;
+            totalEnergy += (inv_scee/dielc)*q_i*q_l/sqrt(rsqrd);//Ah, Coulomb's law :-)
+        }
+    }
+    return totalEnergy;
+}
+
+mmpbsa_t mmpbsa::vdwaals_energy(const std::vector<atom_t>& atoms, const std::vector<lj_params_t>& lj_params,const std::valarray<mmpbsa_t>& crds)
+{
+	if(crds.size() % 3 != 0)
+		throw mmpbsa::MMPBSAException("Coordinate arrays must be a multiple of 3. "
+				"bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
+
+	mmpbsa_t totalEnergy = 0;
+	size_t natom,ntypes,type_row,type_2;
+	mmpbsa_t x,y,z,rsqrd,a,b,atomEnergy;
+
+	natom = atoms.size();
+	ntypes = sqrt(lj_params.size());
+	for(size_t i = 0;i<natom;i++)
+	{
+		const atom_t& atom = atoms.at(i);
+		x = crds[3*i];y = crds[3*i+1];z = crds[3*i+2];
+		atomEnergy = 0;
+		type_row = atom.atom_type*ntypes;
+		for(size_t j = i+1;j<natom;j++)//sum over all other atoms after the i-th atom
+		{
+			if(atom.exclusion_list.find(j) == atom.exclusion_list.end())
+			{
+				const lj_params_t& lj = lj_params.at(type_row + atoms.at(j).atom_type);
+				rsqrd = pow(x-crds[3*j],2) + pow(y-crds[3*j+1],2) + pow(z-crds[3*j+2],2);
+				atomEnergy += lj.c12/pow(rsqrd,6) - lj.c6/pow(rsqrd,3);
+			}
+
+		}
+
+		totalEnergy += atomEnergy;
+	}
+	return totalEnergy;
+}
+
+
+
+
 
