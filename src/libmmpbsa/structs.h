@@ -54,7 +54,6 @@ typedef struct {
 	std::vector<bond_t> bonds_with_H,bonds_without_H;
 	std::vector<angle_t> angles_with_H,angles_without_H;
 	std::vector<dihedral_t> dihedrals_with_H,dihedrals_without_H;
-	std::vector<lj_params_t> atom_lennard_jones;
 
 	//Data
 	mmpbsa::bond_energy_t *bond_energy_data,*angle_energy_data;

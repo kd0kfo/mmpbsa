@@ -169,11 +169,11 @@ void get_sander_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t**
     //load and check the parmtop file.
     mmpbsa::SanderParm * sp = new mmpbsa::SanderParm;
     if(!has_filename(SANDER_PRMTOP_TYPE,currState))
-    	throw mmpbsa::MMPBSAException("mmpbsa_run: no parmtop file.",BROKEN_PRMTOP_FILE);
+    	throw mmpbsa::MMPBSAException("get_sander_forcefield: no parmtop file.",BROKEN_PRMTOP_FILE);
     sp->raw_read_amber_parm(get_filename(SANDER_PRMTOP_TYPE,currState));
     if(!currState.trustPrmtop)
         if(!sp->sanityCheck())
-            throw MMPBSAException("mmpbsa_run: Parmtop file, " + get_filename(SANDER_PRMTOP_TYPE,currState)
+            throw MMPBSAException("get_sander_forcefield: Parmtop file, " + get_filename(SANDER_PRMTOP_TYPE,currState)
             		+ " is insane.",INVALID_PRMTOP_DATA);
 
     //Create energy function with the parmtop data. This energy function will
@@ -234,6 +234,21 @@ void get_sander_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t**
     delete sp;
 }
 
+void get_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t** split_ff,std::vector<mmpbsa::atom_t>** atom_lists, std::valarray<mmpbsa::MMPBSAState::MOLECULE>& mol_list,mmpbsa_io::trajectory_t& trajfile)
+{
+#ifdef USE_GROMACS
+	if(!has_filename(SANDER_PRMTOP_TYPE,currState))
+		throw mmpbsa::MMPBSAException("get_forcefield: no parmtop file.",mmpbsa::BROKEN_PRMTOP_FILE);
+	std::string filename = get_filename(SANDER_PRMTOP_TYPE,currState);
+	if(filename.find(".tpr") != std::string::npos)
+	{
+		mmpbsa_io::get_gromacs_forcefield(filename.c_str(),split_ff,atom_lists,mol_list);
+		return;
+	}
+#endif
+	get_sander_forcefield(currState,split_ff,atom_lists,mol_list,trajfile);
+}
+
 int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 {
     using std::valarray;
@@ -280,7 +295,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     mmpbsa::forcefield_t* split_ff = 0;
     std::vector<atom_t>* atom_lists = 0;
     std::valarray<MMPBSAState::MOLECULE> mol_list;
-    get_sander_forcefield(currState,&split_ff,&atom_lists,mol_list,trajFile);
+    get_forcefield(currState,&split_ff,&atom_lists,mol_list,trajFile);
 
 
     //load radii data, if available
@@ -1131,7 +1146,7 @@ void sampleQueue(const std::string& filename)
 
     XMLNode* mmpbsaXML = new XMLNode("mmpbsa");
     mmpbsaXML->insertChild("prmtop","sander_prmtop_file.prmtop");
-    mmpbsaXML->insertChild("mdcrd","sander_snapshot_file.mdcrd");
+    mmpbsaXML->insertChild("inpcrd","sander_snapshot_file.mdcrd");
     mmpbsaXML->insertChild("radii","DelPhi_radii_file.siz");
     mmpbsaXML->insertChild("mmpbsa_out","mmpbsa-result-output.out");
     mmpbsaXML->insertChild("snap_list","1,3");

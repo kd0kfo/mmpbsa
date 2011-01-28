@@ -9,6 +9,7 @@ void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>
   t_trnheader trn;
   gmx_bool        bOK;
   size_t natoms;
+  static mmpbsa_t nm2angst = 10;
 
   if(filename.size() == 0)
 	  throw mmpbsa::MMPBSAException("mmpbsa_io::load_gmx_trr: File name required.");
@@ -76,12 +77,33 @@ void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>
 	  crds.resize(natoms*3,0);
 	  for(size_t i = 0;i<natoms;i++)
 		  for(size_t j = 0;j<3;j++)
-			  crds[i*3+j] = x[i][j];
+			  crds[i*3+j] = x[i][j]*nm2angst;
   }
   else
-	  crds.resize(0,0);
+  {
+	  std::ostringstream error;
+	  error << "mmpbsa_io::load_gmx_trr: No such snap shot in " << filename << " Snap shot# " << frame_number <<" Max snap shot: " << nframe;
+	  throw mmpbsa::MMPBSAException(error,mmpbsa::UNEXPECTED_EOF);
+  }
+
   if(x != 0)
 	  sfree(x);
+}
+
+bool mmpbsa_io::gmx_trr_eof(const std::string& filename,size_t frame_number)
+{
+	std::valarray<mmpbsa_t> crds;
+	try
+	{
+		load_gmx_trr(filename,crds,frame_number,0);
+		return false;
+	}
+	catch(mmpbsa::MMPBSAException mmpbsae)
+	{
+		if(mmpbsae.getErrType() == mmpbsa::UNEXPECTED_EOF)
+			return true;
+		throw mmpbsae;
+	}
 }
 
 std::vector<size_t> mmpbsa_io::allowed_gmx_energies()

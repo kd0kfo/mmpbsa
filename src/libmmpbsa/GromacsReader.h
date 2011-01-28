@@ -73,6 +73,11 @@ typedef struct {
  */
 void load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>& crds,size_t frame_number,const size_t* natom_limit = 0);
 
+/**
+ * Determines whether or not the desired f rame is listed in the trr trajectory file.
+ */
+bool gmx_trr_eof(const std::string& filename,size_t frame_number);
+
 //void gmxfile_index(std::iostream& ascii_file);
 
 std::vector<size_t> allowed_gmx_energies();

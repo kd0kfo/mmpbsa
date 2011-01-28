@@ -24,7 +24,6 @@
 #include "libmmpbsa/XMLParser.h"
 #include "libmmpbsa/XMLNode.h"
 #include "libmmpbsa/SanderParm.h"
-#include "libmmpbsa/FormatConverter.h"
 #include "libmmpbsa/SanderInterface.h"
 #include "libmmpbsa/MMPBSAState.h"
 
@@ -33,6 +32,7 @@
 #endif
 
 #if USE_GROMACS
+#include "libmmpbsa/FormatConverter.h"
 #include "libmmpbsa/GromacsReader.h"
 #endif
 

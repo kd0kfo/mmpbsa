@@ -116,6 +116,7 @@ mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const mmpbsa::EmpEnerFun& efun, co
         const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
         const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException)
 {
+	throw mmpbsa::MMPBSAException("mmpbsa::MeadInterface::full_EMap: Deprecated!");
     mmpbsa::EMap returnMe(&efun,crds);
     mmpbsa_t * pbsa_values = pbsa_solvation(efun,crds,fdm,radii,residueMap,interactionStrength);
     returnMe.set_elstat_solv(pbsa_values[0]);
@@ -218,7 +219,7 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t
         rads[i] = mmpbsa_utils::lookup_radius(atoms.at(i).name,MI.brad) + 1.4;//SA radii are not necessarily the same as PB radii
     }
     //Surface Area
-    returnMe[area] = molsurf(xs,ys,zs,rads,numCoords,0);//replace with molsurf stuff
+    returnMe[area] = molsurf(xs,ys,zs,rads,numCoords,0);//replace with molsurf stuff42;//
 
     return returnMe;
 }

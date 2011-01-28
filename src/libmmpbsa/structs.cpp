@@ -10,6 +10,11 @@ void init(mmpbsa::forcefield_t* ff)
 	ff->inv_scee = 1;
 	ff->inv_scnb = 1;
 	ff->dielc = 1;
+#if 0//not default here
+	ff->inv_scee = 1/DEFAULT_SCNB;
+	ff->inv_scnb = 1/DEFAULT_SCEE;
+	ff->dielc = DEFAULT_DIELC;
+#endif
 }
 
 void destroy(mmpbsa::forcefield_t* ff)

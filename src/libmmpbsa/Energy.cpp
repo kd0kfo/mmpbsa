@@ -1,7 +1,6 @@
 #include "Energy.h"
 
 //Energy Calculations
-
 mmpbsa_t mmpbsa::bond_energy_calc(const std::vector<bond_t>& bonds,const std::valarray<mmpbsa_t>& crds)
 {
 	using namespace mmpbsa;
@@ -13,7 +12,7 @@ mmpbsa_t mmpbsa::bond_energy_calc(const std::vector<bond_t>& bonds,const std::va
     size_t bndi,bndj,bondid;
     mmpbsa_t ix,iy,iz,jx,jy,jz,disp;//disp = displacement
     std::vector<bond_t>::const_iterator bond;
-    for(bond = bonds.begin();bond != bonds.end();bond++)
+  for(bond = bonds.begin();bond != bonds.end();bond++)
     {
         ix = crds[3*bond->atom_i];iy = crds[3*bond->atom_i+1];iz = crds[3*bond->atom_i+2];
         jx = crds[3*bond->atom_j];jy = crds[3*bond->atom_j+1];jz = crds[3*bond->atom_j+2];
@@ -21,8 +20,8 @@ mmpbsa_t mmpbsa::bond_energy_calc(const std::vector<bond_t>& bonds,const std::va
         const mmpbsa_t& beq = bond->bond_energy->eq_distance;
         disp = sqrt(pow(ix-jx,2)+pow(iy-jy,2)+pow(iz-jz,2))-beq;
         totalEnergy += bconst*disp*disp;
-    }
 
+    }
     return totalEnergy;
 
 }
@@ -75,6 +74,9 @@ mmpbsa_t mmpbsa::dihedral_energy_calc(const std::vector<dihedral_t>& dihedrals, 
     std::vector<dihedral_t>::const_iterator dihedral;
     for(dihedral = dihedrals.begin();dihedral != dihedrals.end();dihedral++)
     {
+    	if(dihedral->dihedral_energy == 0)//this could happen, for example, if there is only LJ14 interaction, but no dihedral.
+    		continue;
+
         for(size_t j = 0;j<3;j++)//fill vectors
         {
             r_ij[j] = crds[3*dihedral->atom_i+j]-crds[3*dihedral->atom_j+j];
@@ -148,7 +150,7 @@ mmpbsa_t mmpbsa::vdw14_energy_calc(const std::vector<dihedral_t>& dihedrals,cons
     std::vector<dihedral_t>::const_iterator dihedral;
     for(dihedral = dihedrals.begin();dihedral != dihedrals.end();dihedral++)//for(size_t i = 0;i<numDihedrals;i++)
     {
-        period_mask = (dihedral->dihedral_energy->periodicity < 0);
+        period_mask = (dihedral->dihedral_energy != 0 && dihedral->dihedral_energy->periodicity < 0);
         mask = dihedral->nonbonded_masks.is_improper || dihedral->nonbonded_masks.should_ignore_end_grp || period_mask;
         if(!mask)
         {
@@ -158,6 +160,7 @@ mmpbsa_t mmpbsa::vdw14_energy_calc(const std::vector<dihedral_t>& dihedrals,cons
             inv_r6 = 1/pow(rsqrd, 3);
             inv_r12 = inv_r6*inv_r6;
             totalEnergy += dihedral->lj.c12*inv_r12 - dihedral->lj.c6*inv_r6;
+
         }
     }
     return totalEnergy*inv_scnb;
@@ -178,7 +181,7 @@ mmpbsa_t mmpbsa::elstat14_energy_calc(const std::vector<dihedral_t>& dihedrals, 
     std::vector<dihedral_t>::const_iterator dihedral;
     for(dihedral = dihedrals.begin();dihedral != dihedrals.end();dihedral++)
     {
-    	period_mask = (dihedral->dihedral_energy->periodicity < 0);
+    	period_mask = (dihedral->dihedral_energy != 0 && dihedral->dihedral_energy->periodicity < 0);
     	mask = dihedral->nonbonded_masks.is_improper || dihedral->nonbonded_masks.should_ignore_end_grp || period_mask;
     	if(!mask)
         {
@@ -200,8 +203,8 @@ mmpbsa_t mmpbsa::vdwaals_energy(const std::vector<atom_t>& atoms, const std::vec
 				"bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
 	mmpbsa_t totalEnergy = 0;
-	size_t natom,ntypes,type_row,type_2;
-	mmpbsa_t x,y,z,rsqrd,a,b,atomEnergy;
+	size_t natom,ntypes,type_row;
+	mmpbsa_t x,y,z,rsqrd,atomEnergy;
 
 	natom = atoms.size();
 	ntypes = sqrt(lj_params.size());
@@ -218,6 +221,7 @@ mmpbsa_t mmpbsa::vdwaals_energy(const std::vector<atom_t>& atoms, const std::vec
 				const lj_params_t& lj = lj_params.at(type_row + atoms.at(j).atom_type);
 				rsqrd = pow(x-crds[3*j],2) + pow(y-crds[3*j+1],2) + pow(z-crds[3*j+2],2);
 				atomEnergy += lj.c12/pow(rsqrd,6) - lj.c6/pow(rsqrd,3);
+
 			}
 
 		}
