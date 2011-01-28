@@ -14,6 +14,7 @@ AH_TEMPLATE([USE_JPEGLIB],[Define to use the JPEG library])
 AH_TEMPLATE([WITHOUT_MOLSURF],[Define to prevent the use of molsurf, i.e. on Mac without proper signal.h])
 AH_TEMPLATE([USE_PTHREADS],[Define to use pthreads for multithread MMPBSA calculations. (Has no effect on MD).])
 AH_TEMPLATE([USE_GZIP],[Define to compile with libz and use GZIP. Requires libz.])
+AH_TEMPLATE([USE_GROMACS],[Define to compile with gromacs to read gromacs topology and trajectory files.])
 
 # Checks for programs.
 AC_PROG_CXX
@@ -30,6 +31,17 @@ AC_ARG_WITH([gzip],AS_HELP_STRING([--with-gzip],[Includes the use of gzip'ed dat
 esac]
 AC_DEFINE([USE_GZIP],[1]),[gzip=false])
 AM_CONDITIONAL([BUILD_WITH_GZIP],[test x$gzip = xtrue])
+
+AC_ARG_WITH([gromacs],AS_HELP_STRING([--with-gromacs],[Includes the use of gromacs to open gromacs formatted topology and trajectory files.]),
+[case "${withval}" in
+      yes) gromacs=. ;;
+      no) gromacs=false ;;
+      *) gromacs=${withval} ;;
+esac]
+AC_SUBST(GROMACS_PATH,$gromacs)
+AC_MSG_RESULT(Compiling with gromacs)
+AC_DEFINE([USE_GROMACS],[1]),[gromacs=false])
+AM_CONDITIONAL([BUILD_WITH_GROMACS],[test x$gromacs != xfalse])
 
 AC_ARG_ENABLE([static],AS_HELP_STRING([--enable-static],[Compile Statically]),
 [AC_MSG_RESULT(Compiling MMPBSA statically)

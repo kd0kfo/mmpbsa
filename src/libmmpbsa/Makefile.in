@@ -37,6 +37,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 @BUILD_WITH_GZIP_TRUE@am__append_1 = Zipper.cpp
 @BUILD_WITH_GZIP_TRUE@am__append_2 = Zipper.h
+@BUILD_WITH_GROMACS_TRUE@am__append_3 = FormatConverter.cpp GromacsReader.cpp
+@BUILD_WITH_GROMACS_TRUE@am__append_4 = FormatConverter.h GromacsReader.h
+@BUILD_WITH_GROMACS_TRUE@am__append_5 = -I $(GROMACS_PATH)/include/
 subdir = src/libmmpbsa
 DIST_COMMON = $(am__libmmpbsa_a_include_HEADERS_DIST) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -65,8 +68,11 @@ am__libmmpbsa_a_SOURCES_DIST = EmpEnerFun.cpp EMap.cpp EnergyInfo.cpp \
 	SanderInterface.cpp MeadInterface.cpp SanderParm.cpp \
 	mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp \
 	mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp \
-	StringTokenizer.cpp MMPBSAState.cpp Zipper.cpp
+	StringTokenizer.cpp MMPBSAState.cpp Energy.cpp structs.cpp \
+	Zipper.cpp FormatConverter.cpp GromacsReader.cpp
 @BUILD_WITH_GZIP_TRUE@am__objects_1 = libmmpbsa_a-Zipper.$(OBJEXT)
+@BUILD_WITH_GROMACS_TRUE@am__objects_2 = libmmpbsa_a-FormatConverter.$(OBJEXT) \
+@BUILD_WITH_GROMACS_TRUE@	libmmpbsa_a-GromacsReader.$(OBJEXT)
 am_libmmpbsa_a_OBJECTS = libmmpbsa_a-EmpEnerFun.$(OBJEXT) \
 	libmmpbsa_a-EMap.$(OBJEXT) libmmpbsa_a-EnergyInfo.$(OBJEXT) \
 	libmmpbsa_a-SanderInterface.$(OBJEXT) \
@@ -78,7 +84,9 @@ am_libmmpbsa_a_OBJECTS = libmmpbsa_a-EmpEnerFun.$(OBJEXT) \
 	libmmpbsa_a-XMLParser.$(OBJEXT) libmmpbsa_a-XMLNode.$(OBJEXT) \
 	libmmpbsa_a-mmpbsa_io.$(OBJEXT) \
 	libmmpbsa_a-StringTokenizer.$(OBJEXT) \
-	libmmpbsa_a-MMPBSAState.$(OBJEXT) $(am__objects_1)
+	libmmpbsa_a-MMPBSAState.$(OBJEXT) libmmpbsa_a-Energy.$(OBJEXT) \
+	libmmpbsa_a-structs.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_2)
 libmmpbsa_a_OBJECTS = $(am_libmmpbsa_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -93,7 +101,8 @@ DIST_SOURCES = $(am__libmmpbsa_a_SOURCES_DIST)
 am__libmmpbsa_a_include_HEADERS_DIST = EmpEnerFun.h EMap.h \
 	EnergyInfo.h SanderInterface.h MeadInterface.h SanderParm.h \
 	mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h \
-	StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h Zipper.h
+	StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h Energy.h \
+	structs.h Zipper.h FormatConverter.h GromacsReader.h
 libmmpbsa_a_includeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(libmmpbsa_a_include_HEADERS)
 ETAGS = etags
@@ -110,6 +119,8 @@ AWK = @AWK@
 BOINC_CPPFLAGS = @BOINC_CPPFLAGS@
 BOINC_LDFLAGS = @BOINC_LDFLAGS@
 BOINC_LIBS = @BOINC_LIBS@
+BUILD_WITH_GROMACS_FALSE = @BUILD_WITH_GROMACS_FALSE@
+BUILD_WITH_GROMACS_TRUE = @BUILD_WITH_GROMACS_TRUE@
 BUILD_WITH_GZIP_FALSE = @BUILD_WITH_GZIP_FALSE@
 BUILD_WITH_GZIP_TRUE = @BUILD_WITH_GZIP_TRUE@
 CC = @CC@
@@ -134,6 +145,7 @@ EXEEXT = @EXEEXT@
 GRAPHICS_CPPFLAGS = @GRAPHICS_CPPFLAGS@
 GRAPHICS_LDFLAGS = @GRAPHICS_LDFLAGS@
 GRAPHICS_LIBS = @GRAPHICS_LIBS@
+GROMACS_PATH = @GROMACS_PATH@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -193,18 +205,20 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 lib_LIBRARIES = libmmpbsa.a
 libmmpbsa_adir = $(libdir)
-libmmpbsa_a_CPPFLAGS = -Wall  $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ -I../ $(BOINC_CPPFLAGS)
+libmmpbsa_a_CPPFLAGS = -Wall $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ \
+	-I../ $(BOINC_CPPFLAGS) $(am__append_5)
 libmmpbsa_a_SOURCES = EmpEnerFun.cpp EMap.cpp EnergyInfo.cpp \
 	SanderInterface.cpp MeadInterface.cpp SanderParm.cpp \
 	mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp \
 	mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp \
-	StringTokenizer.cpp MMPBSAState.cpp $(am__append_1)
+	StringTokenizer.cpp MMPBSAState.cpp Energy.cpp structs.cpp \
+	$(am__append_1) $(am__append_3)
 libmmpbsa_a_includedir = $(includedir)/libmmpbsa
 libmmpbsa_a_include_HEADERS = EmpEnerFun.h EMap.h EnergyInfo.h \
 	SanderInterface.h MeadInterface.h SanderParm.h \
 	mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h \
-	StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h \
-	$(am__append_2)
+	StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h Energy.h \
+	structs.h $(am__append_2) $(am__append_4)
 all: all-am
 
 .SUFFIXES:
@@ -280,7 +294,10 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-EMap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-EmpEnerFun.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-Energy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-EnergyInfo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-FormatConverter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-GromacsReader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-MMPBSAState.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-MeadInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-SanderInterface.Po@am__quote@
@@ -293,6 +310,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-mmpbsa_io.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-mmpbsa_utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-mmpbsa_utils_templates.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-structs.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -504,6 +522,34 @@ libmmpbsa_a-MMPBSAState.obj: MMPBSAState.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-MMPBSAState.obj `if test -f 'MMPBSAState.cpp'; then $(CYGPATH_W) 'MMPBSAState.cpp'; else $(CYGPATH_W) '$(srcdir)/MMPBSAState.cpp'; fi`
 
+libmmpbsa_a-Energy.o: Energy.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-Energy.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-Energy.Tpo" -c -o libmmpbsa_a-Energy.o `test -f 'Energy.cpp' || echo '$(srcdir)/'`Energy.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-Energy.Tpo" "$(DEPDIR)/libmmpbsa_a-Energy.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-Energy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Energy.cpp' object='libmmpbsa_a-Energy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-Energy.o `test -f 'Energy.cpp' || echo '$(srcdir)/'`Energy.cpp
+
+libmmpbsa_a-Energy.obj: Energy.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-Energy.obj -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-Energy.Tpo" -c -o libmmpbsa_a-Energy.obj `if test -f 'Energy.cpp'; then $(CYGPATH_W) 'Energy.cpp'; else $(CYGPATH_W) '$(srcdir)/Energy.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-Energy.Tpo" "$(DEPDIR)/libmmpbsa_a-Energy.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-Energy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Energy.cpp' object='libmmpbsa_a-Energy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-Energy.obj `if test -f 'Energy.cpp'; then $(CYGPATH_W) 'Energy.cpp'; else $(CYGPATH_W) '$(srcdir)/Energy.cpp'; fi`
+
+libmmpbsa_a-structs.o: structs.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-structs.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-structs.Tpo" -c -o libmmpbsa_a-structs.o `test -f 'structs.cpp' || echo '$(srcdir)/'`structs.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-structs.Tpo" "$(DEPDIR)/libmmpbsa_a-structs.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-structs.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='structs.cpp' object='libmmpbsa_a-structs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-structs.o `test -f 'structs.cpp' || echo '$(srcdir)/'`structs.cpp
+
+libmmpbsa_a-structs.obj: structs.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-structs.obj -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-structs.Tpo" -c -o libmmpbsa_a-structs.obj `if test -f 'structs.cpp'; then $(CYGPATH_W) 'structs.cpp'; else $(CYGPATH_W) '$(srcdir)/structs.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-structs.Tpo" "$(DEPDIR)/libmmpbsa_a-structs.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-structs.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='structs.cpp' object='libmmpbsa_a-structs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-structs.obj `if test -f 'structs.cpp'; then $(CYGPATH_W) 'structs.cpp'; else $(CYGPATH_W) '$(srcdir)/structs.cpp'; fi`
+
 libmmpbsa_a-Zipper.o: Zipper.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-Zipper.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-Zipper.Tpo" -c -o libmmpbsa_a-Zipper.o `test -f 'Zipper.cpp' || echo '$(srcdir)/'`Zipper.cpp; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-Zipper.Tpo" "$(DEPDIR)/libmmpbsa_a-Zipper.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-Zipper.Tpo"; exit 1; fi
@@ -517,6 +563,34 @@ libmmpbsa_a-Zipper.obj: Zipper.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Zipper.cpp' object='libmmpbsa_a-Zipper.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-Zipper.obj `if test -f 'Zipper.cpp'; then $(CYGPATH_W) 'Zipper.cpp'; else $(CYGPATH_W) '$(srcdir)/Zipper.cpp'; fi`
+
+libmmpbsa_a-FormatConverter.o: FormatConverter.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-FormatConverter.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-FormatConverter.Tpo" -c -o libmmpbsa_a-FormatConverter.o `test -f 'FormatConverter.cpp' || echo '$(srcdir)/'`FormatConverter.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-FormatConverter.Tpo" "$(DEPDIR)/libmmpbsa_a-FormatConverter.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-FormatConverter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FormatConverter.cpp' object='libmmpbsa_a-FormatConverter.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-FormatConverter.o `test -f 'FormatConverter.cpp' || echo '$(srcdir)/'`FormatConverter.cpp
+
+libmmpbsa_a-FormatConverter.obj: FormatConverter.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-FormatConverter.obj -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-FormatConverter.Tpo" -c -o libmmpbsa_a-FormatConverter.obj `if test -f 'FormatConverter.cpp'; then $(CYGPATH_W) 'FormatConverter.cpp'; else $(CYGPATH_W) '$(srcdir)/FormatConverter.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-FormatConverter.Tpo" "$(DEPDIR)/libmmpbsa_a-FormatConverter.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-FormatConverter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FormatConverter.cpp' object='libmmpbsa_a-FormatConverter.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-FormatConverter.obj `if test -f 'FormatConverter.cpp'; then $(CYGPATH_W) 'FormatConverter.cpp'; else $(CYGPATH_W) '$(srcdir)/FormatConverter.cpp'; fi`
+
+libmmpbsa_a-GromacsReader.o: GromacsReader.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-GromacsReader.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-GromacsReader.Tpo" -c -o libmmpbsa_a-GromacsReader.o `test -f 'GromacsReader.cpp' || echo '$(srcdir)/'`GromacsReader.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-GromacsReader.Tpo" "$(DEPDIR)/libmmpbsa_a-GromacsReader.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-GromacsReader.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='GromacsReader.cpp' object='libmmpbsa_a-GromacsReader.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-GromacsReader.o `test -f 'GromacsReader.cpp' || echo '$(srcdir)/'`GromacsReader.cpp
+
+libmmpbsa_a-GromacsReader.obj: GromacsReader.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-GromacsReader.obj -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-GromacsReader.Tpo" -c -o libmmpbsa_a-GromacsReader.obj `if test -f 'GromacsReader.cpp'; then $(CYGPATH_W) 'GromacsReader.cpp'; else $(CYGPATH_W) '$(srcdir)/GromacsReader.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-GromacsReader.Tpo" "$(DEPDIR)/libmmpbsa_a-GromacsReader.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-GromacsReader.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='GromacsReader.cpp' object='libmmpbsa_a-GromacsReader.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-GromacsReader.obj `if test -f 'GromacsReader.cpp'; then $(CYGPATH_W) 'GromacsReader.cpp'; else $(CYGPATH_W) '$(srcdir)/GromacsReader.cpp'; fi`
 uninstall-info-am:
 install-libmmpbsa_a_includeHEADERS: $(libmmpbsa_a_include_HEADERS)
 	@$(NORMAL_INSTALL)

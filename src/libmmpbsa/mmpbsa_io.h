@@ -28,6 +28,10 @@
 #include "SanderParm.h"
 #include "Zipper.h"
 
+#ifdef USE_GROMACS
+#include "GromacsReader.h"
+#endif
+
 #ifdef USE_BOINC
 #if defined(_WIN32) || defined(__MINGW_WIN32__)
 #include "boinc/boinc_win.h"
@@ -36,6 +40,7 @@
 #endif
 
 namespace mmpbsa_io{
+
 
 /**
  * Reads the Coordinates or Velocities from the given file, using the first

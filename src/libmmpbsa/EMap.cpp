@@ -35,6 +35,7 @@ mmpbsa::EMap::EMap(const mmpbsa::EmpEnerFun* efun, const std::valarray<mmpbsa_t>
         throw mmpbsa::MMPBSAException("An attempt was made to create an EMap with a null"
                 " EmpEnerFun pointer.",mmpbsa::UNKNOWN_ERROR);
 
+#if 0//deprecated
     bond = efun->total_bond_energy(crds);
     angle = efun->total_angle_energy(crds);
     dihed = efun->total_dihedral_energy(crds);
@@ -42,6 +43,37 @@ mmpbsa::EMap::EMap(const mmpbsa::EmpEnerFun* efun, const std::valarray<mmpbsa_t>
     ele14 = efun->total_elstat14_energy(crds);
     vdwaals = efun->total_vdwaals_energy(crds);
     vacele = efun->total_elstat_energy(crds);
+#endif
+
+    forcefield_t ff;
+    std::vector<mmpbsa::atom_t> atoms;
+    efun->extract_atom_structs(atoms);
+    efun->extract_force_field(ff);
+
+
+    bond = mmpbsa::bond_energy_calc(ff.bonds_with_H,crds) + mmpbsa::bond_energy_calc(ff.bonds_without_H,crds);
+    angle = mmpbsa::angle_energy_calc(ff.angles_with_H,crds) + mmpbsa::angle_energy_calc(ff.angles_without_H,crds);
+    dihed = mmpbsa::dihedral_energy_calc(ff.dihedrals_with_H,crds) + mmpbsa::dihedral_energy_calc(ff.dihedrals_without_H,crds);
+    vdw14 = mmpbsa::vdw14_energy_calc(ff.dihedrals_with_H,crds,ff.inv_scnb)+mmpbsa::vdw14_energy_calc(ff.dihedrals_without_H,crds,ff.inv_scnb);
+    ele14 = mmpbsa::elstat14_energy_calc(ff.dihedrals_with_H,atoms,crds,ff.inv_scee,ff.dielc)+mmpbsa::elstat14_energy_calc(ff.dihedrals_without_H,atoms,crds,ff.inv_scee,ff.dielc);
+    vdwaals = mmpbsa::vdwaals_energy(atoms,ff.lj_params,crds);
+    vacele = mmpbsa::total_elstat_energy(atoms,crds,ff.coulomb_const);
+    elstat_solv = 0;
+    area = 0;
+    sasol = 0;
+
+    destroy(&ff);
+}
+
+mmpbsa::EMap::EMap(const std::vector<atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds)
+{
+    bond = mmpbsa::bond_energy_calc(ff.bonds_with_H,crds) + mmpbsa::bond_energy_calc(ff.bonds_without_H,crds);
+    angle = mmpbsa::angle_energy_calc(ff.angles_with_H,crds) + mmpbsa::angle_energy_calc(ff.angles_without_H,crds);
+    dihed = mmpbsa::dihedral_energy_calc(ff.dihedrals_with_H,crds) + mmpbsa::dihedral_energy_calc(ff.dihedrals_without_H,crds);
+    vdw14 = mmpbsa::vdw14_energy_calc(ff.dihedrals_with_H,crds,ff.inv_scnb)+mmpbsa::vdw14_energy_calc(ff.dihedrals_without_H,crds,ff.inv_scnb);
+    ele14 = mmpbsa::elstat14_energy_calc(ff.dihedrals_with_H,atoms,crds,ff.inv_scee,ff.dielc)+mmpbsa::elstat14_energy_calc(ff.dihedrals_without_H,atoms,crds,ff.inv_scee,ff.dielc);
+    vdwaals = mmpbsa::vdwaals_energy(atoms,ff.lj_params,crds);
+    vacele = mmpbsa::total_elstat_energy(atoms,crds,ff.coulomb_const);
     elstat_solv = 0;
     area = 0;
     sasol = 0;

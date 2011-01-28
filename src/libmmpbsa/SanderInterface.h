@@ -65,9 +65,9 @@
 
 #define HEARTBEAT_FILENAME "progress.dat"
 
-
+#ifndef APPLE_OSX
 extern size_t strlcpy(char *dst, const char *src, size_t size);
-
+#endif
 
 namespace mmpbsa{
 

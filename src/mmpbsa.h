@@ -14,6 +14,7 @@
 #define PACKAGE_STRING "MD/MMPBSA"
 #endif
 
+#include "libmmpbsa/structs.h"
 #include "libmmpbsa/mmpbsa_exceptions.h"
 #include "libmmpbsa/mmpbsa_io.h"
 #include "libmmpbsa/EnergyInfo.h"
@@ -22,11 +23,17 @@
 #include "libmmpbsa/MeadInterface.h"
 #include "libmmpbsa/XMLParser.h"
 #include "libmmpbsa/XMLNode.h"
+#include "libmmpbsa/SanderParm.h"
 #include "libmmpbsa/SanderInterface.h"
 #include "libmmpbsa/MMPBSAState.h"
 
 #if USE_GZIP //#ifndef USE_GZIP
 #include "libmmpbsa/Zipper.h"
+#endif
+
+#if USE_GROMACS
+#include "libmmpbsa/FormatConverter.h"
+#include "libmmpbsa/GromacsReader.h"
 #endif
 
 
@@ -226,7 +233,8 @@ double overallFractionDone();
 void send_status_message(mmpbsa::SanderInterface& si, double frac_done,
         double checkpoint_cpu_time);
 
-int do_mmpbsa_calculation(void* thread_object,int useMultithread,const mmpbsa::EmpEnerFun& EFun, const std::valarray<mmpbsa_t>& Snap,
+int do_mmpbsa_calculation(void* thread_object,int useMultithread,const std::vector<mmpbsa::atom_t>& atoms,
+		const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& Snap,
 		const FinDiffMethod& fdm,const std::map<std::string,float>& radii,
 		const std::map<std::string,std::string>& residues,
 		const mmpbsa::MeadInterface& mi,
@@ -239,7 +247,8 @@ void thread_safe_checkpoint(const mmpbsa::MMPBSAState::MOLECULE& next_mole,const
 
 typedef struct mmpbsa_thread_arg
 {
-	const mmpbsa::EmpEnerFun* EFun;
+	const std::vector<mmpbsa::atom_t>* atoms;
+	const mmpbsa::forcefield_t* ff;
 	const std::valarray<mmpbsa_t>* snap;
 	const FinDiffMethod* fdm;
 	const std::map<std::string,float>* pradii;

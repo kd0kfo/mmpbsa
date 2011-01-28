@@ -72,6 +72,8 @@ public:
      */
     bool sanityCheck() throw (SanderIOException);
 
+    void initialize_arrays();
+
     SanderParm & operator=(const SanderParm& orig);
 
     //Here begin the many data types (public)
@@ -266,6 +268,8 @@ private:
 std::string getResidueLabel(const size_t& index, const std::valarray<size_t>& res_ranges, const mmpbsa::SanderParm* parm, size_t* residueIndex);
 
 }//end namespace mmpbsa
+
+
 
 #endif	/* SANDERPARM_H */
 

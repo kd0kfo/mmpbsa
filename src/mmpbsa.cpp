@@ -11,6 +11,7 @@ int main(int argc, char** argv)
 #endif
 
 	std::cerr << PACKAGE_STRING <<" started on " << mmpbsa_utils::get_human_time() << std::endl;
+
 	try
     {
         ::timeAtPreviousCheckpoint = 0;
@@ -166,54 +167,28 @@ mmpbsa_utils::XMLNode* read_mmpbsa_data(const mmpbsa::MMPBSAState& currState)
 	return mmpbsa_utils::XMLParser::parse(data);
 }
 
-int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
+void get_sander_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t** split_ff,std::vector<mmpbsa::atom_t>** atom_lists, std::valarray<mmpbsa::MMPBSAState::MOLECULE>& mol_list,mmpbsa_io::trajectory_t& trajfile)
 {
-    using std::valarray;
-    using std::vector;
-    using std::slice;
-    using std::map;
-    using namespace mmpbsa;
-    using mmpbsa::MMPBSAState;
+	using namespace mmpbsa;
+	using std::valarray;
+	using std::slice;
 
-    std::cout << "Starting MMPBSA calculation " << std::endl;
-
-
-    if(!has_filename(SANDER_MDOUT_TYPE,currState))
-        currState.filename_map[SANDER_MDOUT_TYPE] = "mmpbsa-output.xml";
-
-    //Upon restart, MMPBSA needs to reload energy that was calculated previously and then
-    //append new data to it.
-    mmpbsa_utils::XMLParser previousEnergyData;
-    try{
-    	mmpbsa_utils::XMLNode* old_data = read_mmpbsa_data(currState);
-    	if(old_data == 0)
-    		previousEnergyData.setHead(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
-    	else
-    		previousEnergyData.setHead(old_data);
-    }
-    catch(mmpbsa::MMPBSAException xmlpe)
-    {
-        if(xmlpe.getErrType() != mmpbsa::FILE_IO_ERROR)
-        {
-            std::cerr << "Previous energy data is corrupt. Overwriting." << std::endl;
-        }
-        previousEnergyData.setHead(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
-    }
-
-    
     //load and check the parmtop file.
     mmpbsa::SanderParm * sp = new mmpbsa::SanderParm;
     if(!has_filename(SANDER_PRMTOP_TYPE,currState))
-    	throw mmpbsa::MMPBSAException("mmpbsa_run: no parmtop file.",BROKEN_PRMTOP_FILE);
+    	throw mmpbsa::MMPBSAException("get_sander_forcefield: no parmtop file.",BROKEN_PRMTOP_FILE);
     sp->raw_read_amber_parm(get_filename(SANDER_PRMTOP_TYPE,currState));
     if(!currState.trustPrmtop)
         if(!sp->sanityCheck())
-            throw MMPBSAException("mmpbsa_run: Parmtop file, " + get_filename(SANDER_PRMTOP_TYPE,currState)
+            throw MMPBSAException("get_sander_forcefield: Parmtop file, " + get_filename(SANDER_PRMTOP_TYPE,currState)
             		+ " is insane.",INVALID_PRMTOP_DATA);
 
     //Create energy function with the parmtop data. This energy function will
     //have everything in it. Receptor and ligand will be stripped out.
     EmpEnerFun entireEFun(sp);
+
+    *split_ff = new mmpbsa::forcefield_t[MMPBSAState::END_OF_MOLECULES];
+    *atom_lists = new std::vector<atom_t>[MMPBSAState::END_OF_MOLECULES];
 
     valarray<bool> complexKeepers(false,sp->natom);//array of atoms to keep.
     valarray<bool> receptorKeepers(false,sp->natom);
@@ -245,12 +220,90 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     }
     size_t complexSize = receptorSize+ligandSize;
 
-    study_cpu_time();
-
     //Separate the molecules
     EmpEnerFun complexEFun = entireEFun.stripEnerFun(complexKeepers,true);
+    complexEFun.extract_force_field((*split_ff)[MMPBSAState::COMPLEX]);
+    complexEFun.extract_atom_structs((*atom_lists)[MMPBSAState::COMPLEX]);
     EmpEnerFun receptorEFun = entireEFun.stripEnerFun(receptorKeepers,true);
+    receptorEFun.extract_force_field((*split_ff)[MMPBSAState::RECEPTOR]);
+    receptorEFun.extract_atom_structs((*atom_lists)[MMPBSAState::RECEPTOR]);
     EmpEnerFun ligandEFun = entireEFun.stripEnerFun(ligandKeepers,true);
+    ligandEFun.extract_force_field((*split_ff)[MMPBSAState::LIGAND]);
+    ligandEFun.extract_atom_structs((*atom_lists)[MMPBSAState::LIGAND]);
+
+    mol_list.resize(sp->natom,MMPBSAState::END_OF_MOLECULES);//In this case, it is solvent
+    mol_list[receptorKeepers] = MMPBSAState::RECEPTOR;
+    mol_list[ligandKeepers] = MMPBSAState::LIGAND;
+
+    trajfile.natoms = mol_list.size();
+    trajfile.ifbox = sp->ifbox;
+
+    delete sp;
+}
+
+void get_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t** split_ff,std::vector<mmpbsa::atom_t>** atom_lists, std::valarray<mmpbsa::MMPBSAState::MOLECULE>& mol_list,mmpbsa_io::trajectory_t& trajfile)
+{
+#ifdef USE_GROMACS
+	if(!has_filename(SANDER_PRMTOP_TYPE,currState))
+		throw mmpbsa::MMPBSAException("get_forcefield: no parmtop file.",mmpbsa::BROKEN_PRMTOP_FILE);
+	std::string filename = get_filename(SANDER_PRMTOP_TYPE,currState);
+	if(filename.find(".tpr") != std::string::npos)
+	{
+		mmpbsa_io::get_gromacs_forcefield(filename.c_str(),split_ff,atom_lists,mol_list);
+		return;
+	}
+#endif
+	get_sander_forcefield(currState,split_ff,atom_lists,mol_list,trajfile);
+}
+
+int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
+{
+    using std::valarray;
+    using std::vector;
+    using std::slice;
+    using std::map;
+    using namespace mmpbsa;
+    using mmpbsa::MMPBSAState;
+    using namespace mmpbsa_io;
+
+    std::cout << "Starting MMPBSA calculation " << std::endl;
+
+
+    if(!has_filename(SANDER_MDOUT_TYPE,currState))
+        currState.filename_map[SANDER_MDOUT_TYPE] = "mmpbsa-output.xml";
+
+    //Upon restart, MMPBSA needs to reload energy that was calculated previously and then
+    //append new data to it.
+    mmpbsa_utils::XMLParser previousEnergyData;
+    try{
+    	mmpbsa_utils::XMLNode* old_data = read_mmpbsa_data(currState);
+    	if(old_data == 0)
+    		previousEnergyData.setHead(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
+    	else
+    		previousEnergyData.setHead(old_data);
+    }
+    catch(mmpbsa::MMPBSAException xmlpe)
+    {
+        if(xmlpe.getErrType() != mmpbsa::FILE_IO_ERROR)
+        {
+            std::cerr << "Previous energy data is corrupt. Overwriting." << std::endl;
+        }
+        previousEnergyData.setHead(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
+    }
+
+    //Setup Trajectory Structure
+    if(!has_filename(SANDER_INPCRD_TYPE,currState))
+    	throw mmpbsa::MMPBSAException("mmpbsa_run: no trajectory file was given.",BROKEN_TRAJECTORY_FILE);
+    mmpbsa_io::trajectory_t trajFile = mmpbsa_io::open_trajectory(get_filename(SANDER_INPCRD_TYPE,currState));
+
+
+
+    //Get forcefield data
+    mmpbsa::forcefield_t* split_ff = 0;
+    std::vector<atom_t>* atom_lists = 0;
+    std::valarray<MMPBSAState::MOLECULE> mol_list;
+    get_forcefield(currState,&split_ff,&atom_lists,mol_list,trajFile);
+
 
     //load radii data, if available
     map<std::string,float> radii;//later, check to see if radii.size() > 0 before calling full_EMap(...)
@@ -265,56 +318,40 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         mmpbsa_io::read_siz_file(radiiData,radii, residues);
     }
 
-    //Load Trajectory.
-    if(!has_filename(SANDER_INPCRD_TYPE,currState))
-    	throw mmpbsa::MMPBSAException("mmpbsa_run: no trajectory file was given.",BROKEN_TRAJECTORY_FILE);
-    std::fstream trajDiskFile(get_filename(SANDER_INPCRD_TYPE,currState).c_str(),std::ios::in);
-    std::stringstream trajFile;
-    mmpbsa_io::smart_read(trajFile,trajDiskFile,&(get_filename(SANDER_INPCRD_TYPE,currState)));
-    trajDiskFile.close();
-    if(!trajFile.good())
-        throw MMPBSAException("mmpbsa_run: Unable to read from trajectory file",BROKEN_TRAJECTORY_FILE);
-
-    using namespace mmpbsa_io;
+    //setup trajectory storage
     get_traj_title(trajFile);//Don't need title, but this ensure we are at the top of the file. If the title is needed later, hook this.
-    valarray<mmpbsa_t> snapshot(sp->natom*3);
+    valarray<mmpbsa_t> snapshot(mol_list.size()*3);
+    size_t complexSize,receptorSize,ligandSize;
+    receptorSize = ligandSize = 0;
+    for(size_t i = 0;i<mol_list.size();i++)
+    {
+    	if(mol_list[i] == MMPBSAState::RECEPTOR)
+    		receptorSize++;
+    	else if(mol_list[i] == MMPBSAState::LIGAND)
+    		ligandSize++;
+    }
+    complexSize = receptorSize + ligandSize;
     valarray<mmpbsa_t> complexSnap(complexSize*3);
     valarray<mmpbsa_t> receptorSnap(receptorSize*3);
     valarray<mmpbsa_t> ligandSnap(ligandSize*3);
 
-    bool isPeriodic = sp->ifbox > 0;//Are periodic boundary conditions used?
 
     //if the program is resuming a previously started calculation, advance to the
     //last snapshot.
     if(currState.currentSnap)//zero = one = start from beginning.
     {
-        for(size_t i = 0;i<currState.currentSnap-1;i++)
-            try
-            {
-                mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
-                ::updateMMPBSAProgress(currState,1);
-                report_boinc_progress();
-                study_cpu_time();
-            }
-            catch(MMPBSAException e)
-            {
-                if(e.getErrType() == UNEXPECTED_EOF)
-                {
-                  std::cout << "End of Snapshots Reached" << std::endl;
-                  return 0;
-                }
-            }//after this for loop, the trajFile is pointing to the beginning of currState.currentSnap
+        mmpbsa_io::seek(trajFile,currState.currentSnap-1);
     }
     else
     {
-    	currState.currentSnap = 1;//start from beginning if currentSnap was originally zero.
+    	trajFile.curr_snap = currState.currentSnap = 1;//start from beginning if currentSnap was originally zero.
     	currState.currentMolecule = MMPBSAState::COMPLEX;
     }
 
     mmpbsa_utils::XMLNode* outputXML = previousEnergyData.getHead();
 
     //Walk through the snapshots. This is where MMPBSA is actually done.
-    while(!trajFile.eof())
+    while(!mmpbsa_io::eof(trajFile))
     {
         try{
             //if a list of snaps to be run is provided, check to see if this snapshot
@@ -322,14 +359,14 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             if(currState.snapList.size())//check if the current snapshot should be skipped
                 if(!mmpbsa_utils::contains(currState.snapList,currState.currentSnap))
                 {
-                    mmpbsa_io::skip_next_snap(trajFile,sp->natom,isPeriodic);
+                    mmpbsa_io::seek(trajFile,trajFile.curr_snap+1);
                     std::cout << "Skipping Snapshot #" << currState.currentSnap << std::endl;
                     currState.currentSnap += 1;
                     currState.currentMolecule = MMPBSAState::COMPLEX;
                     continue;
                 }
         
-            if(get_next_snap(trajFile, snapshot, sp->natom,isPeriodic))
+            if(get_next_snap(trajFile, snapshot))
                 std::cout << "Running Snapshot #" << currState.currentSnap << std::endl;
             else
             {
@@ -365,24 +402,31 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         size_t complexCoordIndex = 0;
         size_t receptorCoordIndex = 0;
         size_t ligandCoordIndex = 0;
-        for(size_t i = 0;i<sp->natom;i++)
+        for(size_t i = 0;i<mol_list.size();i++)
         {
             std::slice_array<mmpbsa_t> currCoord = snapshot[slice(3*i,3,1)];
-            if(complexKeepers[i])
-                complexSnap[slice(3*complexCoordIndex++,3,1)] = currCoord;
-            if(receptorKeepers[i])
-                receptorSnap[slice(3*receptorCoordIndex++,3,1)] = currCoord;
-            if(ligandKeepers[i])
+            if(mol_list[i] == MMPBSAState::RECEPTOR)
+            {
+            	complexSnap[slice(3*complexCoordIndex++,3,1)] = currCoord;
+            	receptorSnap[slice(3*receptorCoordIndex++,3,1)] = currCoord;
+            }
+            else if(mol_list[i] == MMPBSAState::LIGAND)
+            {
+            	complexSnap[slice(3*complexCoordIndex++,3,1)] = currCoord;
                 ligandSnap[slice(3*ligandCoordIndex++,3,1)] = currCoord;
+            }
         }
 
         //write PDB information, if requested.
         if(currState.savePDB)
         {
-
+#if 0//FIX THIS LATER!!
         	writePDB(complexEFun,complexSnap,currState,"complex");
         	writePDB(receptorEFun,receptorSnap,currState,"receptor");
         	writePDB(ligandEFun,ligandSnap,currState,"ligand");
+#else
+        	std::cerr << "PDB Functions have been temporarily removed until structure function use is added to pdb functions." << std::endl;
+#endif
         }
 
         //This is the section where we actually do the MMPBSA calculations.
@@ -434,19 +478,19 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 #endif
         if(currState.currentMolecule == MMPBSAState::COMPLEX)
         {
-        	do_mmpbsa_calculation((void*) &comp_thread, mi.multithread, complexEFun, complexSnap,comp_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::RECEPTOR,"COMPLEX",(void*)&mmpbsa_mutex);
+        	do_mmpbsa_calculation((void*) &comp_thread, mi.multithread, atom_lists[MMPBSAState::COMPLEX], split_ff[MMPBSAState::COMPLEX], complexSnap,comp_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::RECEPTOR,"COMPLEX",(void*)&mmpbsa_mutex);
         }
 
         //MMPBSA on Receptor
         if(currState.currentMolecule == MMPBSAState::RECEPTOR || mi.multithread)
         {
-        	do_mmpbsa_calculation((void*) &recpt_thread, mi.multithread, receptorEFun, receptorSnap,*recpt_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::LIGAND,"RECEPTOR",(void*)&mmpbsa_mutex);
+        	do_mmpbsa_calculation((void*) &recpt_thread, mi.multithread,  atom_lists[MMPBSAState::RECEPTOR], split_ff[MMPBSAState::RECEPTOR], receptorSnap,*recpt_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::LIGAND,"RECEPTOR",(void*)&mmpbsa_mutex);
         }
 
         //MMPBSA on Ligand
         if(currState.currentMolecule == MMPBSAState::LIGAND || mi.multithread)
         {
-        	do_mmpbsa_calculation((void*) &ligand_thread,mi.multithread, ligandEFun, ligandSnap,*ligand_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::END_OF_MOLECULES,"LIGAND",(void*)&mmpbsa_mutex);
+        	do_mmpbsa_calculation((void*) &ligand_thread,mi.multithread,  atom_lists[MMPBSAState::LIGAND], split_ff[MMPBSAState::LIGAND], ligandSnap,*ligand_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::END_OF_MOLECULES,"LIGAND",(void*)&mmpbsa_mutex);
         }
 
 #ifdef USE_PTHREADS
@@ -483,7 +527,10 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     write_mmpbsa_data(previousEnergyData,currState);
 
 
-    delete sp;
+    for(size_t i = 0;i<MMPBSAState::END_OF_MOLECULES;i++)
+    	destroy(&split_ff[i]);
+    delete [] split_ff;
+    delete [] atom_lists;
     return 0;
 }
 
@@ -1142,7 +1189,7 @@ void sampleQueue(const std::string& filename)
 
     XMLNode* mmpbsaXML = new XMLNode("mmpbsa");
     mmpbsaXML->insertChild("prmtop","sander_prmtop_file.prmtop");
-    mmpbsaXML->insertChild("mdcrd","sander_snapshot_file.mdcrd");
+    mmpbsaXML->insertChild("inpcrd","sander_snapshot_file.mdcrd");
     mmpbsaXML->insertChild("radii","DelPhi_radii_file.siz");
     mmpbsaXML->insertChild("mmpbsa_out","mmpbsa-result-output.out");
     mmpbsaXML->insertChild("snap_list","1,3");
@@ -1228,7 +1275,7 @@ void *do_mmpbsa_calculation_thread(void* args)
 	struct mmpbsa_thread_arg * thread_args = (mmpbsa_thread_arg*) args;
 	if(thread_args == 0)
 		throw mmpbsa::MMPBSAException("do_mmpbsa_calculation_thread: given null pointer for argument structure");
-	mmpbsa::EMap theEMap = mmpbsa::MeadInterface::full_EMap(*thread_args->EFun,*thread_args->snap,
+	mmpbsa::EMap theEMap = mmpbsa::MeadInterface::full_EMap(*thread_args->atoms,*thread_args->ff,*thread_args->snap,
 			*thread_args->fdm,
 			*thread_args->pradii,*thread_args->residues,thread_args->mi->istrength,
 			thread_args->mi->surf_tension,thread_args->mi->surf_offset);
@@ -1240,7 +1287,9 @@ void *do_mmpbsa_calculation_thread(void* args)
 #endif
 }
 
-int do_mmpbsa_calculation(void* thread_object,int useMultithread,const mmpbsa::EmpEnerFun& EFun, const std::valarray<mmpbsa_t>& Snap,
+int do_mmpbsa_calculation(void* thread_object,int useMultithread,
+		const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff,
+		const std::valarray<mmpbsa_t>& Snap,
 		const FinDiffMethod& fdm,const std::map<std::string,float>& radii,
 		const std::map<std::string,std::string>& residues,
 		const mmpbsa::MeadInterface& mi,
@@ -1248,7 +1297,8 @@ int do_mmpbsa_calculation(void* thread_object,int useMultithread,const mmpbsa::E
 		mmpbsa::MMPBSAState::MOLECULE next_mole, const char* mole_name, void * mmpbsa_mutex)
 {
 	struct mmpbsa_thread_arg * pass_these = new struct mmpbsa_thread_arg;
-	pass_these->EFun = &EFun;
+	pass_these->atoms = &atoms;
+	pass_these->ff = &ff;
 	pass_these->snap = &Snap;
 	pass_these->fdm = &fdm;
 	pass_these->pradii = &radii;

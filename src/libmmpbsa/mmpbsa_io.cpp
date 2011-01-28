@@ -73,6 +73,7 @@ void mmpbsa_io::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& c
     outFile.close();
 }
 
+
 std::string mmpbsa_io::get_traj_title(std::iostream& trajFile)
 {
     trajFile.seekg(0,std::ios::beg);
@@ -88,6 +89,8 @@ std::string mmpbsa_io::getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAExc
     getline(file,returnMe);
     return returnMe;
 }
+
+
 
 bool mmpbsa_io::get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa_t>& snapshot,
     const size_t& natoms,bool isPeriodic)
@@ -638,6 +641,7 @@ int mmpbsa_io::resolve_filename(const char* unresolvedFilename, char* resolvedFi
     return 0;
 #endif
 }
+
 
 //explicit instantiation
 template bool mmpbsa_io::loadValarray<size_t>(std::iostream&, std::valarray<size_t>&,const size_t&, const size_t&, const size_t&);

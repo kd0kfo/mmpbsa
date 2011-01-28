@@ -80,6 +80,10 @@
 /* Define to create the graphics application. Requires BOINC and GL */
 /* #undef USE_GRAPHICS */
 
+/* Define to compile with gromacs to read gromacs topology and trajectory
+   files. */
+#define USE_GROMACS 1
+
 /* Define to compile with libz and use GZIP. Requires libz. */
 #define USE_GZIP 1
 
@@ -88,7 +92,7 @@
 
 /* Define to use pthreads for multithread MMPBSA calculations. (Has no effect
    on MD). */
-#define USE_PTHREADS 1
+/* #undef USE_PTHREADS */
 
 /* Version number of package */
 #define VERSION "0.9.0"

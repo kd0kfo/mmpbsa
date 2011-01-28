@@ -39,6 +39,8 @@ public:
      */
     EMap(const EmpEnerFun* efun,const std::valarray<mmpbsa_t>& crds);
 
+    EMap(const std::vector<atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds);
+
     ~EMap(){}
 
     const mmpbsa_t& set_elstat_solv(const mmpbsa_t& val){return elstat_solv = val;}
