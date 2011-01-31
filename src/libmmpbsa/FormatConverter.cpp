@@ -6,7 +6,8 @@ bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbs
 #ifdef USE_GROMACS
 	if(traj.gromacs_filename != 0)
 	{
-		mmpbsa_io::load_gmx_trr(*traj.gromacs_filename,snapshot,traj.curr_snap++);
+		mmpbsa_io::load_gmx_trr(*traj.gromacs_filename,snapshot,traj.curr_snap - 1);
+		traj.curr_snap++;
 		return snapshot.size() != 0;
 	}
 #endif

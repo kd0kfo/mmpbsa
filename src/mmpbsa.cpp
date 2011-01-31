@@ -323,6 +323,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         std::fstream radiiFile(radiiFilename.c_str(),std::ios::in);
         std::stringstream radiiData;
         mmpbsa_io::smart_read(radiiData,radiiFile,&radiiFilename);
+        std::cout << "Reading radii from " << radiiFilename  << std::endl;
         radiiFile.close();
         mmpbsa_io::read_siz_file(radiiData,radii, residues);
     }
