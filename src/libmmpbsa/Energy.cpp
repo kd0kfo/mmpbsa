@@ -9,7 +9,6 @@ mmpbsa_t mmpbsa::bond_energy_calc(const std::vector<bond_t>& bonds,const std::va
                 "bond_energy_calc was given one that was not.",INVALID_ARRAY_SIZE);
 
     mmpbsa_t totalEnergy = 0;
-    size_t bndi,bndj,bondid;
     mmpbsa_t ix,iy,iz,jx,jy,jz,disp;//disp = displacement
     std::vector<bond_t>::const_iterator bond;
   for(bond = bonds.begin();bond != bonds.end();bond++)
@@ -20,7 +19,6 @@ mmpbsa_t mmpbsa::bond_energy_calc(const std::vector<bond_t>& bonds,const std::va
         const mmpbsa_t& beq = bond->bond_energy->eq_distance;
         disp = sqrt(pow(ix-jx,2)+pow(iy-jy,2)+pow(iz-jz,2))-beq;
         totalEnergy += bconst*disp*disp;
-
     }
     return totalEnergy;
 
@@ -67,9 +65,11 @@ mmpbsa_t mmpbsa::dihedral_energy_calc(const std::vector<dihedral_t>& dihedrals, 
     mmpbsa_t *d;//for use with cross products
     mmpbsa_t *g;//for use with cross products
     mmpbsa_t *s;
-    mmpbsa_t totalEnergy,nphi,phi,ap0,ct1,gmag,dmag,dotprod,periodicity,dihedral_constant,phase;
+    mmpbsa_t totalEnergy,nphi,phi,ap0,ct1,gmag,dmag,dotprod,dihedral_constant;
 
     totalEnergy = 0;
+
+
 
     std::vector<dihedral_t>::const_iterator dihedral;
     for(dihedral = dihedrals.begin();dihedral != dihedrals.end();dihedral++)
@@ -128,6 +128,7 @@ mmpbsa_t mmpbsa::dihedral_energy_calc(const std::vector<dihedral_t>& dihedrals, 
         const mmpbsa_t& phase = dihedral->dihedral_energy->phase;
         totalEnergy += dihedral_constant * (1+cos(nphi)*cos(phase)+sin(nphi)*sin(phase));
 
+
         delete [] d;
         delete [] g;
         delete [] s;
@@ -160,9 +161,9 @@ mmpbsa_t mmpbsa::vdw14_energy_calc(const std::vector<dihedral_t>& dihedrals,cons
             inv_r6 = 1/pow(rsqrd, 3);
             inv_r12 = inv_r6*inv_r6;
             totalEnergy += dihedral->lj.c12*inv_r12 - dihedral->lj.c6*inv_r6;
-
         }
     }
+    std::cout << "inv_scnb: " << inv_scnb << std::endl;
     return totalEnergy*inv_scnb;
 
 }
@@ -193,6 +194,7 @@ mmpbsa_t mmpbsa::elstat14_energy_calc(const std::vector<dihedral_t>& dihedrals, 
             totalEnergy += (inv_scee/dielc)*q_i*q_l/sqrt(rsqrd);//Ah, Coulomb's law :-)
         }
     }
+    std::cout << "inv_scee: " << inv_scee << " dielc: " << dielc << std::endl;
     return totalEnergy;
 }
 
@@ -204,15 +206,17 @@ mmpbsa_t mmpbsa::vdwaals_energy(const std::vector<atom_t>& atoms, const std::vec
 
 	mmpbsa_t totalEnergy = 0;
 	size_t natom,ntypes,type_row;
-	mmpbsa_t x,y,z,rsqrd,atomEnergy;
+	mmpbsa_t x,y,z,rsqrd;
 
-	natom = atoms.size();
-	ntypes = sqrt(lj_params.size());
+	if(floor(sqrt(lj_params.size())) != ceil(sqrt(lj_params.size())))
+			throw mmpbsa::MMPBSAException("mmpbsa::vdwaals_energy: Lennard Jones parameter matrix must be a square matrix.",mmpbsa::DATA_FORMAT_ERROR);
+
+ 	natom = atoms.size();
+	ntypes = floor(sqrt(lj_params.size()));
 	for(size_t i = 0;i<natom;i++)
 	{
 		const atom_t& atom = atoms.at(i);
 		x = crds[3*i];y = crds[3*i+1];z = crds[3*i+2];
-		atomEnergy = 0;
 		type_row = atom.atom_type*ntypes;
 		for(size_t j = i+1;j<natom;j++)//sum over all other atoms after the i-th atom
 		{
@@ -220,13 +224,12 @@ mmpbsa_t mmpbsa::vdwaals_energy(const std::vector<atom_t>& atoms, const std::vec
 			{
 				const lj_params_t& lj = lj_params.at(type_row + atoms.at(j).atom_type);
 				rsqrd = pow(x-crds[3*j],2) + pow(y-crds[3*j+1],2) + pow(z-crds[3*j+2],2);
-				atomEnergy += lj.c12/pow(rsqrd,6) - lj.c6/pow(rsqrd,3);
+				totalEnergy += lj.c12/pow(rsqrd,6) - lj.c6/pow(rsqrd,3);
 
 			}
 
 		}
 
-		totalEnergy += atomEnergy;
 	}
 	return totalEnergy;
 }
@@ -239,7 +242,7 @@ mmpbsa_t mmpbsa::total_elstat_energy(const std::vector<mmpbsa::atom_t>& atoms, c
                 "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
     mmpbsa_t totalEnergy = 0,atom_potential;
-    mmpbsa_t x,y,z,rsqrd,a,b,atomEnergy;
+    mmpbsa_t x,y,z,rsqrd,a,b;
 
     size_t natom = atoms.size();
     for(size_t i = 0;i<natom;i++)
@@ -259,6 +262,7 @@ mmpbsa_t mmpbsa::total_elstat_energy(const std::vector<mmpbsa::atom_t>& atoms, c
 
     	totalEnergy += atom_potential * atoms.at(i).charge;
     }
+    std::cout << "Coulomb const: " << coulomb_const << std::endl;
     return coulomb_const * totalEnergy;
 }
 
