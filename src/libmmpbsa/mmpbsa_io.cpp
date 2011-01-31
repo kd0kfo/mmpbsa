@@ -643,6 +643,81 @@ int mmpbsa_io::resolve_filename(const char* unresolvedFilename, char* resolvedFi
 }
 
 
+std::string mmpbsa_io::pdbPad(const int& neededDigits,const int& currentNumber)
+{
+	std::string returnMe = "";
+	for(size_t serialPad = 0;serialPad < neededDigits - floor(log(currentNumber)/log(10.0));serialPad++)
+					returnMe += " ";
+	return returnMe;
+}
+
+std::ostream& streamPDB(std::ostream& theStream, const std::vector<mmpbsa::atom_t>& atoms,const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds) throw (mmpbsa::MMPBSAException)
+{
+	using mmpbsa_io::pdbPad;
+	using namespace mmpbsa;
+
+	if(!theStream.good())
+		throw MMPBSAException("Could not write to the stream provided to streamPDB",FILE_IO_ERROR);
+
+	//iterate through list. output using PDB format.
+	size_t currRes = 1,currAtom = 0;;
+	size_t serialNumber = 1;
+	std::vector<atom_t>::const_iterator atom = atoms.begin();
+	for(;atom != atoms.end();atom++,currAtom++)
+	{
+		//record name (cols 1-6)
+		theStream << "ATOM  ";
+
+		//serial number (cols 7-11)
+		theStream << pdbPad(4,serialNumber);
+		theStream << serialNumber++;
+
+		//empty space in column 12
+		theStream << " ";
+
+		//atom name (from parm top file) (cols 13-16)
+		theStream << atom->name;
+
+		//alt location indicator (col 17)
+		theStream << " ";
+
+		//Residue name(cols 18-20)
+		std::string resName = "DRC";
+		theStream << resName.substr(0,3);
+
+		//empty space column 21 chain id column 22
+		theStream << "  ";
+
+		//residue sequence (cols 23 - 26)
+		theStream << pdbPad(4,currRes);
+		theStream << currRes;
+
+		//icode (col 27) with columns 28-30 empty
+		theStream << "    ";
+
+		//Coordinates (cols 31 - 54)
+		std::ostringstream coordinateBuffer;
+		coordinateBuffer.setf(std::ios::fixed,std::ios_base::floatfield);
+		coordinateBuffer.precision(3);
+		for(size_t coordIndex = 0;coordIndex < 3;coordIndex++)
+		{
+			coordinateBuffer.width(8);
+			coordinateBuffer << crds[3*currAtom + coordIndex];
+			theStream << coordinateBuffer.str();
+			coordinateBuffer.str("");
+		}
+
+		//occupancy & temp factor
+		theStream << "  1.00" << "  0.00";
+
+		theStream << std::endl;
+	}
+
+	return theStream;
+}
+
+
+
 //explicit instantiation
 template bool mmpbsa_io::loadValarray<size_t>(std::iostream&, std::valarray<size_t>&,const size_t&, const size_t&, const size_t&);
 template bool mmpbsa_io::loadValarray<int>(std::iostream&, std::valarray<int>&,const size_t&, const size_t&, const size_t&);

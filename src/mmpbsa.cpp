@@ -104,12 +104,14 @@ int main(int argc, char** argv)
     }
 }
 
-void writePDB(const mmpbsa::EmpEnerFun& energy,
+void writePDB(const std::vector<mmpbsa::atom_t>& atoms,const mmpbsa::forcefield_t& ff,
 		const std::valarray<mmpbsa_t>crds,const mmpbsa::MMPBSAState& currState,const std::string& molecule)
 {
 	std::fstream pdbFile;
 	std::string filename = "default";
-	if(has_filename(SANDER_MDOUT_TYPE,currState))
+	if(has_filename(MMPBSA_OUT_TYPE,currState))
+		filename = get_filename(MMPBSA_OUT_TYPE,currState);
+	else if(has_filename(SANDER_MDOUT_TYPE,currState))
 		filename = get_filename(SANDER_MDOUT_TYPE,currState);
 	size_t dotLoc = filename.find_last_of('.');
 	if(dotLoc != std::string::npos)
@@ -123,7 +125,7 @@ void writePDB(const mmpbsa::EmpEnerFun& energy,
 	if(!pdbFile.is_open())
 		throw mmpbsa::MMPBSAException("writePDB could not open for writing: " + filename,mmpbsa::FILE_IO_ERROR);
 
-	streamPDB(pdbFile,energy,crds);
+	streamPDB(pdbFile,atoms,ff,crds);
 	pdbFile.close();
 }
 
@@ -140,7 +142,14 @@ void study_cpu_time()
 
 void write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState& currState)
 {
-	const string& filename = get_filename(SANDER_MDOUT_TYPE,currState);
+	string filename;
+	if(has_filename(MMPBSA_OUT_TYPE,currState))
+		filename = get_filename(MMPBSA_OUT_TYPE,currState);
+	else if(has_filename(SANDER_MDOUT_TYPE,currState))
+		filename = get_filename(SANDER_MDOUT_TYPE,currState);
+	else
+		filename = "mmpbsa-output.xml";
+
 	std::string data = energy_data.toString();
 	std::ios::openmode the_mode = std::ios::out;
 	if(filename.find(".gz") != std::string::npos || filename.find(".tar") != std::string::npos || filename.find(".tgz") != std::string::npos)
@@ -417,16 +426,12 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             }
         }
 
-        //write PDB information, if requested.
+                //write PDB information, if requested.
         if(currState.savePDB)
         {
-#if 0//FIX THIS LATER!!
-        	writePDB(complexEFun,complexSnap,currState,"complex");
-        	writePDB(receptorEFun,receptorSnap,currState,"receptor");
-        	writePDB(ligandEFun,ligandSnap,currState,"ligand");
-#else
-        	std::cerr << "PDB Functions have been temporarily removed until structure function use is added to pdb functions." << std::endl;
-#endif
+        	writePDB(atom_lists[MMPBSAState::COMPLEX],split_ff[MMPBSAState::COMPLEX],complexSnap,currState,"complex");
+        	writePDB(atom_lists[MMPBSAState::RECEPTOR],split_ff[MMPBSAState::RECEPTOR],receptorSnap,currState,"receptor");
+        	writePDB(atom_lists[MMPBSAState::LIGAND],split_ff[MMPBSAState::LIGAND],ligandSnap,currState,"ligand");
         }
 
         //This is the section where we actually do the MMPBSA calculations.
@@ -670,7 +675,7 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
 		}
 		else if(it->first == "save_pdb")
 		{
-			currState.savePDB = true;
+			currState.savePDB = (it->second != "0");
 		}
 		else if(it->first == "verbose")
 		{

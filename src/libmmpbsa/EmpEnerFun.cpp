@@ -994,96 +994,20 @@ template <class M> void mmpbsa::EmpEnerFun::updatePhiMasks(std::valarray<bool>& 
     }
 }//end updatePhiMasks
 
-
-std::string pdbPad(const int& neededDigits,const int& currentNumber)
-{
-	std::string returnMe = "";
-	for(size_t serialPad = 0;serialPad < neededDigits - floor(log(currentNumber)/log(10.0));serialPad++)
-					returnMe += " ";
-	return returnMe;
-}
-
 std::ostream& streamPDB(std::ostream& theStream, const mmpbsa::EmpEnerFun& energy, const std::valarray<mmpbsa_t>& crds) throw (mmpbsa::MMPBSAException)
 {
-	using namespace mmpbsa;
-	if(!theStream.good())
-		throw MMPBSAException("Could not write to the stream provided to streamPDB",FILE_IO_ERROR);
+	std::vector<mmpbsa::atom_t> atoms;
+	mmpbsa::forcefield_t ff;
+	init(&ff);
+	energy.extract_atom_structs(atoms);
+	energy.extract_force_field(ff);
 
-	const mmpbsa::SanderParm* parm = energy.parminfo;
+	streamPDB(theStream,atoms,ff,crds);
 
-	//get molecule starting and stopping points.
-	const std::valarray<size_t>& mol_ranges = energy.mol_ranges;
-
-	//make sure mol_ranges has both starting and stopping indices.
-	if(mol_ranges.size() % 2 != 0 || mol_ranges.size() == 0)
-	{
-		std::ostringstream error;
-		error << "mol_ranges supplied to mmpbsa::streamPDB is corrupt."
-				<< "Expected an array with an even number of molecule pointers,"
-				<< " but was given an array of size " << mol_ranges.size();
-		throw MMPBSAException(error,DATA_FORMAT_ERROR);
-	}
-
-	//iterate through list. output using PDB format.
-	size_t first,last,currAtom,currRes;
-	size_t serialNumber = 1;
-	for(size_t i = 0;i<mol_ranges.size();i+=2)
-	{
-		first = mol_ranges[i];
-		last = mol_ranges[i+1];
-		for(currAtom = first;currAtom<last;currAtom++)
-		{
-			//record name (cols 1-6)
-			theStream << "ATOM  ";
-
-			//serial number (cols 7-11)
-			theStream << pdbPad(4,serialNumber);
-			theStream << serialNumber++;
-
-			//empty space in column 12
-			theStream << " ";
-
-			//atom name (from parm top file) (cols 13-16)
-			theStream << parm->atom_names[currAtom];
-
-			//alt location indicator (col 17)
-			theStream << " ";
-
-			//Residue name(cols 18-20)
-			std::string resName = mmpbsa::getResidueLabel(currAtom,energy.res_ranges,parm,&currRes);
-			theStream << resName.substr(0,3);
-
-			//empty space column 21 chain id column 22
-			theStream << "  ";
-
-			//residue sequence (cols 23 - 26)
-			theStream << pdbPad(4,currRes);
-			theStream << currRes;
-
-			//icode (col 27) with columns 28-30 empty
-			theStream << "    ";
-
-			//Coordinates (cols 31 - 54)
-			std::ostringstream coordinateBuffer;
-			coordinateBuffer.setf(std::ios::fixed,std::ios_base::floatfield);
-			coordinateBuffer.precision(3);
-			for(size_t coordIndex = 0;coordIndex < 3;coordIndex++)
-			{
-				coordinateBuffer.width(8);
-				coordinateBuffer << crds[3*currAtom + coordIndex];
-				theStream << coordinateBuffer.str();
-				coordinateBuffer.str("");
-			}
-
-			//occupancy & temp factor
-			theStream << "  1.00" << "  0.00";
-
-			theStream << std::endl;
-		}
-	}
-
+	destroy(&ff);
 	return theStream;
 }
+
 
 
 mmpbsa::BondWalker::BondWalker(mmpbsa::EmpEnerFun const * efun)

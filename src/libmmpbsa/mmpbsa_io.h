@@ -25,6 +25,7 @@
 //project specific stuff
 #include "mmpbsa_utils.h"
 #include "mmpbsa_exceptions.h"
+#include "structs.h"
 #include "SanderParm.h"
 #include "Zipper.h"
 
@@ -265,8 +266,12 @@ size_t smart_read(char** dest, std::iostream& source, const std::string* filenam
  * @return size_t size of destination buffer.
  */
 std::iostream& smart_read(std::iostream& dest, std::iostream& source, const std::string* filename = 0);
+
+std::string pdbPad(const int& neededDigits,const int& currentNumber);
+
 }//end namespace mmpbsa_io
 
+std::ostream& streamPDB(std::ostream& theStream, const std::vector<mmpbsa::atom_t>& atoms,const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds) throw (mmpbsa::MMPBSAException);
 
 #endif	//SANDERIO_H
 

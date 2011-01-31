@@ -92,7 +92,7 @@
 
 /* Define to use pthreads for multithread MMPBSA calculations. (Has no effect
    on MD). */
-/* #undef USE_PTHREADS */
+#define USE_PTHREADS 1
 
 /* Version number of package */
 #define VERSION "0.10.0"

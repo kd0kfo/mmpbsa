@@ -249,7 +249,6 @@ void mmpbsa_io::get_gromacs_forcefield(const char* fn,mmpbsa::forcefield_t** spl
 	if(fn == 0 || strlen(fn) == 0)
 		throw mmpbsa::MMPBSAException("mmpbsa_io::gmxtpr2parmtop: Filename is required.",mmpbsa::DATA_FORMAT_ERROR);
 
-	printf("Make sure to check DIELECTRIC CONSTANTS AND GROMACS UNITS!!!!");
 	//const std::vector<size_t>& interaction_types = mmpbsa_io::allowed_gmx_energies();
 	std::vector<size_t>::const_iterator interaction_type;
 

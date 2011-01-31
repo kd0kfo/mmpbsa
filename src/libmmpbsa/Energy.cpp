@@ -163,7 +163,6 @@ mmpbsa_t mmpbsa::vdw14_energy_calc(const std::vector<dihedral_t>& dihedrals,cons
             totalEnergy += dihedral->lj.c12*inv_r12 - dihedral->lj.c6*inv_r6;
         }
     }
-    std::cout << "inv_scnb: " << inv_scnb << std::endl;
     return totalEnergy*inv_scnb;
 
 }
@@ -194,7 +193,6 @@ mmpbsa_t mmpbsa::elstat14_energy_calc(const std::vector<dihedral_t>& dihedrals, 
             totalEnergy += (inv_scee/dielc)*q_i*q_l/sqrt(rsqrd);//Ah, Coulomb's law :-)
         }
     }
-    std::cout << "inv_scee: " << inv_scee << " dielc: " << dielc << std::endl;
     return totalEnergy;
 }
 
@@ -262,7 +260,6 @@ mmpbsa_t mmpbsa::total_elstat_energy(const std::vector<mmpbsa::atom_t>& atoms, c
 
     	totalEnergy += atom_potential * atoms.at(i).charge;
     }
-    std::cout << "Coulomb const: " << coulomb_const << std::endl;
     return coulomb_const * totalEnergy;
 }
 

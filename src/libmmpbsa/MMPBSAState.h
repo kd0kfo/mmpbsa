@@ -17,6 +17,7 @@
 
 #define SANDER_MDOUT_TYPE "mdout"
 #define SANDER_PRMTOP_TYPE "prmtop"
+#define MMPBSA_OUT_TYPE "mmpbsa_out"
 #define RADII_TYPE "radii"
 #define SANDER_INPCRD_TYPE "inpcrd"
 #define CHECKPOINT_FILE_TYPE "checkpoint"
