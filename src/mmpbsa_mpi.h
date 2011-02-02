@@ -12,10 +12,11 @@
 
 #define MMPBSA_MASTER 0
 #define MMPBSA_MPI_MAX_BUFFER 4096
-#define MMPBSA_MPI_ID_WORD 2 //Number of chars used to identify host. Thus, number of MPI ranks is equal to 2^(MMPBSA_MPI_ID_WORD*8)
 
 namespace mmpbsa_utils
 {
+
+enum MMPBSA_MPI_TAG {DATA = 0,STATUS,NUM_OF_TAGS};
 
 void mpi_init_hosts(int* argc, char*** argv, int& mpi_rank,int& mpi_size);
 void mpi_store_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data,const int& data_index,

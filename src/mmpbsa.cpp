@@ -607,8 +607,6 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     currState.fractionDone = 1.0;
     checkpoint_mmpbsa(currState);
 
-    write_mmpbsa_data(previousEnergyData,currState);
-
     for(size_t i = 0;i<MMPBSAState::END_OF_MOLECULES;i++)
     	destroy(&split_ff[i]);
     delete [] split_ff;
@@ -617,16 +615,29 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 #ifdef USE_MPI
     mpi_processes_running--;
     //For master node, wait for other processes.
-    if(mpi_rank == 0)
+    MPI_Status status;
+    if(mpi_rank == MMPBSA_MASTER)
     {
-    	MPI_Status status;
+    	int reporter[2];//{sender,status}
     	while(mpi_processes_running != 0)
     	{
-    		mmpbsa_utils::mpi_recv_mmpbsa_data(mpi_rank,MPI_ANY_SOURCE,mpi_size,currState,data_list);
+    		reporter[1] = 1;
+    		MPI_Recv(reporter,2, MPI_INT,MPI_ANY_SOURCE, mmpbsa_utils::STATUS, MPI_COMM_WORLD, &status);
     		mpi_processes_running--;
+    		if(reporter[1] != 0)
+    			mmpbsa_utils::mpi_recv_mmpbsa_data(mpi_rank,reporter[0],mpi_size,currState,data_list);
     	}
     }
+    else
+    {
+    	int my_status[2];
+    	my_status[0] = mpi_rank;
+    	my_status[1] = (previousEnergyData.getHead() != 0 && previousEnergyData.getHead()->children != 0) ? 1 : 0;
+    	MPI_Send(my_status,2,MPI_INT,MMPBSA_MASTER,mmpbsa_utils::STATUS,MPI_COMM_WORLD);
+    }
 #endif
+
+    write_mmpbsa_data(previousEnergyData,currState);
 
     return 0;
 }

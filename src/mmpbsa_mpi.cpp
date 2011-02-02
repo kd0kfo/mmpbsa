@@ -49,7 +49,7 @@ int mmpbsa_utils::mpi_send_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, con
 	char* data = (char*)calloc(data_length,sizeof(char));//add 1 to str_data.size() for the null character at the end and then add to the beginning for mpi_rank of the sender.
 	strcpy(data,str_data.c_str());
 
-	int returnMe = MPI_Send(data, data_length*sizeof(char), MPI_CHAR,MMPBSA_MASTER,0, MPI_COMM_WORLD);
+	int returnMe = MPI_Send(data, data_length*sizeof(char), MPI_CHAR,MMPBSA_MASTER,mmpbsa_utils::DATA, MPI_COMM_WORLD);
 	free(data);
 	return returnMe;
 }
@@ -66,7 +66,7 @@ int mmpbsa_utils::mpi_recv_mmpbsa_data(const int& my_rank, const int& source_ran
 
 	//Receive Data from node
 	int returnMe = MPI_Recv(mpi_data, MMPBSA_MPI_MAX_BUFFER, MPI_CHAR,
-			source_rank, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+			source_rank, mmpbsa_utils::DATA, MPI_COMM_WORLD, &status);
 
 	//Is data good?
 	if(returnMe != 0)
@@ -98,7 +98,11 @@ int mmpbsa_utils::mpi_write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, co
 		return 0;
 	}
 	else
+	{
+		if(energy_data.getHead() == 0 || energy_data.getHead()->children == 0)
+			return 0;
 		return mpi_send_mmpbsa_data(energy_data,mpi_rank);
+	}
 }
 
 void mmpbsa_utils::mpi_finish_output(const int& mpi_rank,const int& mpi_size,const std::string& mmpbsa_output_filename)
