@@ -45,9 +45,6 @@ void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos)
 	traj.curr_snap = snap_pos;
 }
 
-
-
-
 void mmpbsa_io::default_trajectory(mmpbsa_io::trajectory_t& traj)
 {
 	traj.sander_crd_stream = 0;

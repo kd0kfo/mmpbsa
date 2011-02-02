@@ -65,7 +65,7 @@ mmpbsa_t mmpbsa::dihedral_energy_calc(const std::vector<dihedral_t>& dihedrals, 
     mmpbsa_t *d;//for use with cross products
     mmpbsa_t *g;//for use with cross products
     mmpbsa_t *s;
-    mmpbsa_t totalEnergy,nphi,phi,ap0,ct1,gmag,dmag,dotprod,dihedral_constant;
+    mmpbsa_t totalEnergy,nphi,phi,ap0,ct1,gmag,dmag,dotprod;
 
     totalEnergy = 0;
 
@@ -144,7 +144,7 @@ mmpbsa_t mmpbsa::vdw14_energy_calc(const std::vector<dihedral_t>& dihedrals,cons
         throw mmpbsa::MMPBSAException("mmpbsa::vdw14_energy_calc: Coordinate arrays must be a multiple of 3. "
                 "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
-    mmpbsa_t rsqrd,a,b,inv_r6,inv_r12;
+    mmpbsa_t rsqrd,inv_r6,inv_r12;
     mmpbsa_t totalEnergy = 0;
     bool period_mask,mask;
 
@@ -240,7 +240,7 @@ mmpbsa_t mmpbsa::total_elstat_energy(const std::vector<mmpbsa::atom_t>& atoms, c
                 "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
     mmpbsa_t totalEnergy = 0,atom_potential;
-    mmpbsa_t x,y,z,rsqrd,a,b;
+    mmpbsa_t x,y,z,rsqrd;
 
     size_t natom = atoms.size();
     for(size_t i = 0;i<natom;i++)

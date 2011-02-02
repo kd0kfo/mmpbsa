@@ -117,6 +117,19 @@ void skip_next_snap(std::iostream& trajFile, const size_t& natoms,
 std::string getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAException);
 
 
+bool get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa_t>& snapshot);
+
+void seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos);
+
+void default_trajectory(mmpbsa_io::trajectory_t& traj);
+mmpbsa_io::trajectory_t open_trajectory(const std::string& filename);
+void destroy_trajectory(mmpbsa_io::trajectory_t& traj);
+
+bool eof(trajectory_t& traj);
+
+std::string get_traj_title(mmpbsa_io::trajectory_t& traj);
+
+
 /**
  * Reads radii data from a DelPhi file and loads it into the provided maps.
  * If data previously exists in the map that corresponds to a key in the DelPhi

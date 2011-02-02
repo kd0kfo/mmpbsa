@@ -65,6 +65,14 @@ pthread_attr_t attr;
 unsigned short mmpbsa_mutex;
 #endif
 
+#ifdef USE_MPI
+#include "mmpbsa_mpi.h"
+int mpi_rank,mpi_size;
+size_t mpi_processes_running;
+mmpbsa_utils::mpi_node next_node;
+mmpbsa_utils::mpi_data_list data_list;
+#endif
+
 std::vector<mmpbsa::MMPBSAState> processQueue;///<Array of calculations to be run by the program.
 
 /**

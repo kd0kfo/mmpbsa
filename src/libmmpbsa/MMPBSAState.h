@@ -74,5 +74,9 @@ public:
 
 }//namespace mmpbsa
 
+bool has_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state);
+const std::string& get_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state) throw (mmpbsa::MMPBSAException);
+
+
 #endif//MMPBSASTATE_H
 

@@ -66,6 +66,21 @@ typedef struct {
 
 }//end namespace mmpbsa
 
+namespace mmpbsa_io{
+typedef struct {
+	size_t curr_snap;
+	//for sander trajectories
+	std::iostream* sander_crd_stream;
+	size_t natoms;
+	int ifbox;
+
+	//for gromacs trajectories
+	std::string* gromacs_filename;
+}trajectory_t;
+
+}//mmpbsa_io namespace
+
+
 void init(mmpbsa::forcefield_t* ff);
 void destroy(mmpbsa::forcefield_t* ff);
 

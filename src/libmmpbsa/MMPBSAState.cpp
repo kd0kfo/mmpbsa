@@ -59,3 +59,16 @@ mmpbsa::MMPBSAState& mmpbsa::MMPBSAState::operator=(const mmpbsa::MMPBSAState& o
 
     return *this;
 }
+
+
+bool has_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state)
+{
+	return the_state.filename_map.find(filetype) != the_state.filename_map.end();
+}
+
+const std::string& get_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state) throw (mmpbsa::MMPBSAException)
+{
+	if(the_state.filename_map.find(filetype) == the_state.filename_map.end())
+		throw mmpbsa::MMPBSAException("get_filename: No filename provided for the file type " + filetype,mmpbsa::COMMAND_LINE_ERROR);
+	return the_state.filename_map.find(filetype)->second;
+}

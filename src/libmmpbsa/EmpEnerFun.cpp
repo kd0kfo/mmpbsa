@@ -828,7 +828,6 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_elstat_energy(const std::valarray<mmpbsa_t>& 
         throw mmpbsa::MMPBSAException("mmpbsa::EmpEnerFun::total_elstat_energy: Coordinate arrays must be a multiple of 3. "
                 "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
 
-    mmpbsa::lj_params_t lj_param;
     std::vector<mmpbsa::atom_t> atoms;
     extract_atom_structs(atoms);
 

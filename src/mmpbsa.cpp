@@ -10,6 +10,12 @@ int main(int argc, char** argv)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 #endif
 
+#ifdef USE_MPI
+	std::string mmpbsa_output_filename;
+	mmpbsa_utils::mpi_init_hosts(&argc,&argv,mpi_rank,mpi_size);
+	init(&next_node);
+#endif
+
 	std::cerr << PACKAGE_STRING <<" started on " << mmpbsa_utils::get_human_time() << std::endl;
 
 	try
@@ -40,6 +46,12 @@ int main(int argc, char** argv)
             }
             else
                 retval--;
+#ifdef USE_MPI
+            if(has_filename(MMPBSA_OUT_TYPE,currState))
+            	mmpbsa_output_filename = get_filename(MMPBSA_OUT_TYPE,currState);
+            else if(has_filename(SANDER_MDOUT_TYPE,currState))
+            	mmpbsa_output_filename = get_filename(SANDER_MDOUT_TYPE,currState);
+#endif
         }
         else
         {
@@ -77,6 +89,12 @@ int main(int argc, char** argv)
                             it->placeInQueue = queuePosition;
                         }
                         retval = mmpbsa_run(*it,it->currentMI);
+#ifdef USE_MPI
+                        if(has_filename(MMPBSA_OUT_TYPE,*it))
+                        	mmpbsa_output_filename = get_filename(MMPBSA_OUT_TYPE,*it);
+                        else if(has_filename(SANDER_MDOUT_TYPE,*it))
+                        	mmpbsa_output_filename = get_filename(SANDER_MDOUT_TYPE,*it);
+#endif
                         break;
                 }
                 if(retval)
@@ -89,6 +107,12 @@ int main(int argc, char** argv)
             std::cerr << "BOINC Error: " << boincerror(retval) << std::endl;
         boinc_finish(retval);
 #endif
+
+#ifdef USE_MPI
+        mmpbsa_utils::mpi_finish_output(mpi_rank,mpi_size,mmpbsa_output_filename);
+        MPI_Finalize();
+        std::cerr << mpi_rank << " finalized." << std::endl;
+#endif
         std::cerr << PACKAGE_STRING <<" finished (" << retval << ") on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
         return retval;
     }    
@@ -97,6 +121,10 @@ int main(int argc, char** argv)
         std::cerr << e.identifier() << ": " << e.what() << std::endl;
 #ifdef USE_BOINC
         boinc_finish(e.getErrType());
+#endif
+#ifdef USE_MPI
+        MPI_Finalize();
+        std::cerr << mpi_rank << " finalized." << std::endl;
 #endif
         std::cerr << PACKAGE_STRING <<" finished (" << e.getErrType() << ") on " << mmpbsa_utils::get_human_time() << "\n" << std::endl;
         return e.getErrType();
@@ -140,8 +168,13 @@ void study_cpu_time()
 #endif
 }
 
-void write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState& currState)
+int write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState& currState)
 {
+#ifdef USE_MPI
+	if(mpi_size > 1)
+		return mmpbsa_utils::mpi_write_mmpbsa_data(energy_data,currState,mpi_rank, &data_list, &next_node);
+#endif
+
 	string filename;
 	if(has_filename(MMPBSA_OUT_TYPE,currState))
 		filename = get_filename(MMPBSA_OUT_TYPE,currState);
@@ -159,6 +192,7 @@ void write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBS
 		throw mmpbsa::MMPBSAException("write_mmpbsa_data: unable to open " + filename + " for writing.",mmpbsa::FILE_IO_ERROR);
 	mmpbsa_io::smart_write(out_file,data.c_str(),data.size(),&filename);
 	out_file.close();
+	return 0;
 }
 
 mmpbsa_utils::XMLNode* read_mmpbsa_data(const mmpbsa::MMPBSAState& currState)
@@ -250,6 +284,30 @@ void get_sander_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t**
     delete sp;
 }
 
+bool should_calculate_snapshot(const size_t& currentSnap, const std::vector<size_t>& snapList)
+{
+#ifndef USE_MPI
+	return true;
+#else
+	if(snapList.size() == 0)
+		return (currentSnap-1) % mpi_size == mpi_rank;
+
+	for(size_t i = 0;i<snapList.size();i++)
+	{
+		//Is the requested snap shot in the list?
+		if(snapList.at(i) == currentSnap)
+			if((currentSnap-1) % mpi_size == mpi_rank)//If so should this host do it?
+				return true;
+			else
+				return false;
+	}
+
+	return false;//If the snapshot is not in the list, don't do it.
+
+#endif
+
+}
+
 void get_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t** split_ff,std::vector<mmpbsa::atom_t>** atom_lists, std::valarray<mmpbsa::MMPBSAState::MOLECULE>& mol_list,mmpbsa_io::trajectory_t& trajfile)
 {
 #ifdef USE_GROMACS
@@ -275,8 +333,17 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     using mmpbsa::MMPBSAState;
     using namespace mmpbsa_io;
 
-    std::cout << "Starting MMPBSA calculation " << std::endl;
+    std::cout << "Starting MMPBSA calculation ";
+#ifdef USE_MPI
+	if(mpi_rank == 0)
+	{
+		mpi_processes_running = mpi_size;
+		next_node.index = 0;
 
+	}
+	std::cout << " with MPI on host number " << mpi_rank << " (" << getpid() << ")";
+#endif
+	std::cout << std::endl;
 
     if(!has_filename(SANDER_MDOUT_TYPE,currState))
         currState.filename_map[SANDER_MDOUT_TYPE] = "mmpbsa-output.xml";
@@ -366,8 +433,11 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         try{
             //if a list of snaps to be run is provided, check to see if this snapshot
             //should be used. Remember: snapcounter is 1-indexed.
+        	//
+        	//Additionally, check to see if the snapshot should be run by this node
+        	//if multiple nodes are used, e.g. MPI
             if(currState.snapList.size())//check if the current snapshot should be skipped
-                if(!mmpbsa_utils::contains(currState.snapList,currState.currentSnap))
+                if(!mmpbsa_utils::contains(currState.snapList,currState.currentSnap) || !should_calculate_snapshot(currState.currentSnap, currState.snapList))
                 {
                     mmpbsa_io::seek(trajFile,trajFile.curr_snap+1);
                     std::cout << "Skipping Snapshot #" << currState.currentSnap << std::endl;
@@ -376,8 +446,15 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
                     continue;
                 }
         
-            if(get_next_snap(trajFile, snapshot))
+            //Can the snapshot be loaded, and if so, should it be run by this node, if multiple
+            //nodes are used.
+            if(get_next_snap(trajFile, snapshot) && should_calculate_snapshot(currState.currentSnap, currState.snapList))
                 std::cout << "Running Snapshot #" << currState.currentSnap << std::endl;
+            else if(!should_calculate_snapshot(currState.currentSnap,currState.snapList))
+            {
+            	std::cout << "Skipping Snapshot #" << currState.currentSnap++;
+            	continue;
+            }
             else
             {
                 std::ostringstream error;
@@ -388,10 +465,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         catch(MMPBSAException e)
         {
             if(e.getErrType() == UNEXPECTED_EOF)
-            {
-            	write_mmpbsa_data(previousEnergyData,currState);
-            	return 0;
-            }
+            	break;//return 0;
         }
 
         study_cpu_time();
@@ -516,7 +590,9 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         currState.currentMolecule = MMPBSAState::COMPLEX;//Reset current molecule
         currState.currentSnap += 1;
 
+#ifndef USE_MPI
         write_mmpbsa_data(previousEnergyData,currState);
+#endif
 
         //clean up FinDiffMethods
         if(ligand_fdm != 0 && ligand_fdm != &comp_fdm)
@@ -532,11 +608,25 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
     write_mmpbsa_data(previousEnergyData,currState);
 
-
     for(size_t i = 0;i<MMPBSAState::END_OF_MOLECULES;i++)
     	destroy(&split_ff[i]);
     delete [] split_ff;
     delete [] atom_lists;
+
+#ifdef USE_MPI
+    mpi_processes_running--;
+    //For master node, wait for other processes.
+    if(mpi_rank == 0)
+    {
+    	MPI_Status status;
+    	while(mpi_processes_running != 0)
+    	{
+    		mmpbsa_utils::mpi_recv_mmpbsa_data(mpi_rank,MPI_ANY_SOURCE,mpi_size,currState,&data_list,&next_node);
+    		mpi_processes_running--;
+    	}
+    }
+#endif
+
     return 0;
 }
 
@@ -1264,17 +1354,6 @@ void update_gshmem()
 #endif
 }
 
-bool has_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state)
-{
-	return the_state.filename_map.find(filetype) != the_state.filename_map.end();
-}
-
-const std::string& get_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state) throw (mmpbsa::MMPBSAException)
-{
-	if(the_state.filename_map.find(filetype) == the_state.filename_map.end())
-		throw mmpbsa::MMPBSAException("get_filename: No filename provided for the file type " + filetype,mmpbsa::COMMAND_LINE_ERROR);
-	return the_state.filename_map.find(filetype)->second;
-}
 
 void *do_mmpbsa_calculation_thread(void* args)
 {

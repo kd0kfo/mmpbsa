@@ -15,13 +15,29 @@ AH_TEMPLATE([WITHOUT_MOLSURF],[Define to prevent the use of molsurf, i.e. on Mac
 AH_TEMPLATE([USE_PTHREADS],[Define to use pthreads for multithread MMPBSA calculations. (Has no effect on MD).])
 AH_TEMPLATE([USE_GZIP],[Define to compile with libz and use GZIP. Requires libz.])
 AH_TEMPLATE([USE_GROMACS],[Define to compile with gromacs to read gromacs topology and trajectory files.])
+AH_TEMPLATE([USE_MPI],[Define to compile with MPI.])
 
 # Checks for programs.
-AC_PROG_CXX
-AC_PROG_CC
+AC_PROG_CXX([mpic++ icc g++])
+AC_PROG_CC([mpicc icc gcc])
 AC_PROG_RANLIB
 
 AC_SUBST(CUSTOM_CPPFLAGS,"-Wall")
+
+AC_ARG_WITH([mpi],AS_HELP_STRING([--with-mpi],[Includes the use of MPI.]),
+[case "${withval}" in
+      yes) mpi=. ;;
+      no) mpi=false ;;
+      *) mpi=${withval} ;;
+esac]
+AC_MSG_RESULT(Compiling with MPI)
+AC_DEFINE([USE_MPI],[1])
+,
+[mpi=false]
+
+)
+AM_CONDITIONAL([BUILD_WITH_MPI],[test x$gromacs != xfalse])
+
 
 AC_ARG_WITH([gzip],AS_HELP_STRING([--with-gzip],[Includes the use of gzip'ed data files.]),
 [case "${withval}" in
