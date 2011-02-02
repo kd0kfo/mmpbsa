@@ -17,40 +17,24 @@
 namespace mmpbsa_utils
 {
 
-typedef struct {
-	char* data;
-	int index;
-}mpi_node;
-
-struct node_organizer{
-	bool operator()(mpi_node lhs, mpi_node rhs){return lhs.index < rhs.index;}
-};
-
-typedef std::set<mpi_node,node_organizer> mpi_data_list;
-
 void mpi_init_hosts(int* argc, char*** argv, int& mpi_rank,int& mpi_size);
 void mpi_store_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data,const int& data_index,
-		mmpbsa_utils::mpi_data_list* data_list);
+		mmpbsa_utils::XMLNode* data_list);
 void mpi_store_mmpbsa_data(char* data,const int& data_index,
-		mmpbsa_utils::mpi_data_list* data_list);
-
-int mpi_update_data_file(const mmpbsa::MMPBSAState& currState,
-		const int& mpi_rank, mmpbsa_utils::mpi_data_list* data_list, mmpbsa_utils::mpi_node* next_node);
+		mmpbsa_utils::XMLNode* data_list);
 
 int mpi_send_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const int& mpi_rank);
 
 int mpi_recv_mmpbsa_data(const int& my_rank, const int& source_rank,
 		const int& mpi_size, const mmpbsa::MMPBSAState& currState,
-		mmpbsa_utils::mpi_data_list* data_list, mmpbsa_utils::mpi_node* next_node);
+		mmpbsa_utils::XMLNode* data_list);
 
 int mpi_write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState& currState,
-		const int& mpi_rank, mmpbsa_utils::mpi_data_list* data_list, mmpbsa_utils::mpi_node* next_node);
-
+		const int& mpi_rank, mmpbsa_utils::XMLNode* data_list);
+void mpi_dump_data(mmpbsa_utils::XMLNode* data_list,const std::string& filename);
 void mpi_finish_output(const int& mpi_rank,const int& mpi_size,const std::string& mmpbsa_output_filename);
 
 }//end namespace mmpbsa_utils
 
-void init(mmpbsa_utils::mpi_node* node);
-void destroy(mmpbsa_utils::mpi_node* node);
 
 #endif

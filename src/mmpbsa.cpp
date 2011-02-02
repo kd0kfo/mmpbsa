@@ -13,7 +13,10 @@ int main(int argc, char** argv)
 #ifdef USE_MPI
 	std::string mmpbsa_output_filename;
 	mmpbsa_utils::mpi_init_hosts(&argc,&argv,mpi_rank,mpi_size);
-	init(&next_node);
+	if(mpi_rank == 0)
+		data_list = new mmpbsa_utils::XMLNode(MMPBSA_XML_TITLE);
+	else
+		data_list = 0;
 #endif
 
 	std::cerr << PACKAGE_STRING <<" started on " << mmpbsa_utils::get_human_time() << std::endl;
@@ -109,7 +112,8 @@ int main(int argc, char** argv)
 #endif
 
 #ifdef USE_MPI
-        mmpbsa_utils::mpi_finish_output(mpi_rank,mpi_size,mmpbsa_output_filename);
+        mmpbsa_utils::mpi_dump_data(data_list,mmpbsa_output_filename);
+        delete data_list;
         MPI_Finalize();
         std::cerr << mpi_rank << " finalized." << std::endl;
 #endif
@@ -171,9 +175,8 @@ void study_cpu_time()
 int write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState& currState)
 {
 #ifdef USE_MPI
-	if(mpi_size > 1)
-		return mmpbsa_utils::mpi_write_mmpbsa_data(energy_data,currState,mpi_rank, &data_list, &next_node);
-#endif
+	return mmpbsa_utils::mpi_write_mmpbsa_data(energy_data,currState,mpi_rank,data_list);
+#else
 
 	string filename;
 	if(has_filename(MMPBSA_OUT_TYPE,currState))
@@ -193,6 +196,8 @@ int write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSA
 	mmpbsa_io::smart_write(out_file,data.c_str(),data.size(),&filename);
 	out_file.close();
 	return 0;
+
+#endif
 }
 
 mmpbsa_utils::XMLNode* read_mmpbsa_data(const mmpbsa::MMPBSAState& currState)
@@ -336,11 +341,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     std::cout << "Starting MMPBSA calculation ";
 #ifdef USE_MPI
 	if(mpi_rank == 0)
-	{
 		mpi_processes_running = mpi_size;
-		next_node.index = 0;
-
-	}
 	std::cout << " with MPI on host number " << mpi_rank << " (" << getpid() << ")";
 #endif
 	std::cout << std::endl;
@@ -621,7 +622,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     	MPI_Status status;
     	while(mpi_processes_running != 0)
     	{
-    		mmpbsa_utils::mpi_recv_mmpbsa_data(mpi_rank,MPI_ANY_SOURCE,mpi_size,currState,&data_list,&next_node);
+    		mmpbsa_utils::mpi_recv_mmpbsa_data(mpi_rank,MPI_ANY_SOURCE,mpi_size,currState,data_list);
     		mpi_processes_running--;
     	}
     }
