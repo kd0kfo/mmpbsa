@@ -18,8 +18,8 @@ AH_TEMPLATE([USE_GROMACS],[Define to compile with gromacs to read gromacs topolo
 AH_TEMPLATE([USE_MPI],[Define to compile with MPI.])
 
 # Checks for programs.
-AC_PROG_CXX([mpic++ icc g++])
-AC_PROG_CC([mpicc icc gcc])
+AC_PROG_CXX([ icc g++])
+AC_PROG_CC([ icc gcc])
 AC_PROG_RANLIB
 
 AC_SUBST(CUSTOM_CPPFLAGS,"-Wall")
@@ -34,9 +34,8 @@ AC_MSG_RESULT(Compiling with MPI)
 AC_DEFINE([USE_MPI],[1])
 ,
 [mpi=false]
-
 )
-AM_CONDITIONAL([BUILD_WITH_MPI],[test x$gromacs != xfalse])
+AM_CONDITIONAL([BUILD_WITH_MPI],[test x$mpi != xfalse])
 
 
 AC_ARG_WITH([gzip],AS_HELP_STRING([--with-gzip],[Includes the use of gzip'ed data files.]),
