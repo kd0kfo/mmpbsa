@@ -168,25 +168,57 @@ int mpi_mmpbsa_sorter(mmpbsa_utils::XMLNode  *test_element, mmpbsa_utils::XMLNod
 	return returnMe;
 }
 
+typedef struct  {
+  bool operator() (const std::pair<int,mmpbsa_utils::XMLNode *>& lhs, const std::pair<int,mmpbsa_utils::XMLNode *>& rhs) const
+  {return lhs.first<rhs.first;}
+}xml_sorter;
+
+
+void sort_this(std::set<std::pair<int,mmpbsa_utils::XMLNode *>,xml_sorter >& sorted_data,const mmpbsa_utils::XMLNode* data_list)
+{
+	std::istringstream buff;
+	int id;
+	std::pair<int,mmpbsa_utils::XMLNode *> new_pair;
+	mmpbsa_utils::XMLNode *it, *snap_shot = data_list->children;
+	for(;snap_shot != 0;snap_shot = snap_shot->siblings)
+		for(it = snap_shot->children;it != 0;it = it->siblings)
+			if(it->getName() == "ID")
+			{
+				buff.clear();
+				buff.str(it->getText());
+				buff >> id;
+				if(!buff.fail())
+				{
+					new_pair.first = id;
+					new_pair.second = snap_shot;
+					sorted_data.insert(new_pair);
+				}
+				break;
+			}
+}
+
 void mmpbsa_utils::mpi_dump_data(mmpbsa_utils::XMLNode* data_list,const std::string& filename)
 {
+	using namespace std;
 	if(data_list == 0)
 		return;
-	std::fstream output(filename.c_str(),std::ios::out | std::ios::app);
+	fstream output(filename.c_str(),std::ios::out | std::ios::app);
 	if(!output.good())
 		throw mmpbsa::MMPBSAException("mmpbsa_utils::mpi_dump_data: Could not open file for writing.",mmpbsa::FILE_IO_ERROR);
 
-	std::vector<mmpbsa_utils::XMLNode *> snaps = quick_sort(data_list, mpi_mmpbsa_sorter);
+	set<pair<int,mmpbsa_utils::XMLNode *>,xml_sorter > snaps;
+	set<pair<int,mmpbsa_utils::XMLNode *>,xml_sorter >::const_iterator snap_shot;
+	sort_this(snaps,data_list);
 	//std::vector<mmpbsa_utils::XMLNode *>::const_iterator snap = snaps.begin();
 	//for(;snap != snaps.end();snap++)
 	mmpbsa_utils::XMLNode *temp;
-	for(size_t i = 0;i<snaps.size();i++)
-		if(snaps.at(i) != 0)
+	for(snap_shot = snaps.begin();snap_shot != snaps.end();snap_shot++)
+		if(snap_shot->second != 0)
 		{
-			temp = snaps.at(i)->siblings;
-			snaps.at(i)->siblings = 0;
-			output << snaps.at(i)->toString() << std::endl;
-			snaps.at(i)->siblings = temp;
+			temp = snap_shot->second->siblings;
+			snap_shot->second->siblings = 0;
+			output << snap_shot->second->toString() << std::endl;
+			snap_shot->second->siblings = temp;
 		}
 	output.close();
 }
