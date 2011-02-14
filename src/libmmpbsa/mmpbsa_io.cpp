@@ -124,36 +124,7 @@ size_t mmpbsa_io::count_snapshots(std::iostream& trajFile,const size_t& natoms, 
 
 void mmpbsa_io::skip_next_snap(std::iostream& trajFile, const size_t& natoms, bool isPeriodic)
 {
-    //This might seem excessive just to skip, but I want to verify a snapshot is
-    //actually there.
-    size_t lineIndex = 0;
-    size_t width = 8;//character width of data
-    for(size_t dataIndex = 0;dataIndex<natoms*3;)
-    {
-        if(trajFile.eof())
-            throw mmpbsa::SanderIOException("Trajectory file ended in the middle of the "
-                    "trajectory.",mmpbsa::UNEXPECTED_EOF);
-
-        std::string currentLine = getNextLine(trajFile);//do not trim string. Spaces are part of formatted size.
-        if(currentLine.size() % width )
-        {
-            std::cerr << "Data file contains a short line. "
-                    "Lines must be at least 36 characters, but line #" 
-                    << lineIndex+1 << " is only " << currentLine.size()
-                    << " characters long." << std::endl;
-        }
-
-        //tokenize line into data. put data into valarray.
-        while(currentLine.size() >= width)
-        {
-            dataIndex++;
-            currentLine.erase(0,width);
-        }
-
-        lineIndex++;
-    }
-    if(isPeriodic)
-        getNextLine(trajFile);
+    throw mmpbsa::MMPBSAException("mmpbsa_io::skip_next_snap: DEPRECATED!");
 }
 
 void mmpbsa_io::parseNumber(const std::string& word,int& intData) throw (mmpbsa::SanderIOException)
@@ -222,10 +193,10 @@ template <class T> bool mmpbsa_io::loadValarray(std::iostream& dataFile,
         string currentLine = getNextLine(dataFile);//do not trim string. Spaces are part of formatted size.
         if(currentLine.size() % width )
         {
-            std::cerr << "Data file contains a short line. "
-                    "Lines must be at least 36 characters, but line #"
-                    << lineIndex+1 << " is only " << currentLine.size()
-                    << " characters long." << std::endl;
+        	std::cerr << "Data file contains a short line. "
+        			"Lines must be at least 36 characters, but line #"
+        			<< lineIndex+1 << " is only " << currentLine.size()
+        			<< " characters long." << std::endl;
         }
 
         //tokenize line into data. put data into valarray.
@@ -770,22 +741,21 @@ void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos)
 	sander_file->seekg(traj.curr_pos,sander_file->beg);
 	if(traj.natoms == 0)
 		throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Trajectory cannot be read without paramters. However, sander paramter object is a null pointer.",mmpbsa::NULL_POINTER);
-	bool isPeriodic = (traj.ifbox > 0);//Are periodic boundary conditions used?
-	try
-	{
-		for(;i<snap_pos;i++)
-		{
-			mmpbsa_io::skip_next_snap(*sander_file,traj.natoms,isPeriodic);
 
-		}//after this for loop, the trajFile is pointing to the beginning of currState.currentSnap
-	}
-	catch(mmpbsa::MMPBSAException e)
+	for(;i<snap_pos;i++)
 	{
-		std::ostringstream error;
-		error << "mmpbsa_io::seek: Died reading snap shots on snap number " << i
-				<< std::endl << " Error message: " <<  e.what();
-		throw mmpbsa::MMPBSAException(error,e.getErrType());
+		sander_file->seekg(traj.natoms * 24,sander_file->cur);//3 coordinates per atom and 8 characters per coordinate.
+		sander_file->seekg(ceil(traj.natoms * 24/80),sander_file->cur);//account for space and end of line characters for each line.
+		if(sander_file->fail())
+		{
+			std::ostringstream error;
+			error << "mmpbsa_io::seek: Problem skipping to snap number " << snap_pos;
+			throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_IO_ERROR);
+		}
 	}
+
+	if(traj.ifbox > 0)
+		sander_file->seekg(26,sander_file->cur);
 
 	traj.curr_snap = snap_pos;
 	traj.curr_pos = sander_file->tellg();

@@ -30,22 +30,6 @@ void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>
 		   trn.x_size   ? x : NULL,
 		   trn.v_size   ? v : NULL,
 		   trn.f_size   ? f : NULL)) {
-#if 0//UNNECESSARY
-      sprintf(buf,"%s frame %d",fn,nframe);
-      indent=0;
-      indent=pr_title(stdout,indent,buf);
-      pr_indent(stdout,indent);
-      fprintf(stdout,"natoms=%10d  step=%10d  time=%12.7e  lambda=%10g\n",
-      	      trn.natoms,trn.step,trn.t,trn.lambda);
-      if (trn.box_size)
-    	  pr_rvecs(stdout,indent,"box",box,DIM);
-      if (trn.x_size)
-    	  pr_rvecs(stdout,indent,"x",x,trn.natoms);
-      if (trn.v_size)
-    	  pr_rvecs(stdout,indent,"v",v,trn.natoms);
-      if (trn.f_size)
-    	  pr_rvecs(stdout,indent,"f",f,trn.natoms);
-#endif
     }
     else
     	std::cerr << "mmpbsa_io::load_gmx_trr: WARNING: Incomplete frame: nr " << nframe << ", t=" << trn.t << std::endl;

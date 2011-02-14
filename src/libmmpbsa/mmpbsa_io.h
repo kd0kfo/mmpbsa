@@ -98,6 +98,8 @@ bool get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa_t>& snapshot,
     const size_t& natoms,bool isPeriodic = false);
 
 /**
+ * DEPRECATED!
+ *
  * Skips the next snapshot, but ensures that it had proper data.
  * 
  * @param trajFile

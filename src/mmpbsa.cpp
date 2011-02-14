@@ -602,6 +602,12 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         if(recpt_fdm != 0 && recpt_fdm != ligand_fdm && recpt_fdm != &comp_fdm)
         	delete recpt_fdm;
 
+        //If there was a snapshot list, has the list been completed?
+        if(currState.snapList.size())
+        	if(*(currState.snapList.end()-1) == currState.currentSnap - 1)//decrement currentSnap because it was increment above.
+        		break;
+
+
     }//end of snapshot loop
     study_cpu_time();
 
