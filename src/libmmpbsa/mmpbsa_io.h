@@ -122,7 +122,7 @@ bool get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa_t>& snaps
 void seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos);
 
 void default_trajectory(mmpbsa_io::trajectory_t& traj);
-mmpbsa_io::trajectory_t open_trajectory(const std::string& filename);
+mmpbsa_io::trajectory_t open_trajectory(const std::string& filename,const bool& should_remain_in_memory = false);
 void destroy_trajectory(mmpbsa_io::trajectory_t& traj);
 
 bool eof(trajectory_t& traj);
@@ -283,6 +283,9 @@ std::iostream& smart_read(std::iostream& dest, std::iostream& source, const std:
 std::string pdbPad(const int& neededDigits,const int& currentNumber);
 
 }//end namespace mmpbsa_io
+
+void init(mmpbsa_io::trajectory_t* traj);
+void destroy(mmpbsa_io::trajectory_t* traj);
 
 std::ostream& streamPDB(std::ostream& theStream, const std::vector<mmpbsa::atom_t>& atoms,const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds) throw (mmpbsa::MMPBSAException);
 

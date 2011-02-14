@@ -82,7 +82,7 @@
 
 /* Define to compile with gromacs to read gromacs topology and trajectory
    files. */
-#define USE_GROMACS 1
+/* #undef USE_GROMACS */
 
 /* Define to compile with libz and use GZIP. Requires libz. */
 #define USE_GZIP 1

@@ -371,7 +371,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     //Setup Trajectory Structure
     if(!has_filename(SANDER_INPCRD_TYPE,currState))
     	throw mmpbsa::MMPBSAException("mmpbsa_run: no trajectory file was given.",BROKEN_TRAJECTORY_FILE);
-    mmpbsa_io::trajectory_t trajFile = mmpbsa_io::open_trajectory(get_filename(SANDER_INPCRD_TYPE,currState));
+    mmpbsa_io::trajectory_t trajFile = mmpbsa_io::open_trajectory(get_filename(SANDER_INPCRD_TYPE,currState),currState.keep_traj_in_mem);
 
 
 
@@ -467,6 +467,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         {
             if(e.getErrType() == UNEXPECTED_EOF)
             	break;//return 0;
+            throw e;
         }
 
         study_cpu_time();
@@ -765,6 +766,16 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
         		std::cerr << "Warning: could not determine number of threads from " << it->first << " = " << it->second << "  Not using multithreading." << std::endl;
         		mi.multithread = 0;
         	}
+        }
+        else if(it->first == "traj_in_memory")
+        {
+        	int bool_buff;
+        	buff >> bool_buff;
+        	if(buff.fail())
+        	{
+        		std::cerr << "Warning: could not determine whether or not to keep trajectory in memory based on:  " << it->first << " = " << it->second << " Using default: " << ((currState.keep_traj_in_mem) ? "true" : "false") << std::endl;
+        	}
+        	currState.keep_traj_in_mem = (bool_buff != 0);
         }
         else if (it->first == "help" || it->first == "h")
 		{

@@ -729,43 +729,76 @@ bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbs
 		return snapshot.size() != 0;
 	}
 #endif
-
-	if(traj.natoms == 0 || traj.sander_crd_stream == 0)
+	using std::iostream;using std::fstream;
+	iostream* sander_file = traj.sander_crd_stream;
+	bool returnMe;
+	if(sander_file == 0)
+	{
+		if(traj.sander_filename == 0)
+			throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Filename for sander trajectory is a null pointer.",mmpbsa::NULL_POINTER);
+		fstream* sander_fstream = new fstream;
+		sander_fstream->open(traj.sander_filename->c_str(),std::ios::in);;
+		sander_file = sander_fstream;
+	}
+	sander_file->seekg(traj.curr_pos,sander_file->beg);
+	if(traj.natoms == 0 || sander_file == 0)
 		throw mmpbsa::MMPBSAException("mmpbsa_io::get_next_snap: Sander parameters and/or sander coordinate stream is missing.",mmpbsa::DATA_FORMAT_ERROR);
-	return get_next_snap(*traj.sander_crd_stream,snapshot,traj.natoms,(traj.ifbox > 0));
+	returnMe = get_next_snap(*sander_file,snapshot,traj.natoms,(traj.ifbox > 0));
+
+	traj.curr_pos = sander_file->tellg();
+
+	if(sander_file != traj.sander_crd_stream)
+		delete sander_file;
+
+	return returnMe;
 }
 
 
 void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos)
 {
 	size_t i = traj.curr_snap;
-	if(traj.sander_crd_stream != 0)
+	using std::fstream;using std::iostream;
+	iostream* sander_file = traj.sander_crd_stream;
+	if(sander_file == 0)
 	{
-		if(traj.natoms == 0)
-			throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Trajectory cannot be read without paramters. However, sander paramter object is a null pointer.",mmpbsa::NULL_POINTER);
-		bool isPeriodic = (traj.ifbox > 0);//Are periodic boundary conditions used?
-		try
-		{
-			for(;i<snap_pos;i++)
-			{
-				mmpbsa_io::skip_next_snap(*traj.sander_crd_stream,traj.natoms,isPeriodic);
-
-			}//after this for loop, the trajFile is pointing to the beginning of currState.currentSnap
-		}
-		catch(mmpbsa::MMPBSAException e)
-		{
-			std::ostringstream error;
-			error << "mmpbsa_io::seek: Died reading snap shots on snap number " << i
-					<< std::endl << " Error message: " <<  e.what();
-			throw mmpbsa::MMPBSAException(error,e.getErrType());
-		}
+		if(traj.sander_filename == 0)
+			throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Filename for sander trajectory is a null pointer.",mmpbsa::NULL_POINTER);
+		fstream* sander_fstream = new fstream;
+		sander_fstream->open(traj.sander_filename->c_str(),std::ios::in);
+		sander_file = sander_fstream;
 	}
+	sander_file->seekg(traj.curr_pos,sander_file->beg);
+	if(traj.natoms == 0)
+		throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Trajectory cannot be read without paramters. However, sander paramter object is a null pointer.",mmpbsa::NULL_POINTER);
+	bool isPeriodic = (traj.ifbox > 0);//Are periodic boundary conditions used?
+	try
+	{
+		for(;i<snap_pos;i++)
+		{
+			mmpbsa_io::skip_next_snap(*sander_file,traj.natoms,isPeriodic);
+
+		}//after this for loop, the trajFile is pointing to the beginning of currState.currentSnap
+	}
+	catch(mmpbsa::MMPBSAException e)
+	{
+		std::ostringstream error;
+		error << "mmpbsa_io::seek: Died reading snap shots on snap number " << i
+				<< std::endl << " Error message: " <<  e.what();
+		throw mmpbsa::MMPBSAException(error,e.getErrType());
+	}
+
 	traj.curr_snap = snap_pos;
+	traj.curr_pos = sander_file->tellg();
+	if(sander_file != traj.sander_crd_stream)
+		delete sander_file;
+
 }
 
 void mmpbsa_io::default_trajectory(mmpbsa_io::trajectory_t& traj)
 {
 	traj.sander_crd_stream = 0;
+	traj.sander_filename = 0;
+	traj.curr_pos = 0;
 	traj.natoms = 0;
 	traj.ifbox = 0;
 
@@ -776,11 +809,13 @@ void mmpbsa_io::default_trajectory(mmpbsa_io::trajectory_t& traj)
 void mmpbsa_io::destroy_trajectory(mmpbsa_io::trajectory_t& traj)
 {
 	delete traj.sander_crd_stream;
+	delete traj.sander_filename;
 	delete traj.gromacs_filename;
 }
 
-mmpbsa_io::trajectory_t mmpbsa_io::open_trajectory(const std::string& filename)
+mmpbsa_io::trajectory_t mmpbsa_io::open_trajectory(const std::string& filename,const bool& should_remain_in_memory)
 {
+	using std::fstream;
 	trajectory_t returnMe;
 	bool is_sander = true;
 	mmpbsa_io::default_trajectory(returnMe);
@@ -792,12 +827,23 @@ mmpbsa_io::trajectory_t mmpbsa_io::open_trajectory(const std::string& filename)
 		return returnMe;
 	}
 #endif
-	std::fstream trajDiskFile(filename.c_str(),std::ios::in);
-	if(!trajDiskFile.good())
+	//Test whether the file can be opened. If so, setup trajectory. Otherwise, throw exception.
+	fstream* trajDiskFile = new fstream(filename.c_str(),std::ios::in);
+	if(!trajDiskFile->good())
 		throw mmpbsa::MMPBSAException("mmpbsa_io::open_trajectory: Unable to read from trajectory file",mmpbsa::BROKEN_TRAJECTORY_FILE);
-	returnMe.sander_crd_stream = new std::stringstream;
-	mmpbsa_io::smart_read(*returnMe.sander_crd_stream,trajDiskFile,&filename);
-	trajDiskFile.close();
+	returnMe.sander_filename = new std::string(filename);
+	returnMe.curr_snap = 1;
+	returnMe.curr_pos = trajDiskFile->tellg();
+
+	if(should_remain_in_memory)
+	{
+		returnMe.sander_crd_stream = new std::stringstream;
+		smart_read(*returnMe.sander_crd_stream,*trajDiskFile,returnMe.sander_filename);
+	}
+	trajDiskFile->close();
+	delete trajDiskFile;
+	trajDiskFile = 0;
+
 	return returnMe;
 
 }
@@ -806,25 +852,55 @@ bool mmpbsa_io::eof(trajectory_t& traj)
 {
 	if(traj.sander_crd_stream == 0)
 	{
+		if(traj.sander_filename == 0)
+			throw mmpbsa::MMPBSAException("mmpbsa_io::eof: No trajectory file provided.",mmpbsa::NULL_POINTER);
+		std::ifstream sander_file(traj.sander_filename->c_str());
+		sander_file.seekg(traj.curr_pos,sander_file.beg);
+		return sander_file.eof();
+	}
 #ifdef USE_GROMACS
 		if(traj.gromacs_filename != 0)
 			return mmpbsa_io::gmx_trr_eof(*traj.gromacs_filename,traj.curr_snap);
 #endif
-		return false;
-	}
 	return traj.sander_crd_stream->eof();
 }
 
 
 std::string mmpbsa_io::get_traj_title(mmpbsa_io::trajectory_t& traj)
 {
-	if(traj.sander_crd_stream == 0 && traj.gromacs_filename == 0)
-		throw mmpbsa::MMPBSAException("mmpbsa_io::get_traj_title: no trajectory provided.",mmpbsa::DATA_FORMAT_ERROR);
 	if(traj.sander_crd_stream != 0)
-		return mmpbsa_io::get_traj_title(*traj.sander_crd_stream);
-	return *traj.gromacs_filename;
+	{
+		std::string returnMe;
+		traj.curr_pos = 0;
+		traj.sander_crd_stream->seekg(traj.curr_pos,std::ios::beg);
+		returnMe = mmpbsa_io::get_traj_title(*traj.sander_crd_stream);
+		traj.curr_pos = traj.sander_crd_stream->tellg();
+		return returnMe;
+	}
+	else if(traj.sander_filename != 0)
+	{
+		std::string returnMe;
+		std::fstream sander_file(traj.sander_filename->c_str(),std::ios::in);
+		returnMe = mmpbsa_io::get_traj_title(sander_file);
+		traj.curr_pos = sander_file.tellg();
+		return returnMe;
+	}
+	else if(traj.gromacs_filename != 0)
+		return *traj.gromacs_filename;
+
+	throw mmpbsa::MMPBSAException("mmpbsa_io::get_traj_title: no trajectory provided.",mmpbsa::DATA_FORMAT_ERROR);
+
 }
 
+void init(mmpbsa_io::trajectory_t* traj)
+{
+	mmpbsa_io::default_trajectory(*traj);
+}
+
+void destroy(mmpbsa_io::trajectory_t* traj)
+{
+	mmpbsa_io::destroy_trajectory(*traj);
+}
 
 //explicit instantiation
 template bool mmpbsa_io::loadValarray<size_t>(std::iostream&, std::valarray<size_t>&,const size_t&, const size_t&, const size_t&);

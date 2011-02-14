@@ -60,6 +60,7 @@ public:
     float weight;//factor by which to multiple time in queue(i.e. weight = 1 means process will take equal time as other processes).
 
     bool trustPrmtop;///<Flag to indicate if the sanity check of the SanderParm object should be ignored. This is not suggested, but if the sanity check fails and one *does* believe it should work, this is provided as a work around, for whatever reason might arise.
+    bool keep_traj_in_mem;///<Flag to indicate whether or not the trajectory stream should stay in memory. Default: false
 
     /**
      * Stores variables needed to restart the program. This is needed for running

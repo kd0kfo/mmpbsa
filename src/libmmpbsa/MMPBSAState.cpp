@@ -13,6 +13,7 @@ mmpbsa::MMPBSAState::MMPBSAState()
     this->weight = 1;
     MDOnly = false;
     savePDB = false;
+    keep_traj_in_mem = false;
 }
 
 mmpbsa::MMPBSAState::MMPBSAState(const mmpbsa::MMPBSAState& orig)
@@ -25,6 +26,7 @@ mmpbsa::MMPBSAState::MMPBSAState(const mmpbsa::MMPBSAState& orig)
     fractionDone = orig.fractionDone;
     MDOnly = orig.MDOnly;
     savePDB = orig.savePDB;
+    keep_traj_in_mem = orig.keep_traj_in_mem;
     currentSI = orig.currentSI;
     currentMI = orig.currentMI;
     currentMolecule = orig.currentMolecule;
@@ -48,6 +50,7 @@ mmpbsa::MMPBSAState& mmpbsa::MMPBSAState::operator=(const mmpbsa::MMPBSAState& o
     fractionDone = orig.fractionDone;
     MDOnly = orig.MDOnly;
     savePDB = orig.savePDB;
+    keep_traj_in_mem = orig.keep_traj_in_mem;
     currentSI = orig.currentSI;
     currentMI = orig.currentMI;
     currentMolecule = orig.currentMolecule;
