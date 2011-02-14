@@ -69,7 +69,7 @@ typedef struct {
 namespace mmpbsa_io{
 typedef struct {
 	size_t curr_snap;
-	std::iostream::pos_type curr_pos;
+	std::iostream::streampos curr_pos;
 	//for sander trajectories
 	std::string* sander_filename;
 	std::iostream* sander_crd_stream;

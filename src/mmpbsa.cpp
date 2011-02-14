@@ -301,7 +301,7 @@ bool should_calculate_snapshot(const size_t& currentSnap, const std::vector<size
 	{
 		//Is the requested snap shot in the list?
 		if(snapList.at(i) == currentSnap)
-			if((currentSnap-1) % mpi_size == mpi_rank)//If so should this host do it?
+			if(i % mpi_size == mpi_rank)//If so should this host do it?
 				return true;
 			else
 				return false;

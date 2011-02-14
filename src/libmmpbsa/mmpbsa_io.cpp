@@ -714,10 +714,17 @@ bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbs
 	sander_file->seekg(traj.curr_pos,sander_file->beg);
 	if(traj.natoms == 0 || sander_file == 0)
 		throw mmpbsa::MMPBSAException("mmpbsa_io::get_next_snap: Sander parameters and/or sander coordinate stream is missing.",mmpbsa::DATA_FORMAT_ERROR);
+	if(!sander_file->good())
+	{
+		std::ostringstream error;
+		error << "mmpbsa_io::get_next_snap: Cannot obtain " << traj.curr_snap << "th snapshot from trajectory file.";
+		throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_IO_ERROR);
+	}
 	returnMe = get_next_snap(*sander_file,snapshot,traj.natoms,(traj.ifbox > 0));
 
 	traj.curr_pos = sander_file->tellg();
-
+	if(returnMe)
+		traj.curr_snap++;
 	if(sander_file != traj.sander_crd_stream)
 		delete sander_file;
 
@@ -820,13 +827,19 @@ mmpbsa_io::trajectory_t mmpbsa_io::open_trajectory(const std::string& filename,c
 
 bool mmpbsa_io::eof(trajectory_t& traj)
 {
+	using std::ifstream;
 	if(traj.sander_crd_stream == 0)
 	{
+		ifstream::streampos eof;
 		if(traj.sander_filename == 0)
 			throw mmpbsa::MMPBSAException("mmpbsa_io::eof: No trajectory file provided.",mmpbsa::NULL_POINTER);
-		std::ifstream sander_file(traj.sander_filename->c_str());
+		ifstream sander_file(traj.sander_filename->c_str());
+		if(!sander_file.good())
+			return true;
+		sander_file.seekg(0,sander_file.end);
+		eof = sander_file.tellg();
 		sander_file.seekg(traj.curr_pos,sander_file.beg);
-		return sander_file.eof();
+		return (traj.curr_pos >= eof);
 	}
 #ifdef USE_GROMACS
 		if(traj.gromacs_filename != 0)

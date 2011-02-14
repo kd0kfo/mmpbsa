@@ -2,7 +2,7 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to 1 if you have the `floor' function. */
-/* #undef HAVE_FLOOR */
+#define HAVE_FLOOR 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -15,10 +15,10 @@
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `pow' function. */
-/* #undef HAVE_POW */
+#define HAVE_POW 1
 
 /* Define to 1 if you have the `sqrt' function. */
-/* #undef HAVE_SQRT */
+#define HAVE_SQRT 1
 
 /* Define to 1 if stdbool.h conforms to C99. */
 #define HAVE_STDBOOL_H 1
@@ -91,7 +91,7 @@
 /* #undef USE_JPEGLIB */
 
 /* Define to compile with MPI. */
-/* #undef USE_MPI */
+#define USE_MPI 1
 
 /* Define to use pthreads for multithread MMPBSA calculations. (Has no effect
    on MD). */
