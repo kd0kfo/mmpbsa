@@ -44,13 +44,27 @@ void mmpbsa_utils::mpi_store_mmpbsa_data(char* data,const int& data_index,
 
 int mmpbsa_utils::mpi_send_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const int& mpi_rank)
 {
-	std::string str_data = energy_data.toString();
-	size_t data_length = str_data.size()+1;// + MMPBSA_MPI_ID_WORD;
-	char* data = (char*)calloc(data_length,sizeof(char));//add 1 to str_data.size() for the null character at the end and then add to the beginning for mpi_rank of the sender.
-	strcpy(data,str_data.c_str());
+  std::string str_data = energy_data.toString(),substring;
+  bool is_EOF;
+	while(str_data.size() != 0)
+	  {
+	    if(str_data.size() + 1 > MMPBSA_MAX_BUFFER_SIZE)
+	      {
+		substring = str_data.substring(0,MMPBSA_MAX_BUFFER_SIZE - 1);
+		is_EOF = false;
+	      }
+	    else
+	      {
+		substring = str_data;
+		is_EOF = true;
+	      }
+	    size_t data_length = substring.size();//add 1 to str_data.size() for the null character at the end
+	    char* data = (char*)calloc(data_length,sizeof(char));
+	    strcpy(data,substring_data.c_str());
 
-	int returnMe = MPI_Send(data, data_length*sizeof(char), MPI_CHAR,MMPBSA_MASTER,mmpbsa_utils::DATA, MPI_COMM_WORLD);
-	free(data);
+	    int returnMe = MPI_Send(data, data_length*sizeof(char), MPI_CHAR,MMPBSA_MASTER,mmpbsa_utils::DATA, MPI_COMM_WORLD);
+	    free(data);
+	  }
 	return returnMe;
 }
 
