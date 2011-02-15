@@ -3,6 +3,8 @@
 #include <string>
 #include <sstream>
 
+#include "libmmpbsa/XMLParser.h"
+#include "libmmpbsa/EMap.h"
 
 static char mmpbsa_analyzer_doc[] = "mmpbsa_analyzer -- Program for analyzing and manipulating data produced by mmpbsa.";
 static char mmpbsa_analyzer_usage[] = "Usage: mmpbsa_analyzer [options]";
@@ -106,6 +108,243 @@ void args_usage()
 	exit(0);
 }
 
+void summarize_delta(std::ostream* output,mmpbsa::EMap* delta, mmpbsa_t* gas_energies)
+{
+	using std::ios;
+	if(output == 0)
+		return;
+
+	output->precision(2);
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "#";output->flags(ios::internal|ios::fixed);
+	output->width(18);
+	*output << "DELTA" << std::endl;
+
+	//ELE = vacele + ele14
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "ELE";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << delta[0].total_elec_energy();output->width(12);*output << delta[1].total_elec_energy() << std::endl;
+
+	//VDW = vdwaals + vdw14
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "VDW";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << delta[0].total_vdw_energy();output->width(12);*output << delta[1].total_vdw_energy() << std::endl;
+
+	//INT = vdwaals + vdw14
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "INT";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << delta[0].total_internal_energy();output->width(12);*output << delta[1].total_internal_energy() << std::endl;
+
+	//Gas energy
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "GAS";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << delta[0].total_gas_energy();output->width(12);*output << sqrt(*gas_energies - pow(delta[0].total_gas_energy(),2)) << std::endl;
+
+	//Surface Area Solvation energy
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "PBSUR";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << delta[0].sasol;output->width(12);*output << delta[1].sasol << std::endl;
+
+	//Poisson-Boltzmann Solvation energy
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "PBSOLV";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << delta[0].elstat_solv;output->width(12);*output << delta[1].elstat_solv << std::endl;
+
+	//Surface Area
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "AREA";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << delta[0].area;output->width(12);*output << delta[1].area << std::endl;
+
+
+}
+
+
+void summarize_molecules(std::ostream* output,mmpbsa::EMap* complex,mmpbsa::EMap* receptor,mmpbsa::EMap* ligand,mmpbsa_t* gas_energies)
+{
+	using std::ios;
+	if(output == 0)
+		return;
+
+	output->precision(2);
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "#";output->flags(ios::internal|ios::fixed);
+	output->width(18);
+	*output << "COMPLEX";output->width(24);
+	*output << "RECEPTOR";output->width(24);
+	*output << "LIGAND" << std::endl;
+
+	//ELE = vacele + ele14
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "ELE";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << complex[0].total_elec_energy();output->width(12);*output << complex[1].total_elec_energy();output->width(12);
+	*output << receptor[0].total_elec_energy();output->width(12);*output << receptor[1].total_elec_energy();output->width(12);
+	*output << ligand[0].total_elec_energy();output->width(12);*output << ligand[1].total_elec_energy() << std::endl;
+
+	//VDW = vdwaals + vdw14
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "VDW";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << complex[0].total_vdw_energy();output->width(12);*output << complex[1].total_vdw_energy();output->width(12);
+	*output << receptor[0].total_vdw_energy();output->width(12);*output << receptor[1].total_vdw_energy();output->width(12);
+	*output << ligand[0].total_vdw_energy();output->width(12);*output << ligand[1].total_vdw_energy() << std::endl;
+
+	//INT = vdwaals + vdw14
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "INT";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << complex[0].total_internal_energy();output->width(12);*output << complex[1].total_internal_energy();output->width(12);
+	*output << receptor[0].total_internal_energy();output->width(12);*output << receptor[1].total_internal_energy();output->width(12);
+	*output << ligand[0].total_internal_energy();output->width(12);*output << ligand[1].total_internal_energy() << std::endl;
+
+	//Gas energy
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "GAS";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << complex[0].total_gas_energy();output->width(12);*output << sqrt(gas_energies[0]-pow(complex[0].total_gas_energy(),2));output->width(12);
+	*output << receptor[0].total_gas_energy();output->width(12);*output << sqrt(gas_energies[1]-pow(receptor[0].total_gas_energy(),2));output->width(12);
+	*output << ligand[0].total_gas_energy();output->width(12);*output << sqrt(gas_energies[2]-pow(ligand[0].total_gas_energy(),2)) << std::endl;
+
+	//Surface Area Solvation energy
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "PBSUR";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << complex[0].sasol;output->width(12);*output << complex[1].sasol;output->width(12);
+	*output << receptor[0].sasol;output->width(12);*output << receptor[1].sasol;output->width(12);
+	*output << ligand[0].sasol;output->width(12);*output << ligand[1].sasol << std::endl;
+
+	//Poisson-Boltzmann Solvation energy
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "PBSOLV";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << complex[0].elstat_solv;output->width(12);*output << complex[1].elstat_solv;output->width(12);
+	*output << receptor[0].elstat_solv;output->width(12);*output << receptor[1].elstat_solv;output->width(12);
+	*output << ligand[0].elstat_solv;output->width(12);*output << ligand[1].elstat_solv << std::endl;
+
+	//Surface Area
+	output->flags(ios::left|ios::fixed);output->width(12);
+	*output << "AREA";output->flags(ios::right|ios::fixed);
+	output->width(12);
+	*output << complex[0].area;output->width(12);*output << complex[1].area;output->width(12);
+	*output << receptor[0].area;output->width(12);*output << receptor[1].area;output->width(12);
+	*output << ligand[0].area;output->width(12);*output << ligand[1].area << std::endl;
+
+
+}
+
+mmpbsa::EMap stddev_couple(const mmpbsa::EMap& energy, mmpbsa_t& gas)
+{
+	mmpbsa::EMap coupled_term = energy;
+	coupled_term.ele14 += energy.vacele; coupled_term.vacele = 0;
+	coupled_term.vdw14 += energy.vdwaals;coupled_term.vdwaals = 0;
+    coupled_term.angle += energy.bond + energy.dihed;coupled_term.bond = coupled_term.dihed = 0;
+    gas += pow(coupled_term.total_gas_energy(),2);
+    return coupled_term*coupled_term;
+}
+
+void summarize(mmpbsa_analyzer_arguments& args)
+{
+	using namespace std;
+	using mmpbsa_utils::XMLParser;
+	using mmpbsa_utils::XMLNode;
+	using mmpbsa::EMap;
+
+	if(args.parameter.size() == 0)
+		return;
+
+	const string& input_filename = args.parameter;
+
+	//open output. If a file is specified, use it. Otherwise, use stdout
+	ostream* output = &std::cout;
+	if(args.output_filename.size() != 0)
+	{
+		std::fstream* outfile = new std::fstream(args.output_filename.c_str(),std::ios::out);
+		if(!outfile->good())
+		{
+			std::cerr << "Could not read from " << args.output_filename << std::endl;
+			return;
+		}
+		output = outfile;
+	}
+
+	XMLParser data;
+	EMap curr_delta,curr,ecomplex[2],receptor[2],ligand[2],delta[2];//[0] = mean, [1] = stddev.
+	size_t num_complex,num_receptor,num_ligand;
+	mmpbsa_t gas_energies[4];//complex, receptor, ligand, delta
+	num_complex = num_receptor = num_ligand = 0;
+	data.parse(input_filename);
+
+	for(size_t i = 0;i<4;i++)
+		gas_energies[i] = 0;
+
+	if(data.getHead() != 0 && data.getHead()->children != 0)
+	{
+		XMLNode *molecule, *snap = data.getHead()->children;
+		for(;snap != 0;snap = snap->siblings)
+		{
+			EMap curr_delta;
+			for(molecule = snap->children;molecule != 0;molecule = molecule->siblings)
+			{
+				if(molecule->getName() == "COMPLEX")
+				{
+					curr = EMap::loadXML(molecule);
+					ecomplex[0] += curr;
+					ecomplex[1] += stddev_couple(curr,gas_energies[0]);
+					curr_delta += curr;
+					num_complex++;
+				}
+				else if(molecule->getName() == "RECEPTOR")
+				{
+					curr = EMap::loadXML(molecule);
+					receptor[0] += curr;
+					receptor[1] += stddev_couple(curr,gas_energies[1]);
+					curr_delta -= curr;
+					num_receptor++;
+				}
+				else if(molecule->getName() == "LIGAND")
+				{
+					curr = EMap::loadXML(molecule);
+					ligand[0] += curr;
+					ligand[1] += stddev_couple(curr,gas_energies[2]);
+					curr_delta -= curr;
+					num_ligand++;
+				}
+			}
+			delta[0] += curr_delta;
+			delta[1] += stddev_couple(curr_delta,gas_energies[3]);
+		}
+	}
+
+	if(num_complex != num_receptor || num_receptor != num_ligand)
+		cerr << "Warning: Number of components differs." << endl
+			<< "Receptor: " << num_receptor << endl
+			<< "Ligand: " << num_ligand << endl
+			<< "Complex: " << num_complex << endl;
+
+	for(size_t i = 0;i<4;i++)
+		gas_energies[i] /= num_complex;
+
+	mmpbsa_t useless;
+	ecomplex[0] /= num_complex;ecomplex[1] /= num_complex;ecomplex[1] = sqrt(ecomplex[1] - stddev_couple(ecomplex[0],useless));
+	receptor[0] /= num_complex;receptor[1] /= num_complex;receptor[1] = sqrt(receptor[1] - stddev_couple(receptor[0],useless));
+	ligand[0] /= num_complex;ligand[1] /= num_complex;ligand[1] = sqrt(ligand[1] - stddev_couple(ligand[0],useless));
+	delta[0] /= num_complex;delta[1] /= num_complex;delta[1] = sqrt(delta[1] - stddev_couple(delta[0],useless));
+
+	summarize_molecules(output,ecomplex,receptor,ligand,gas_energies);
+	summarize_delta(output,delta,&gas_energies[3]);
+
+	if(output != &std::cout)
+		delete output;
+
+}
+
 
 int main(int argc, char** argv)
 {
@@ -140,6 +379,8 @@ int main(int argc, char** argv)
 	delete [] long_opts;
 
 	std::cout << "command: " << args.command << " parameter: " << args.parameter << std::endl;
+	if(args.command == SUMMARIZE)
+		summarize(args);
 	return 0;
 
 }

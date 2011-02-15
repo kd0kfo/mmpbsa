@@ -94,14 +94,19 @@ public:
     mmpbsa_utils::XMLNode* toXML(const std::string& name = "energy")const;
 
     /**
-     * Creates an EMap object based on the given XML Node.
+     * Creates an EMap object based on the given XML Node. Assumes that
+     * the data tags are the children of xmlEnergy.
      * 
      * @param xmlEnergy
      * @return
      */
     static EMap loadXML(const mmpbsa_utils::XMLNode* xmlEnergy);
 
-protected:
+    mmpbsa_t total_elec_energy(){return ele14 + vacele;}
+    mmpbsa_t total_vdw_energy(){return vdw14 + vdwaals;}
+    mmpbsa_t total_internal_energy(){return angle + bond + dihed;}
+    mmpbsa_t total_gas_energy(){return total_elec_energy() + total_vdw_energy() + total_internal_energy();}
+
     mmpbsa_t bond;
     mmpbsa_t angle;
     mmpbsa_t dihed;
