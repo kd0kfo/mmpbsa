@@ -630,16 +630,22 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     	{
     		reporter[1] = 1;
     		MPI_Recv(reporter,2, MPI_INT,MPI_ANY_SOURCE, mmpbsa_utils::STATUS, MPI_COMM_WORLD, &status);
+    		while(reporter[1] != 0)
+		  {
+		    mmpbsa_utils::mpi_recv_mmpbsa_data(mpi_rank,reporter[0],mpi_size,currState,data_list,data_fragments);
+		    reporter[1]--;
+		  }
     		mpi_processes_running--;
-    		if(reporter[1] != 0)
-    			mmpbsa_utils::mpi_recv_mmpbsa_data(mpi_rank,reporter[0],mpi_size,currState,data_list);
     	}
     }
     else
     {
     	int my_status[2];
     	my_status[0] = mpi_rank;
-    	my_status[1] = (previousEnergyData.getHead() != 0 && previousEnergyData.getHead()->children != 0) ? 1 : 0;
+    	my_status[1] = 0;
+	if(previousEnergyData.getHead() != 0 && previousEnergyData.getHead()->children != 0)
+	  my_status[1] = ceil(float(previousEnergyData.toString().size())/MMPBSA_MPI_MAX_BUFFER);
+
     	MPI_Send(my_status,2,MPI_INT,MMPBSA_MASTER,mmpbsa_utils::STATUS,MPI_COMM_WORLD);
     }
 #endif
@@ -1263,7 +1269,7 @@ std::vector<mmpbsa::MMPBSAState> getQueueFile(int argc,char** argv)
     if(head == 0)
         return returnMe;
 
-    if(head->getName() == MMPBSA_XML_TITLE)
+    if(head->getName() == MMPBSA_QUEUE_TITLE)
         head = head->children;
 
     int queuePosition = 0;

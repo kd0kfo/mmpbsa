@@ -28,7 +28,8 @@
 #include "mmpbsa_exceptions.h"
 #include "StringTokenizer.h"
 
-#define MMPBSA_XML_TITLE "grid_queue"
+#define MMPBSA_QUEUE_TITLE "grid_queue"
+#define MMPBSA_XML_TITLE "mmpbsa_energy"
 #define MMPBSA_PI 3.14159265358979323846
 #define MMPBSA_DEG_TO_RAD 0.0174532925199432957692
 #define MMPBSA_FORMAT std::setprecision(5)

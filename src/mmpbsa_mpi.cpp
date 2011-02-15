@@ -25,7 +25,7 @@ void mmpbsa_utils::mpi_store_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data,co
 	energy_data.getHead()->children = 0;
 }
 
-void mmpbsa_utils::mpi_store_mmpbsa_data(char* data,const int& data_index,
+void mmpbsa_utils::mpi_store_mmpbsa_data(const char* data,const int& data_index,
 		mmpbsa_utils::XMLNode* data_list)
 {
 	mmpbsa_utils::XMLNode* head;
@@ -38,25 +38,44 @@ void mmpbsa_utils::mpi_store_mmpbsa_data(char* data,const int& data_index,
 	head = mmpbsa_utils::XMLParser::parse(buff);
 	mmpbsa_utils::XMLParser parser(head);
 	mpi_store_mmpbsa_data(parser,data_index,data_list);
-	parser.detachHead();
+	//parser.detachHead();
 }
 
 
 int mmpbsa_utils::mpi_send_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const int& mpi_rank)
 {
-	std::string str_data = energy_data.toString();
-	size_t data_length = str_data.size()+1;// + MMPBSA_MPI_ID_WORD;
-	char* data = (char*)calloc(data_length,sizeof(char));//add 1 to str_data.size() for the null character at the end and then add to the beginning for mpi_rank of the sender.
-	strcpy(data,str_data.c_str());
+	std::string str_data = energy_data.toString(),substring;
+	bool is_EOF;
+	int returnMe = 0;
+	size_t data_length;
+	while(str_data.size() != 0)
+	{
+		if(str_data.size() >= MMPBSA_MPI_MAX_BUFFER)
+		{
+			substring = str_data.substr(0,MMPBSA_MPI_MAX_BUFFER);
+			str_data.erase(0,MMPBSA_MPI_MAX_BUFFER);
+			data_length = MMPBSA_MPI_MAX_BUFFER;
+		}
+		else
+		  {
+			substring = str_data;
+			str_data = "";
+			data_length = substring.size() + 1;//add 1 to str_data.size() for the null character at the end
+		}
+		char* data = (char*)calloc(data_length,sizeof(char));
+		strcpy(data,substring.c_str());
 
-	int returnMe = MPI_Send(data, data_length*sizeof(char), MPI_CHAR,MMPBSA_MASTER,mmpbsa_utils::DATA, MPI_COMM_WORLD);
-	free(data);
+		returnMe = MPI_Send(data, data_length*sizeof(char), MPI_CHAR,MMPBSA_MASTER,mmpbsa_utils::DATA, MPI_COMM_WORLD);
+		free(data);
+		if(returnMe)
+			break;
+	}
 	return returnMe;
 }
 
 int mmpbsa_utils::mpi_recv_mmpbsa_data(const int& my_rank, const int& source_rank,
 		const int& mpi_size, const mmpbsa::MMPBSAState& currState,
-		mmpbsa_utils::XMLNode* data_list)
+		mmpbsa_utils::XMLNode* data_list,std::map<int,std::string>& data_fragments)
 {
 	if(mpi_size == 0 || my_rank != 0)
 		return 0;
@@ -67,7 +86,6 @@ int mmpbsa_utils::mpi_recv_mmpbsa_data(const int& my_rank, const int& source_ran
 	//Receive Data from node
 	int returnMe = MPI_Recv(mpi_data, MMPBSA_MPI_MAX_BUFFER, MPI_CHAR,
 			source_rank, mmpbsa_utils::DATA, MPI_COMM_WORLD, &status);
-
 	//Is data good?
 	if(returnMe != 0)
 	{
@@ -81,8 +99,31 @@ int mmpbsa_utils::mpi_recv_mmpbsa_data(const int& my_rank, const int& source_ran
 		throw mmpbsa::MMPBSAException(error,mmpbsa::MPI_ERROR);
 	}
 
-	//Store data and write if needed
-	mpi_store_mmpbsa_data(mpi_data,42,data_list);
+	//If the data has a terminating null character, store data and write if needed.
+	//Otherwise, store it for recombination later.
+	if(mpi_data[MMPBSA_MPI_MAX_BUFFER-1] != 0)
+	{
+		if(data_fragments.find(source_rank) != data_fragments.end())
+			data_fragments.find(source_rank)->second += mpi_data;
+		else
+		{
+			std::pair<int,std::string> fragment;
+			fragment.first = source_rank;
+			fragment.second = std::string(mpi_data);
+			data_fragments.insert(fragment);
+		}
+	}
+	else
+	{
+		std::string whole_data = mpi_data;
+		if(data_fragments.find(source_rank) != data_fragments.end())
+		{
+			whole_data = data_fragments.find(source_rank)->second + whole_data;
+			data_fragments.erase(source_rank);
+		}
+
+		mpi_store_mmpbsa_data(whole_data.c_str(),42,data_list);
+	}
 	free(mpi_data);
 	return 0;
 
@@ -118,6 +159,7 @@ void mmpbsa_utils::mpi_finish_output(const int& mpi_rank,const int& mpi_size,con
 	output.close();
 }
 
+#if 0//deprecated
 int mpi_mmpbsa_sorter(mmpbsa_utils::XMLNode  *test_element, mmpbsa_utils::XMLNode  *partition_element)
 {
 	std::string te_ID,pe_ID;
@@ -167,6 +209,7 @@ int mpi_mmpbsa_sorter(mmpbsa_utils::XMLNode  *test_element, mmpbsa_utils::XMLNod
 
 	return returnMe;
 }
+#endif //deprecated
 
 typedef struct  {
   bool operator() (const std::pair<int,mmpbsa_utils::XMLNode *>& lhs, const std::pair<int,mmpbsa_utils::XMLNode *>& rhs) const
@@ -212,6 +255,7 @@ void mmpbsa_utils::mpi_dump_data(mmpbsa_utils::XMLNode* data_list,const std::str
 	//std::vector<mmpbsa_utils::XMLNode *>::const_iterator snap = snaps.begin();
 	//for(;snap != snaps.end();snap++)
 	mmpbsa_utils::XMLNode *temp;
+	output << "<" << MMPBSA_XML_TITLE << ">" << std::endl;
 	for(snap_shot = snaps.begin();snap_shot != snaps.end();snap_shot++)
 		if(snap_shot->second != 0)
 		{
@@ -220,6 +264,7 @@ void mmpbsa_utils::mpi_dump_data(mmpbsa_utils::XMLNode* data_list,const std::str
 			output << snap_shot->second->toString() << std::endl;
 			snap_shot->second->siblings = temp;
 		}
+	output << "</" << MMPBSA_XML_TITLE << ">" << std::endl;
 	output.close();
 }
 

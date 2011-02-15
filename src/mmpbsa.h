@@ -70,6 +70,7 @@ unsigned short mmpbsa_mutex;
 int mpi_rank,mpi_size;
 size_t mpi_processes_running;
 mmpbsa_utils::XMLNode* data_list;
+std::map<int,std::string> data_fragments;///<Storage container for fragment data send via MPI_Send from child nodes.
 #endif
 
 std::vector<mmpbsa::MMPBSAState> processQueue;///<Array of calculations to be run by the program.
