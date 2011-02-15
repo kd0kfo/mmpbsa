@@ -21,14 +21,14 @@ enum MMPBSA_MPI_TAG {DATA = 0,STATUS,NUM_OF_TAGS};
 void mpi_init_hosts(int* argc, char*** argv, int& mpi_rank,int& mpi_size);
 void mpi_store_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data,const int& data_index,
 		mmpbsa_utils::XMLNode* data_list);
-void mpi_store_mmpbsa_data(char* data,const int& data_index,
+void mpi_store_mmpbsa_data(const char* data,const int& data_index,
 		mmpbsa_utils::XMLNode* data_list);
 
 int mpi_send_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const int& mpi_rank);
 
 int mpi_recv_mmpbsa_data(const int& my_rank, const int& source_rank,
 		const int& mpi_size, const mmpbsa::MMPBSAState& currState,
-		mmpbsa_utils::XMLNode* data_list);
+		mmpbsa_utils::XMLNode* data_list,std::map<int,std::string>& data_fragments);
 
 int mpi_write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSAState& currState,
 		const int& mpi_rank, mmpbsa_utils::XMLNode* data_list);
