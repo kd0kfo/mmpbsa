@@ -47,19 +47,21 @@ int mmpbsa_utils::mpi_send_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, con
 	std::string str_data = energy_data.toString(),substring;
 	bool is_EOF;
 	int returnMe = 0;
+	size_t data_length;
 	while(str_data.size() != 0)
 	{
 		if(str_data.size() >= MMPBSA_MPI_MAX_BUFFER)
 		{
-			substring = str_data.substr(0,MMPBSA_MPI_MAX_BUFFER - 1);
-			str_data.erase(0,MMPBSA_MPI_MAX_BUFFER - 1);
+			substring = str_data.substr(0,MMPBSA_MPI_MAX_BUFFER);
+			str_data.erase(0,MMPBSA_MPI_MAX_BUFFER);
+			data_length = MMPBSA_MPI_MAX_BUFFER;
 		}
 		else
-		{
+		  {
 			substring = str_data;
 			str_data = "";
+			data_length = substring.size() + 1;//add 1 to str_data.size() for the null character at the end
 		}
-		size_t data_length = substring.size();//add 1 to str_data.size() for the null character at the end
 		char* data = (char*)calloc(data_length,sizeof(char));
 		strcpy(data,substring.c_str());
 

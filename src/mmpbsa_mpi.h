@@ -11,7 +11,7 @@
 #include "libmmpbsa/MMPBSAState.h"
 
 #define MMPBSA_MASTER 0
-#define MMPBSA_MPI_MAX_BUFFER 4096
+#define MMPBSA_MPI_MAX_BUFFER 1024//4096
 
 namespace mmpbsa_utils
 {
