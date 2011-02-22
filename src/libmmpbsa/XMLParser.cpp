@@ -84,18 +84,18 @@ mmpbsa_utils::XMLNode* mmpbsa_utils::XMLParser::parse(std::iostream& xmlFile)
         currLine = parseLine(getNextLine(xmlFile),isClosedTag);
         if(currLine.first.size() > 0)
         {
+            if(currNode == 0)
+            {
+                std::string error = "mmpbsa_utils::XMLParser::parse: Missing top level tag. " + head->getName() + " should "
+                        "not have a sibling without a parent.";
+                throw mmpbsa::XMLParserException(error,mmpbsa::BAD_XML_TAG);
+            }
             if(currLine.first == currNode->getName())
             {
                 currNode = currNode->parent;//in this case, we're closing what was until now an unclosed tag.
                 continue;
             }
             XMLNode* newNode = new XMLNode(currLine.first,currLine.second);
-            if(currNode == 0)
-            {
-                std::string error = "mmpbsa_utils::XMLParser::parse: Missing top level tag. " + head->getName() + "should "
-                        "not have a sibling without a parent.";
-                throw mmpbsa::XMLParserException(error,mmpbsa::BAD_XML_TAG);
-            }
             currNode->insertChild(newNode);
             if(!isClosedTag)
                 currNode = newNode;

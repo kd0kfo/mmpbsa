@@ -223,9 +223,9 @@ void get_sander_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t**
 
     //load and check the parmtop file.
     mmpbsa::SanderParm * sp = new mmpbsa::SanderParm;
-    if(!has_filename(SANDER_PRMTOP_TYPE,currState))
+    if(!has_filename(MMPBSA_TOPOLOGY_TYPE,currState))
     	throw mmpbsa::MMPBSAException("get_sander_forcefield: no parmtop file.",BROKEN_PRMTOP_FILE);
-    sp->raw_read_amber_parm(get_filename(SANDER_PRMTOP_TYPE,currState));
+    sp->raw_read_amber_parm(get_filename(MMPBSA_TOPOLOGY_TYPE,currState));
     if(!currState.trustPrmtop)
         if(!sp->sanityCheck())
             throw MMPBSAException("get_sander_forcefield: Parmtop file, " + get_filename(SANDER_PRMTOP_TYPE,currState)
@@ -316,7 +316,7 @@ bool should_calculate_snapshot(const size_t& currentSnap, const std::vector<size
 void get_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t** split_ff,std::vector<mmpbsa::atom_t>** atom_lists, std::valarray<mmpbsa::MMPBSAState::MOLECULE>& mol_list,mmpbsa_io::trajectory_t& trajfile)
 {
 #ifdef USE_GROMACS
-	if(!has_filename(SANDER_PRMTOP_TYPE,currState))
+	if(!has_filename(MMPBSA_TOPOLOGY_TYPE,currState))
 		throw mmpbsa::MMPBSAException("get_forcefield: no parmtop file.",mmpbsa::BROKEN_PRMTOP_FILE);
 	std::string filename = get_filename(SANDER_PRMTOP_TYPE,currState);
 	if(filename.find(".tpr") != std::string::npos)
@@ -369,9 +369,9 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     }
 
     //Setup Trajectory Structure
-    if(!has_filename(SANDER_INPCRD_TYPE,currState))
+    if(!has_filename(MMPBSA_TRAJECTORY_TYPE,currState))
     	throw mmpbsa::MMPBSAException("mmpbsa_run: no trajectory file was given.",BROKEN_TRAJECTORY_FILE);
-    mmpbsa_io::trajectory_t trajFile = mmpbsa_io::open_trajectory(get_filename(SANDER_INPCRD_TYPE,currState),currState.keep_traj_in_mem);
+    mmpbsa_io::trajectory_t trajFile = mmpbsa_io::open_trajectory(get_filename(MMPBSA_TRAJECTORY_TYPE,currState),currState.keep_traj_in_mem);
 
 
 
@@ -1309,29 +1309,34 @@ void sampleQueue(const std::string& filename)
     using mmpbsa_utils::XMLParser;
     using mmpbsa_utils::XMLNode;
 
-    XMLNode* sanderXML = new XMLNode("molecular_dynamics");
-    sanderXML->insertChild("mdin","sander_input.in");
-    sanderXML->insertChild("mdout","sander_output.out");
-    sanderXML->insertChild("restart","sander_restart.rst");
-    sanderXML->insertChild("inpcrd","sander_input_coordinates.inpcrd");
-    sanderXML->insertChild("prmtop","sander_prmtop_file.prmtop");
-    sanderXML->insertChild("mdcrd","sander_snapshot_file.mdcrd");
-    sanderXML->insertChild("checkpoint","checkpoint_file_name.xml");
-
     XMLNode* mmpbsaXML = new XMLNode("mmpbsa");
-    mmpbsaXML->insertChild("prmtop","sander_prmtop_file.prmtop");
-    mmpbsaXML->insertChild("inpcrd","sander_snapshot_file.mdcrd");
+    mmpbsaXML->insertChild(MMPBSA_TOPOLOGY_TYPE,"sander_prmtop_file.prmtop");
+    mmpbsaXML->insertChild(MMPBSA_TRAJECTORY_TYPE,"sander_snapshot_file.mdcrd");
     mmpbsaXML->insertChild("radii","DelPhi_radii_file.siz");
     mmpbsaXML->insertChild("mmpbsa_out","mmpbsa-result-output.out");
     mmpbsaXML->insertChild("snap_list","1,3");
-    mmpbsaXML->insertChild("checkpoint","checkpoint_file_name.xml");
-    
-    XMLNode* theDoc = new XMLNode(MMPBSA_XML_TITLE);
+
+#ifndef USE_BOINC
+    XMLParser writeMe(mmpbsaXML);
+    writeMe.write(filename);
+#else
+    XMLNode* sanderXML = new XMLNode("molecular_dynamics");
+    sanderXML->insertChild("mdin","sander_input.in");
+    sanderXML->insertChild(SANDER_MDOUT_TYPE,"sander_output.out");
+    sanderXML->insertChild("restart","sander_restart.rst");
+    sanderXML->insertChild(SANDER_INPCRD_TYPE,"sander_input_coordinates.inpcrd");
+    sanderXML->insertChild(SANDER_PRMTOP_TYPE,"sander_prmtop_file.prmtop");
+    sanderXML->insertChild("mdcrd","sander_snapshot_file.mdcrd");
+    sanderXML->insertChild("checkpoint","checkpoint_file_name.xml");
+
+    XMLNode* theDoc = new XMLNode(MMPBSA_QUEUE_TITLE);
     theDoc->insertChild(sanderXML);
     theDoc->insertChild(mmpbsaXML);
-    
+
     XMLParser writeMe(theDoc);
     writeMe.write(filename);
+#endif
+
 }
 
 void updateMMPBSAProgress(mmpbsa::MMPBSAState& currState,const double& increment)

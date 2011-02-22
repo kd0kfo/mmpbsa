@@ -17,9 +17,11 @@
 
 #define SANDER_MDOUT_TYPE "mdout"
 #define SANDER_PRMTOP_TYPE "prmtop"
+#define MMPBSA_TOPOLOGY_TYPE "top"
 #define MMPBSA_OUT_TYPE "mmpbsa_out"
 #define RADII_TYPE "radii"
 #define SANDER_INPCRD_TYPE "inpcrd"
+#define MMPBSA_TRAJECTORY_TYPE "traj"
 #define CHECKPOINT_FILE_TYPE "checkpoint"
 
 //These tags are used to indicate the current state of the mdmmpbsa program

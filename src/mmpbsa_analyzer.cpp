@@ -116,7 +116,7 @@ void summarize_delta(std::ostream* output,mmpbsa::EMap* delta, mmpbsa_t* gas_ene
 
 	output->precision(2);
 	output->flags(ios::left|ios::fixed);output->width(12);
-	*output << "#";output->flags(ios::internal|ios::fixed);
+	*output << " ";output->flags(ios::internal|ios::fixed);
 	output->width(18);
 	*output << "DELTA" << std::endl;
 
@@ -174,7 +174,7 @@ void summarize_molecules(std::ostream* output,mmpbsa::EMap* complex,mmpbsa::EMap
 
 	output->precision(2);
 	output->flags(ios::left|ios::fixed);output->width(12);
-	*output << "#";output->flags(ios::internal|ios::fixed);
+	*output << " ";output->flags(ios::internal|ios::fixed);
 	output->width(18);
 	*output << "COMPLEX";output->width(24);
 	*output << "RECEPTOR";output->width(24);
@@ -274,6 +274,8 @@ void summarize(mmpbsa_analyzer_arguments& args)
 		output = outfile;
 	}
 
+	bool added_snapshot;
+	size_t snapshot_counter = 0;
 	XMLParser data;
 	EMap curr_delta,curr,ecomplex[2],receptor[2],ligand[2],delta[2];//[0] = mean, [1] = stddev.
 	size_t num_complex,num_receptor,num_ligand;
@@ -290,6 +292,7 @@ void summarize(mmpbsa_analyzer_arguments& args)
 		for(;snap != 0;snap = snap->siblings)
 		{
 			EMap curr_delta;
+			added_snapshot = false;
 			for(molecule = snap->children;molecule != 0;molecule = molecule->siblings)
 			{
 				if(molecule->getName() == "COMPLEX")
@@ -319,6 +322,11 @@ void summarize(mmpbsa_analyzer_arguments& args)
 			}
 			delta[0] += curr_delta;
 			delta[1] += stddev_couple(curr_delta,gas_energies[3]);
+			if(!added_snapshot)
+			{
+				snapshot_counter++;
+				added_snapshot = true;
+			}
 		}
 	}
 
@@ -337,6 +345,8 @@ void summarize(mmpbsa_analyzer_arguments& args)
 	ligand[0] /= num_complex;ligand[1] /= num_complex;ligand[1] = sqrt(ligand[1] - stddev_couple(ligand[0],useless));
 	delta[0] /= num_complex;delta[1] /= num_complex;delta[1] = sqrt(delta[1] - stddev_couple(delta[0],useless));
 
+	*output << "Summary of " << snapshot_counter << " snapshots." << std::endl;
+
 	summarize_molecules(output,ecomplex,receptor,ligand,gas_energies);
 	summarize_delta(output,delta,&gas_energies[3]);
 
@@ -352,7 +362,6 @@ int main(int argc, char** argv)
 	int getopt_retval,option_index;
 	struct option * long_opts;
 	mmpbsa_analyzer_options curr_ma_opt;
-	char* ch_command;
 	size_t num_opts = 0;
 
 	if(argc < 2)
@@ -378,7 +387,6 @@ int main(int argc, char** argv)
 
 	delete [] long_opts;
 
-	std::cout << "command: " << args.command << " parameter: " << args.parameter << std::endl;
 	if(args.command == SUMMARIZE)
 		summarize(args);
 	return 0;
