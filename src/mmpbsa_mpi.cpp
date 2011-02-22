@@ -243,7 +243,7 @@ void sort_this(std::set<std::pair<int,mmpbsa_utils::XMLNode *>,xml_sorter >& sor
 void mmpbsa_utils::mpi_dump_data(mmpbsa_utils::XMLNode* data_list,const std::string& filename)
 {
 	using namespace std;
-	if(data_list == 0)
+	if(data_list == 0 || filename.size() == 0)
 		return;
 	fstream output(filename.c_str(),std::ios::out | std::ios::app);
 	if(!output.good())
