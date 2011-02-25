@@ -1,4 +1,4 @@
-bin_PROGRAMS = mmpbsa mmpbsa_graphics #mmpbsa_analyzer
+bin_PROGRAMS = mmpbsa mmpbsa_graphics mmpbsa_analyzer
 mmpbsa_CPPFLAGS = $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ -I./libmmpbsa $(BOINC_CPPFLAGS) $(GRAPHICS_CPPFLAGS)
 mmpbsa_LDFLAGS = $(CUSTOM_LDFLAGS) -L$(MEAD_PATH)/lib  -L./libmmpbsa -L./molsurf $(BOINC_LDFLAGS) $(GRAPHICS_LDFLAGS) 
 mmpbsa_LDADD = -lmmpbsa -lmolsurf -lmead $(BOINC_LIBS) $(GRAPHICS_FLAGS) $(XML_LIBS) $(CUSTOM_LIBS)
@@ -25,6 +25,10 @@ if BUILD_WITH_GROMACS
 mmpbsa_CPPFLAGS += -I $(GROMACS_PATH)/include/ 
 mmpbsa_LDFLAGS += -L$(GROMACS_PATH)/lib
 mmpbsa_LDADD += -lxml2 -lgmx_d -lgmxpreprocess_d -lpthread -ldl
+
+mmpbsa_analyzer_CPPFLAGS += -I $(GROMACS_PATH)/include/ 
+mmpbsa_analyzer_LDFLAGS += -L$(GROMACS_PATH)/lib
+mmpbsa_analyzer_LDADD += -lxml2 -lgmx_d -lgmxpreprocess_d -lpthread -ldl
 endif
 
 if BUILD_WITH_MPI
