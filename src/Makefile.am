@@ -1,4 +1,4 @@
-bin_PROGRAMS = mmpbsa mmpbsa_graphics mmpbsa_analyzer
+bin_PROGRAMS = mmpbsa mmpbsa_graphics #mmpbsa_analyzer
 mmpbsa_CPPFLAGS = $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ -I./libmmpbsa $(BOINC_CPPFLAGS) $(GRAPHICS_CPPFLAGS)
 mmpbsa_LDFLAGS = $(CUSTOM_LDFLAGS) -L$(MEAD_PATH)/lib  -L./libmmpbsa -L./molsurf $(BOINC_LDFLAGS) $(GRAPHICS_LDFLAGS) 
 mmpbsa_LDADD = -lmmpbsa -lmolsurf -lmead $(BOINC_LIBS) $(GRAPHICS_FLAGS) $(XML_LIBS) $(CUSTOM_LIBS)

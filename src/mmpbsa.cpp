@@ -318,7 +318,7 @@ void get_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t** split_
 #ifdef USE_GROMACS
 	if(!has_filename(MMPBSA_TOPOLOGY_TYPE,currState))
 		throw mmpbsa::MMPBSAException("get_forcefield: no parmtop file.",mmpbsa::BROKEN_PRMTOP_FILE);
-	std::string filename = get_filename(SANDER_PRMTOP_TYPE,currState);
+	std::string filename = get_filename(MMPBSA_TOPOLOGY_TYPE,currState);
 	if(filename.find(".tpr") != std::string::npos)
 	{
 		mmpbsa_io::get_gromacs_forcefield(filename.c_str(),split_ff,atom_lists,mol_list);

@@ -734,6 +734,13 @@ bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbs
 
 void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos)
 {
+#ifdef USE_GROMACS
+	if(traj.gromacs_filename != 0)
+	{
+		traj.curr_snap = snap_pos;
+		return;
+	}
+#endif
 	size_t i = traj.curr_snap;
 	using std::fstream;using std::iostream;
 	iostream* sander_file = traj.sander_crd_stream;
@@ -830,6 +837,10 @@ bool mmpbsa_io::eof(trajectory_t& traj)
 	using std::ifstream;
 	if(traj.sander_crd_stream == 0)
 	{
+#ifdef USE_GROMACS
+		if(traj.gromacs_filename != 0)
+			return mmpbsa_io::gmx_trr_eof(*traj.gromacs_filename,traj.curr_snap);
+#endif
 		ifstream::streampos eof;
 		if(traj.sander_filename == 0)
 			throw mmpbsa::MMPBSAException("mmpbsa_io::eof: No trajectory file provided.",mmpbsa::NULL_POINTER);
@@ -841,10 +852,6 @@ bool mmpbsa_io::eof(trajectory_t& traj)
 		sander_file.seekg(traj.curr_pos,sander_file.beg);
 		return (traj.curr_pos >= eof);
 	}
-#ifdef USE_GROMACS
-		if(traj.gromacs_filename != 0)
-			return mmpbsa_io::gmx_trr_eof(*traj.gromacs_filename,traj.curr_snap);
-#endif
 	return traj.sander_crd_stream->eof();
 }
 

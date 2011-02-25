@@ -34,8 +34,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = mmpbsa$(EXEEXT) mmpbsa_graphics$(EXEEXT) \
-	mmpbsa_analyzer$(EXEEXT)
+bin_PROGRAMS = mmpbsa$(EXEEXT) mmpbsa_graphics$(EXEEXT)
 @BUILD_WITH_GZIP_TRUE@am__append_1 = -lz
 @BUILD_WITH_GROMACS_TRUE@am__append_2 = -I $(GROMACS_PATH)/include/ 
 @BUILD_WITH_GROMACS_TRUE@am__append_3 = -L$(GROMACS_PATH)/lib
@@ -58,9 +57,6 @@ am__mmpbsa_SOURCES_DIST = mmpbsa.cpp mmpbsa_mpi.cpp
 am_mmpbsa_OBJECTS = mmpbsa-mmpbsa.$(OBJEXT) $(am__objects_1)
 mmpbsa_OBJECTS = $(am_mmpbsa_OBJECTS)
 am__DEPENDENCIES_1 =
-am_mmpbsa_analyzer_OBJECTS =  \
-	mmpbsa_analyzer-mmpbsa_analyzer.$(OBJEXT)
-mmpbsa_analyzer_OBJECTS = $(am_mmpbsa_analyzer_OBJECTS)
 am_mmpbsa_graphics_OBJECTS =  \
 	mmpbsa_graphics-mmpbsa_graphics.$(OBJEXT) \
 	mmpbsa_graphics-mmpbsa_gutil.$(OBJEXT)
@@ -75,10 +71,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(mmpbsa_SOURCES) $(mmpbsa_analyzer_SOURCES) \
-	$(mmpbsa_graphics_SOURCES)
-DIST_SOURCES = $(am__mmpbsa_SOURCES_DIST) $(mmpbsa_analyzer_SOURCES) \
-	$(mmpbsa_graphics_SOURCES)
+SOURCES = $(mmpbsa_SOURCES) $(mmpbsa_graphics_SOURCES)
+DIST_SOURCES = $(am__mmpbsa_SOURCES_DIST) $(mmpbsa_graphics_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -258,9 +252,6 @@ clean-binPROGRAMS:
 mmpbsa$(EXEEXT): $(mmpbsa_OBJECTS) $(mmpbsa_DEPENDENCIES) 
 	@rm -f mmpbsa$(EXEEXT)
 	$(CXXLINK) $(mmpbsa_LDFLAGS) $(mmpbsa_OBJECTS) $(mmpbsa_LDADD) $(LIBS)
-mmpbsa_analyzer$(EXEEXT): $(mmpbsa_analyzer_OBJECTS) $(mmpbsa_analyzer_DEPENDENCIES) 
-	@rm -f mmpbsa_analyzer$(EXEEXT)
-	$(CXXLINK) $(mmpbsa_analyzer_LDFLAGS) $(mmpbsa_analyzer_OBJECTS) $(mmpbsa_analyzer_LDADD) $(LIBS)
 mmpbsa_graphics$(EXEEXT): $(mmpbsa_graphics_OBJECTS) $(mmpbsa_graphics_DEPENDENCIES) 
 	@rm -f mmpbsa_graphics$(EXEEXT)
 	$(CXXLINK) $(mmpbsa_graphics_LDFLAGS) $(mmpbsa_graphics_OBJECTS) $(mmpbsa_graphics_LDADD) $(LIBS)
@@ -273,7 +264,6 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmpbsa-mmpbsa.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmpbsa-mmpbsa_mpi.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmpbsa_analyzer-mmpbsa_analyzer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmpbsa_graphics-mmpbsa_graphics.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmpbsa_graphics-mmpbsa_gutil.Po@am__quote@
 
@@ -318,20 +308,6 @@ mmpbsa-mmpbsa_mpi.obj: mmpbsa_mpi.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mmpbsa_mpi.cpp' object='mmpbsa-mmpbsa_mpi.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mmpbsa-mmpbsa_mpi.obj `if test -f 'mmpbsa_mpi.cpp'; then $(CYGPATH_W) 'mmpbsa_mpi.cpp'; else $(CYGPATH_W) '$(srcdir)/mmpbsa_mpi.cpp'; fi`
-
-mmpbsa_analyzer-mmpbsa_analyzer.o: mmpbsa_analyzer.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_analyzer_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mmpbsa_analyzer-mmpbsa_analyzer.o -MD -MP -MF "$(DEPDIR)/mmpbsa_analyzer-mmpbsa_analyzer.Tpo" -c -o mmpbsa_analyzer-mmpbsa_analyzer.o `test -f 'mmpbsa_analyzer.cpp' || echo '$(srcdir)/'`mmpbsa_analyzer.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/mmpbsa_analyzer-mmpbsa_analyzer.Tpo" "$(DEPDIR)/mmpbsa_analyzer-mmpbsa_analyzer.Po"; else rm -f "$(DEPDIR)/mmpbsa_analyzer-mmpbsa_analyzer.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mmpbsa_analyzer.cpp' object='mmpbsa_analyzer-mmpbsa_analyzer.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_analyzer_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mmpbsa_analyzer-mmpbsa_analyzer.o `test -f 'mmpbsa_analyzer.cpp' || echo '$(srcdir)/'`mmpbsa_analyzer.cpp
-
-mmpbsa_analyzer-mmpbsa_analyzer.obj: mmpbsa_analyzer.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_analyzer_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mmpbsa_analyzer-mmpbsa_analyzer.obj -MD -MP -MF "$(DEPDIR)/mmpbsa_analyzer-mmpbsa_analyzer.Tpo" -c -o mmpbsa_analyzer-mmpbsa_analyzer.obj `if test -f 'mmpbsa_analyzer.cpp'; then $(CYGPATH_W) 'mmpbsa_analyzer.cpp'; else $(CYGPATH_W) '$(srcdir)/mmpbsa_analyzer.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/mmpbsa_analyzer-mmpbsa_analyzer.Tpo" "$(DEPDIR)/mmpbsa_analyzer-mmpbsa_analyzer.Po"; else rm -f "$(DEPDIR)/mmpbsa_analyzer-mmpbsa_analyzer.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mmpbsa_analyzer.cpp' object='mmpbsa_analyzer-mmpbsa_analyzer.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_analyzer_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mmpbsa_analyzer-mmpbsa_analyzer.obj `if test -f 'mmpbsa_analyzer.cpp'; then $(CYGPATH_W) 'mmpbsa_analyzer.cpp'; else $(CYGPATH_W) '$(srcdir)/mmpbsa_analyzer.cpp'; fi`
 
 mmpbsa_graphics-mmpbsa_graphics.o: mmpbsa_graphics.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_graphics_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mmpbsa_graphics-mmpbsa_graphics.o -MD -MP -MF "$(DEPDIR)/mmpbsa_graphics-mmpbsa_graphics.Tpo" -c -o mmpbsa_graphics-mmpbsa_graphics.o `test -f 'mmpbsa_graphics.cpp' || echo '$(srcdir)/'`mmpbsa_graphics.cpp; \
