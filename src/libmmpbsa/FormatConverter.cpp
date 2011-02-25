@@ -86,15 +86,9 @@ void gromacs_adjust_start_indices(std::map<t_functype,size_t>& start_indices,con
 	}
 }
 
-/**
- * Sets up the forcefield data.
- *
- * mol_list is created as a mask for atom_lists, as to whether an atom is in the Receptor or ligand
- *
- * It is assumed that the first molblock is the receptor and the rest are ligand, except for those named "SOL"
- * This should be changed.
- */
-void mmpbsa_io::get_gromacs_forcefield(const char* fn,mmpbsa::forcefield_t** split_ff,std::vector<mmpbsa::atom_t>** atom_lists, std::valarray<mmpbsa::MMPBSAState::MOLECULE>& mol_list)
+void mmpbsa_io::get_gromacs_forcefield(const char* fn,mmpbsa::forcefield_t** split_ff,std::vector<mmpbsa::atom_t>** atom_lists,
+		std::valarray<mmpbsa::MMPBSAState::MOLECULE>& mol_list,
+		const std::set<size_t>* receptor_pos, const std::set<size_t>* ligand_pos)
 {
 	using namespace mmpbsa;
 	mmpbsa_io::gromacs_idx_offsets offsets;
@@ -218,23 +212,25 @@ void mmpbsa_io::get_gromacs_forcefield(const char* fn,mmpbsa::forcefield_t** spl
 			//load molecule data
 			for(size_t mol_block = 0;mol_block <mtop.nmolblock;mol_block++)
 			{
-				if(mtop.moltype[mtop.molblock[mol_block].type].name != 0 && (strcmp(*mtop.moltype[mtop.molblock[mol_block].type].name,"SOL") == 0/* || strcmp(*mtop.moltype[mtop.molblock[mol_block].type].name,"CL") == 0*/))// NO SOLVENTS!!!
+				if(mtop.moltype[mtop.molblock[mol_block].type].name != 0 && (strcmp(*mtop.moltype[mtop.molblock[mol_block].type].name,"SOL") == 0))// NO SOLVENTS!!!
 					continue;
 				for(size_t ith_mol_block = 0;ith_mol_block<mtop.molblock[mol_block].nmol;ith_mol_block++)
 				{
 					gmx_moltype_t& mol = mtop.moltype[mtop.molblock[mol_block].type];
 					forcefield_t * curr_field;
 					std::vector<mmpbsa::atom_t>* curr_atom_list;
-					if(mol_block == 0)
+					if((receptor_pos != 0 && receptor_pos->size() != 0 && receptor_pos->find(mol_block) != receptor_pos->end()) || ((receptor_pos == 0 || receptor_pos->size() == 0) && mol_block == 0))
 					{
 						curr_field = &split_ff[0][MMPBSAState::RECEPTOR];
 						curr_atom_list = &atom_lists[0][MMPBSAState::RECEPTOR];
 					}
-					else
+					else if((ligand_pos != 0 && ligand_pos->size() != 0 && ligand_pos->find(mol_block) != ligand_pos->end()) || ((ligand_pos == 0 || ligand_pos->size() == 0) && mol_block > 0))
 					{
 						curr_field = &split_ff[0][MMPBSAState::LIGAND];
 						curr_atom_list = &atom_lists[0][MMPBSAState::LIGAND];
 					}
+					else
+						continue;
 
 					//load atom data
 					for(size_t atom_idx = 0;atom_idx<mol.atoms.nr;atom_idx++)

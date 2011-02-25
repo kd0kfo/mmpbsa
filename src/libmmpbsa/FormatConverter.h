@@ -16,13 +16,16 @@
 
 namespace mmpbsa_io{
 
-void get_gromacs_forcefield(const char* fn,mmpbsa::forcefield_t** split_ff,std::vector<mmpbsa::atom_t>** atom_lists, std::valarray<mmpbsa::MMPBSAState::MOLECULE>& mol_list);
-
-#if 0 // probably want to get rid of these
-mmpbsa::SanderParm* gmxtpr2parmtop(const std::string& filename);
-mmpbsa::SanderParm* gmxtpr2parmtop(std::iostream& gmxtop);
-mmpbsa::SanderParm* gmxtpr2parmtop(const char* fn);
-#endif
+/**
+ * Sets up the forcefield data.
+ *
+ * mol_list is created as a mask for atom_lists, as to whether an atom is in the Receptor or ligand
+ *
+ * If the receptor and ligand starting position sets are null or empty,
+ * it is assumed that the first molblock is the receptor and the reset are ligand, except those named SOL.
+ *
+ */
+void get_gromacs_forcefield(const char* fn,mmpbsa::forcefield_t** split_ff,std::vector<mmpbsa::atom_t>** atom_lists, std::valarray<mmpbsa::MMPBSAState::MOLECULE>& mol_list,const std::set<size_t>* receptor_pos = 0, const std::set<size_t>* ligand_pos = 0);
 
 }//end namespace mmpbsa_io
 

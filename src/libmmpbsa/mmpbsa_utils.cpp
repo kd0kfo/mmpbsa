@@ -9,7 +9,25 @@ int mmpbsa_utils::loadListArg(const std::string& values,std::vector<size_t>& arr
     {
         std::istringstream curr(valTokens.nextToken());
         curr >> currValue;
+        if(curr.fail())
+        	throw mmpbsa::MMPBSAException("mmpbsa_utils::loadListArg<std::vector>: Invalid value for size_t");
         array.push_back(size_t(currValue) - offset);
+    }
+    return 0;
+}
+
+int mmpbsa_utils::loadListArg(const std::string& values,std::set<size_t>& array, const size_t& offset)
+{
+    using mmpbsa_utils::StringTokenizer;
+    StringTokenizer valTokens(values,",");
+    int currValue = 0;
+    while(valTokens.hasMoreTokens())
+    {
+        std::istringstream curr(valTokens.nextToken());
+        curr >> currValue;
+        if(curr.fail())
+        	throw mmpbsa::MMPBSAException("mmpbsa_utils::loadListArg<std::set>: Invalid value for size_t");
+        array.insert(size_t(currValue) - offset);
     }
     return 0;
 }

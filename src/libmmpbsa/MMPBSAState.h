@@ -33,8 +33,8 @@ namespace mmpbsa{
 class MMPBSAState
 {
 public:
-    std::vector<size_t> receptorStartPos;///<Starting positions for receptors. End positions are deduced from the parmtop file.
-    std::vector<size_t> ligandStartPos;///<Starting positions for ligands. End positions are deduced from the parmtop file.
+    std::set<size_t> receptorStartPos;///<Starting positions for receptors. End positions are deduced from the parmtop file.
+    std::set<size_t> ligandStartPos;///<Starting positions for ligands. End positions are deduced from the parmtop file.
     std::vector<size_t> snapList;///<List of snapshots to be used in the calculations. If the list is empty, all snapshots are used.
 
     std::map<std::string,std::string> filename_map;///<Maps a file type flag (cf Amber Manual, Sander Section) to the filename

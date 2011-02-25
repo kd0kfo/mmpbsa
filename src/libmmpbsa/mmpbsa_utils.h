@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cctype>
 #include <vector>
+#include <set>
 #include <valarray>
 #include <map>
 #include <algorithm>
@@ -51,6 +52,16 @@ namespace mmpbsa_utils {
      * @param array
      */
     int loadListArg(const std::string& values,std::vector<size_t>& array, const size_t& offset = 0);
+
+    /**
+     * When a parameter has a list of variables (separated by commas), this method
+     * tokenizes that list and loades it into the array, in left to right order.
+     * Works exactly like vector version of loadListArg.
+     *
+     * @param values
+     * @param array
+     */
+    int loadListArg(const std::string& values,std::set<size_t>& array, const size_t& offset);
 
     /**
      * Return center of interaction beetween two atom coordinate sets.

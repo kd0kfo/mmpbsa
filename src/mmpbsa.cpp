@@ -246,25 +246,25 @@ void get_sander_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t**
     size_t ligandSize = 0;
 
     //Prepare a list of the beginnings and ends of receptors and ligands
-    for(size_t i = 0;i<currState.receptorStartPos.size();i++)
+    for(std::set<size_t>::const_iterator currPos = currState.receptorStartPos.begin();
+    		currPos != currState.receptorStartPos.end();currPos++)
     {
-        size_t currPos = currState.receptorStartPos[i];
-        bottom = entireEFun.mol_ranges[2*currPos];
-        top = entireEFun.mol_ranges[2*currPos+1];
+        bottom = entireEFun.mol_ranges[2* *currPos];
+        top = entireEFun.mol_ranges[2* *currPos+1];
         valarray<bool> currReceptor(true,top-bottom);
         complexKeepers[slice(bottom,top-bottom,1)] = currReceptor;
         receptorKeepers[slice(bottom,top-bottom,1)] = currReceptor;
         receptorSize += top-bottom;
     }
-    for(size_t i = 0;i<currState.ligandStartPos.size();i++)
+    for(std::set<size_t>::const_iterator currPos = currState.ligandStartPos.begin();
+    		currPos != currState.ligandStartPos.end();currPos++)
     {
-        size_t currPos = currState.ligandStartPos[i];
-        bottom = entireEFun.mol_ranges[2*currPos];
-        top = entireEFun.mol_ranges[2*currPos+1];
-        valarray<bool> currLigand(true,top-bottom);
-        complexKeepers[slice(bottom,top-bottom,1)] = currLigand;
-        ligandKeepers[slice(bottom,top-bottom,1)] = currLigand;
-        ligandSize += top-bottom;
+    	bottom = entireEFun.mol_ranges[2* *currPos];
+    	top = entireEFun.mol_ranges[2* *currPos+1];
+    	valarray<bool> currLigand(true,top-bottom);
+    	complexKeepers[slice(bottom,top-bottom,1)] = currLigand;
+    	ligandKeepers[slice(bottom,top-bottom,1)] = currLigand;
+    	ligandSize += top-bottom;
     }
     size_t complexSize = receptorSize+ligandSize;
 
@@ -321,7 +321,10 @@ void get_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t** split_
 	std::string filename = get_filename(MMPBSA_TOPOLOGY_TYPE,currState);
 	if(filename.find(".tpr") != std::string::npos)
 	{
-		mmpbsa_io::get_gromacs_forcefield(filename.c_str(),split_ff,atom_lists,mol_list);
+		std::set<size_t> *receptor_start,*ligand_start;
+		receptor_start = (currState.receptorStartPos.size()) ? &currState.receptorStartPos : 0;
+		ligand_start = (currState.ligandStartPos.size()) ? &currState.ligandStartPos : 0;
+		mmpbsa_io::get_gromacs_forcefield(filename.c_str(),split_ff,atom_lists,mol_list,receptor_start,ligand_start);
 		return;
 	}
 #endif
@@ -827,8 +830,8 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
     using mmpbsa_utils::loadListArg;
     std::string resolved_filename;
     int returnMe = 0;
-    currState.receptorStartPos.push_back(0);//in case these are not set manually by the use. This is the default.
-    currState.ligandStartPos.push_back(1);
+    currState.receptorStartPos.insert(0);//in case these are not set manually by the use. This is the default.
+    currState.ligandStartPos.insert(1);
     for(std::map<std::string,std::string>::const_iterator it = args.begin();it != args.end();it++)
     {
         if (it->second.find("=") != string::npos)
