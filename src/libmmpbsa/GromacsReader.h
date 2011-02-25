@@ -78,6 +78,11 @@ void load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>& crds,size
  */
 bool gmx_trr_eof(const std::string& filename,size_t frame_number);
 
+/*
+ *
+ */
+size_t total_gmx_trr_frames(const std::string& filename);
+
 //void gmxfile_index(std::iostream& ascii_file);
 
 std::vector<size_t> allowed_gmx_energies();

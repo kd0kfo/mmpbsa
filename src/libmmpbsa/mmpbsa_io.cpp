@@ -787,6 +787,7 @@ void mmpbsa_io::default_trajectory(mmpbsa_io::trajectory_t& traj)
 	traj.ifbox = 0;
 
 	traj.gromacs_filename = 0;
+	traj.num_gmx_frames = 0;
 	traj.curr_snap = 0;
 }
 
@@ -808,6 +809,7 @@ mmpbsa_io::trajectory_t mmpbsa_io::open_trajectory(const std::string& filename,c
 	if(filename.find(".trr") != std::string::npos)
 	{
 		returnMe.gromacs_filename = new std::string(filename);
+		returnMe.num_gmx_frames = mmpbsa_io::total_gmx_trr_frames(filename);
 		return returnMe;
 	}
 #endif
@@ -839,7 +841,7 @@ bool mmpbsa_io::eof(trajectory_t& traj)
 	{
 #ifdef USE_GROMACS
 		if(traj.gromacs_filename != 0)
-			return mmpbsa_io::gmx_trr_eof(*traj.gromacs_filename,traj.curr_snap);
+			return traj.curr_snap >= traj.num_gmx_frames;
 #endif
 		ifstream::streampos eof;
 		if(traj.sander_filename == 0)
@@ -876,7 +878,9 @@ std::string mmpbsa_io::get_traj_title(mmpbsa_io::trajectory_t& traj)
 		return returnMe;
 	}
 	else if(traj.gromacs_filename != 0)
+	{
 		return *traj.gromacs_filename;
+	}
 
 	throw mmpbsa::MMPBSAException("mmpbsa_io::get_traj_title: no trajectory provided.",mmpbsa::DATA_FORMAT_ERROR);
 

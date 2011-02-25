@@ -78,6 +78,7 @@ typedef struct {
 
 	//for gromacs trajectories
 	std::string* gromacs_filename;
+	size_t num_gmx_frames;
 }trajectory_t;
 
 }//mmpbsa_io namespace

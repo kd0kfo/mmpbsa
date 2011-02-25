@@ -74,6 +74,41 @@ void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>
 	  sfree(x);
 }
 
+
+size_t mmpbsa_io::total_gmx_trr_frames(const std::string& filename)
+{
+	t_fileio    *fpread/* ,*fpwrite */;
+	size_t         nframe/*,indent*/;
+	rvec        *x,*v,*f;
+	matrix      box;
+	t_trnheader trn;
+	gmx_bool        bOK;
+	size_t natoms;
+	static mmpbsa_t nm2angst = 10;
+
+	if(filename.size() == 0)
+		throw mmpbsa::MMPBSAException("mmpbsa_io::load_gmx_trr: File name required.");
+
+	fpread  = open_trn(filename.c_str(),"r");
+	//fpwrite = open_tpx(NULL,"w");
+	//gmx_fio_setdebug(fpwrite,TRUE);
+
+	nframe = 0;
+	natoms = 0;
+	x = 0;
+	while (fread_trnheader(fpread,&trn,&bOK)) {
+		if (!fread_htrn(fpread,&trn,NULL,NULL, NULL,NULL))
+			std::cerr << "mmpbsa_io::load_gmx_trr: WARNING: Incomplete frame: nr " << nframe << ", t=" << trn.t << std::endl;
+		nframe++;
+	}
+	if (!bOK)
+		std::cerr << "mmpbsa_io::load_gmx_trr: WARNING: Incomplete frame header: nr " << nframe << ", t=" << trn.t << std::endl;
+
+	close_trn(fpread);
+	return nframe;
+}
+
+#if 0
 bool mmpbsa_io::gmx_trr_eof(const std::string& filename,size_t frame_number)
 {
 	std::valarray<mmpbsa_t> crds;
@@ -89,6 +124,8 @@ bool mmpbsa_io::gmx_trr_eof(const std::string& filename,size_t frame_number)
 		throw mmpbsae;
 	}
 }
+#endif
+
 
 std::vector<size_t> mmpbsa_io::allowed_gmx_energies()
 {
