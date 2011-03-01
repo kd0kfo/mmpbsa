@@ -313,6 +313,7 @@ bool should_calculate_snapshot(const size_t& currentSnap, const std::vector<size
 
 }
 
+
 void get_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t** split_ff,std::vector<mmpbsa::atom_t>** atom_lists, std::valarray<mmpbsa::MMPBSAState::MOLECULE>& mol_list,mmpbsa_io::trajectory_t& trajfile)
 {
 #ifdef USE_GROMACS

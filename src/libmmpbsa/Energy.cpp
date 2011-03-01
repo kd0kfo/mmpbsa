@@ -11,7 +11,7 @@ mmpbsa_t mmpbsa::bond_energy_calc(const std::vector<bond_t>& bonds,const std::va
     mmpbsa_t totalEnergy = 0;
     mmpbsa_t ix,iy,iz,jx,jy,jz,disp;//disp = displacement
     std::vector<bond_t>::const_iterator bond;
-  for(bond = bonds.begin();bond != bonds.end();bond++)
+   for(bond = bonds.begin();bond != bonds.end();bond++)
     {
         ix = crds[3*bond->atom_i];iy = crds[3*bond->atom_i+1];iz = crds[3*bond->atom_i+2];
         jx = crds[3*bond->atom_j];jy = crds[3*bond->atom_j+1];jz = crds[3*bond->atom_j+2];
@@ -69,8 +69,6 @@ mmpbsa_t mmpbsa::dihedral_energy_calc(const std::vector<dihedral_t>& dihedrals, 
 
     totalEnergy = 0;
 
-
-
     std::vector<dihedral_t>::const_iterator dihedral;
     for(dihedral = dihedrals.begin();dihedral != dihedrals.end();dihedral++)
     {
@@ -127,7 +125,6 @@ mmpbsa_t mmpbsa::dihedral_energy_calc(const std::vector<dihedral_t>& dihedrals, 
         const mmpbsa_t& dihedral_constant = dihedral->dihedral_energy->energy_const;
         const mmpbsa_t& phase = dihedral->dihedral_energy->phase;
         totalEnergy += dihedral_constant * (1+cos(nphi)*cos(phase)+sin(nphi)*sin(phase));
-
 
         delete [] d;
         delete [] g;
@@ -191,7 +188,7 @@ mmpbsa_t mmpbsa::elstat14_energy_calc(const std::vector<dihedral_t>& dihedrals, 
             q_i = atoms.at(dihedral->atom_i).charge;
             q_l = atoms.at(dihedral->atom_l).charge;
             totalEnergy += (inv_scee/dielc)*q_i*q_l/sqrt(rsqrd);//Ah, Coulomb's law :-)
-        }
+             }
     }
     return totalEnergy;
 }

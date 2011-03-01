@@ -91,7 +91,7 @@
 /* #undef USE_JPEGLIB */
 
 /* Define to compile with MPI. */
-#define USE_MPI 1
+/* #undef USE_MPI */
 
 /* Define to use pthreads for multithread MMPBSA calculations. (Has no effect
    on MD). */

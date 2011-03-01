@@ -29,6 +29,7 @@ void get_gromacs_forcefield(const char* fn,mmpbsa::forcefield_t** split_ff,std::
 
 }//end namespace mmpbsa_io
 
+void dump_forcefield(std::vector<mmpbsa::atom_t>* atoms, mmpbsa::forcefield_t* ff,const char* filename);
 
 #endif // TRAJECTORYREADER_H
 
