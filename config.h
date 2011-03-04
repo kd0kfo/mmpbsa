@@ -60,13 +60,13 @@
 #define PACKAGE_NAME "mmpbsa"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "mmpbsa 0.11.1"
+#define PACKAGE_STRING "mmpbsa 0.11.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "mmpbsa"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.11.1"
+#define PACKAGE_VERSION "0.11.2"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -82,7 +82,7 @@
 
 /* Define to compile with gromacs to read gromacs topology and trajectory
    files. */
-#define USE_GROMACS 1
+/* #undef USE_GROMACS */
 
 /* Define to compile with libz and use GZIP. Requires libz. */
 #define USE_GZIP 1
@@ -95,10 +95,10 @@
 
 /* Define to use pthreads for multithread MMPBSA calculations. (Has no effect
    on MD). */
-#define USE_PTHREADS 1
+/* #undef USE_PTHREADS */
 
 /* Version number of package */
-#define VERSION "0.11.1"
+#define VERSION "0.11.2"
 
 /* Define to prevent the use of molsurf, i.e. on Mac without proper signal.h
    */

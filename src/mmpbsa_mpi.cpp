@@ -146,6 +146,9 @@ int mmpbsa_utils::mpi_write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, co
 	}
 }
 
+
+#if 0//deprecated
+
 void mmpbsa_utils::mpi_finish_output(const int& mpi_rank,const int& mpi_size,const std::string& mmpbsa_output_filename)
 {
 	if(mpi_rank != 0 || mpi_size == 1)
@@ -158,8 +161,6 @@ void mmpbsa_utils::mpi_finish_output(const int& mpi_rank,const int& mpi_size,con
 	output << "</" << MMPBSA_XML_TITLE << ">" << std::endl;
 	output.close();
 }
-
-#if 0//deprecated
 int mpi_mmpbsa_sorter(mmpbsa_utils::XMLNode  *test_element, mmpbsa_utils::XMLNode  *partition_element)
 {
 	std::string te_ID,pe_ID;

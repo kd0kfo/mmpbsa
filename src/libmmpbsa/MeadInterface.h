@@ -14,6 +14,7 @@
 #include <algorithm>
 
 //mmpbsa stuff
+#include "globals.h"
 #include "mmpbsa_utils.h"
 #include "mmpbsa_exceptions.h"
 #include "EMap.h"
@@ -134,21 +135,23 @@ public:
     		const std::map<std::string,std::string>& residueMap,
     		const mmpbsa_t& interactionStrength = 0.0, const mmpbsa_t& exclusionRadius = 2.0) throw (mmpbsa::MeadException);
 
-    //mmpbsa_t bondi_lookup(const std::string& atomName)const;
 
     mmpbsa_t istrength;
-    mmpbsa_t surf_tension;// kcal/mol/Ang^2
-    mmpbsa_t surf_offset;// kcal/mol
+    mmpbsa_t surf_tension;///<kcal/mol/Ang^2
+    mmpbsa_t surf_offset;///<kcal/mol
 
-    //offset used to recombine snaplist segments.
-    //Snap list are counted in order of appearance in the trajectory file.
-    //To ensure that multiple MMPBSA calculation can be combined in the correct order,
-    //an offset may be used to be added to the snap shot's index when recombining results.
+    /**
+     *
+     * offset used to recombine snaplist segments.
+     * Snap list are counted in order of appearance in the trajectory file.
+     * To ensure that multiple MMPBSA calculation can be combined in the correct order,
+     * an offset may be used to be added to the snap shot's index when recombining results.
+     */
     int snap_list_offset;
 
-    std::map<std::string,float> brad;
+    std::map<std::string,mead_data_t> brad;///<Lookup table for default radius values
 
-    int multithread;//used to indicate number of threads to be used in MMPBSA calculations. Default = 1
+    int multithread;///<used to indicate number of threads to be used in MMPBSA calculations. Default = 1
     
 };
 

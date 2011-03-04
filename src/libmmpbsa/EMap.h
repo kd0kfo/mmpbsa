@@ -1,3 +1,17 @@
+/**
+ * @class mmpbsa::EMap
+ * @brief Energy Abstraction class.
+ *
+ * EMap abstracts the energy data into one object, allowing calculations
+ * to be performed on the energy data, including gathering statistics
+ * and finding free energy. Using Emap, all of the data can be treated
+ * as one mathematical object on which arithmetic can be performed, including
+ * square root.
+ *
+ * Created by David Coss <David.Coss@stjude.org> 2010
+ */
+
+
 #ifndef EMAP_H
 #define EMAP_H
 
@@ -7,7 +21,6 @@
 
 #include <valarray>
 #include <sstream>
-#include "mmpbsa_utils.h"
 #include "EmpEnerFun.h"
 
 namespace mmpbsa{
@@ -102,21 +115,36 @@ public:
      */
     static EMap loadXML(const mmpbsa_utils::XMLNode* xmlEnergy);
 
+    /**
+     * Gives the net electrostatic energy, which is the sum of ele14 and vacele.
+     */
     mmpbsa_t total_elec_energy(){return ele14 + vacele;}
+
+    /**
+     * Gives the net Van der Waals energy, which is the sum: vdw14 + vdwaals.
+     */
     mmpbsa_t total_vdw_energy(){return vdw14 + vdwaals;}
+
+    /**
+     * Gives the net internal energy, which is the sum: angle + bond + dihed
+     */
     mmpbsa_t total_internal_energy(){return angle + bond + dihed;}
+
+    /**
+     * Gives the total gas energy, which is the sum: total_elec_energy() + total_vdw_energy() + total_internal_energy()
+     */
     mmpbsa_t total_gas_energy(){return total_elec_energy() + total_vdw_energy() + total_internal_energy();}
 
-    mmpbsa_t bond;
-    mmpbsa_t angle;
-    mmpbsa_t dihed;
-    mmpbsa_t vdw14;
-    mmpbsa_t ele14;
-    mmpbsa_t vdwaals;
-    mmpbsa_t vacele;
-    mmpbsa_t elstat_solv;
-    mmpbsa_t area;
-    mmpbsa_t sasol;
+    mmpbsa_t bond;///<Bond Energy
+    mmpbsa_t angle;///<Angle Energy
+    mmpbsa_t dihed;///<Dihedral Energy
+    mmpbsa_t vdw14;///<Van der Waals Energy between 1st and 4th atom in dihedral
+    mmpbsa_t ele14;///<Electrostatic Energy between 1st and 4th atom in dihedral
+    mmpbsa_t vdwaals;///<Van der Walls Energy
+    mmpbsa_t vacele;///<Electrostatic Energy
+    mmpbsa_t elstat_solv;///<Electrostatic contribution to solvation energy.
+    mmpbsa_t area;///<Solvant Accessible Surface Area of Molecule
+    mmpbsa_t sasol;///<Surface area contribution to solvation energy.
 
 };
 

@@ -4,6 +4,10 @@
  *
  * Saves the state of the MD or MMPBSA calculation, which might
  * be needed to restart calculations.
+ *
+ * MMPBSAState stores all of the filenames for the program.
+ * This is done using a map of file types (c.f. globals.h)
+ * and file names.
  */
 #ifndef MMPBSASTATE_H
 #define MMPBSASTATE_H
@@ -12,21 +16,10 @@
 #include <string>
 #include <vector>
 
-#include "libmmpbsa/SanderInterface.h"
-#include "libmmpbsa/MeadInterface.h"
+#include "globals.h"
+#include "SanderInterface.h"
+#include "MeadInterface.h"
 
-#define SANDER_MDOUT_TYPE "mdout"
-#define SANDER_PRMTOP_TYPE "prmtop"
-#define MMPBSA_TOPOLOGY_TYPE "top"
-#define MMPBSA_OUT_TYPE "mmpbsa_out"
-#define RADII_TYPE "radii"
-#define SANDER_INPCRD_TYPE "inpcrd"
-#define MMPBSA_TRAJECTORY_TYPE "traj"
-#define CHECKPOINT_FILE_TYPE "checkpoint"
-
-//These tags are used to indicate the current state of the mdmmpbsa program
-#define MMPBSASTATE_TAG "mmpbsa_state"
-#define MDSTATE_TAG "moldyn_state"
 
 namespace mmpbsa{
 
@@ -77,7 +70,20 @@ public:
 
 }//namespace mmpbsa
 
+/**
+ * Determines whether the specified mmpbsa::MMPBSAState object has a
+ * a record of specific file type.
+ *
+ * @see const std::string& get_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state) throw (mmpbsa::MMPBSAException);
+ */
 bool has_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state);
+
+/**
+ * Returns a reference to the filename of the specific file type. If
+ * the file type is not listed in the mmpbsa::MMPBSAState object,
+ * an mmpbsa::MMPBSAException is thrown. This can be prevented
+ * if the object is first checked using, has_filename
+ */
 const std::string& get_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_state) throw (mmpbsa::MMPBSAException);
 
 

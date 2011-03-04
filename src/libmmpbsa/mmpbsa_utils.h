@@ -26,21 +26,9 @@
 #include <algorithm>
 #include <sys/time.h>
 
+#include "globals.h"
 #include "mmpbsa_exceptions.h"
 #include "StringTokenizer.h"
-
-#define MMPBSA_QUEUE_TITLE "grid_queue"
-#define MMPBSA_XML_TITLE "mmpbsa_energy"
-#define MMPBSA_PI 3.14159265358979323846
-#define MMPBSA_DEG_TO_RAD 0.0174532925199432957692
-#define MMPBSA_FORMAT std::setprecision(5)
-#define DEFAULT_SCNB 2.0
-#define DEFAULT_SCEE 1.2
-#define DEFAULT_DIELC 1.0
-#define CR_CHAR 0xd
-
-typedef double mmpbsa_t;
-
 
 namespace mmpbsa_utils {
 

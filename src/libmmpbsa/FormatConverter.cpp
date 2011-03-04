@@ -91,8 +91,9 @@ void dump_forcefield(std::vector<mmpbsa::atom_t>* atoms, mmpbsa::forcefield_t* f
 	using std::vector;
 	using namespace mmpbsa;
 
-	if(atoms == 0 && ff == 0)
+	if(atoms == 0 && ff == 0 && filename)
 		return;
+
 	std::fstream dump(filename,std::ios::out);
 	if(ff)
 	{

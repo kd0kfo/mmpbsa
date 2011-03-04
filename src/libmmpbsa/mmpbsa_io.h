@@ -118,17 +118,54 @@ void skip_next_snap(std::iostream& trajFile, const size_t& natoms,
  */
 std::string getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAException);
 
-
+/**
+ * Retrieves the next snapshot of the trajectory described by traj.
+ *
+ * Increments the trajectory_t data field, curr_snap.
+ */
 bool get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa_t>& snapshot);
 
+/**
+ * Skips ahead (or behind) to the specified snapshot/frame of the
+ * trajectory. No data is actually retrieved.
+ */
 void seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos);
 
+/**
+ * Initializes the trajectory structure, trajectory_t
+ *
+ * @see init(mmpbsa_io::trajectory_t*)
+ */
 void default_trajectory(mmpbsa_io::trajectory_t& traj);
+
+/**
+ * Looks into the specified file and determines which type of trajectory
+ * it is, e.g. Sander versus Gromacs, and setups a trajectory_t structure
+ * for it.
+ *
+ * Optionally, Sander data can be permanently stored in memory. This is *not*
+ * recommended for a large number of snapshots. This is mostly provied for
+ * the use compressed data.
+ */
 mmpbsa_io::trajectory_t open_trajectory(const std::string& filename,const bool& should_remain_in_memory = false);
+
+/**
+ * Destructor for a trajectory_t structure. Should be called for each
+ * trajectory_t structure, otherwise memory leaks could occur.
+ *
+ * @see destory(mmpbsa_io::trajectory_t*)
+ */
 void destroy_trajectory(mmpbsa_io::trajectory_t& traj);
 
+/**
+ * Determines whether or not the program has reached the end of
+ * the trajectory.
+ */
 bool eof(trajectory_t& traj);
 
+/**
+ * Retrieves the title of the trajectory.
+ */
 std::string get_traj_title(mmpbsa_io::trajectory_t& traj);
 
 
@@ -286,9 +323,22 @@ std::string pdbPad(const int& neededDigits,const int& currentNumber);
 
 }//end namespace mmpbsa_io
 
+/**
+ * Initializes a mmpbsa_io::trajectory_t structure
+ */
 void init(mmpbsa_io::trajectory_t* traj);
+
+/**
+ * Initializes a mmpbsa_io::trajectory_t structure.
+ * Needs to be called for each trajectory_t structure.
+ * Otherwise, memory could be leaked.
+ */
 void destroy(mmpbsa_io::trajectory_t* traj);
 
+/**
+ * Creates a PDB for the lsit of atoms in the given forcefield and
+ * streams it to the output stream.
+ */
 std::ostream& streamPDB(std::ostream& theStream, const std::vector<mmpbsa::atom_t>& atoms,const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds) throw (mmpbsa::MMPBSAException);
 
 #endif	//SANDERIO_H

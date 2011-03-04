@@ -204,7 +204,7 @@ mmpbsa_t mmpbsa::vdwaals_energy(const std::vector<atom_t>& atoms, const std::vec
 	mmpbsa_t x,y,z,rsqrd;
 
 	if(floor(sqrt(lj_params.size())) != ceil(sqrt(lj_params.size())))
-			throw mmpbsa::MMPBSAException("mmpbsa::vdwaals_energy: Lennard Jones parameter matrix must be a square matrix.",mmpbsa::DATA_FORMAT_ERROR);
+		throw mmpbsa::MMPBSAException("mmpbsa::vdwaals_energy: Lennard Jones parameter matrix must be a square matrix.",mmpbsa::DATA_FORMAT_ERROR);
 
  	natom = atoms.size();
 	ntypes = floor(sqrt(lj_params.size()));

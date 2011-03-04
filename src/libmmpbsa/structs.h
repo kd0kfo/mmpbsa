@@ -1,17 +1,25 @@
 #ifndef MMPBSA_STRUCTS_H
 #define MMPBSA_STRUCTS_H
 
+#include <iostream>
+#include <vector>
 #include <string>
 #include <set>
 
-#include "mmpbsa_utils.h"
+#include "globals.h"
 
 namespace mmpbsa{
 
+/**
+ * Lennard Jones Coefficients, using kcal and Angstrom energy units.
+ */
 typedef struct{
 	mmpbsa_t c6,c12;
 }lj_params_t;
 
+/**
+ * Atom data structure.
+ */
 typedef struct {
 	std::string name;///<Index into name array
 	int atomic_number;
@@ -20,27 +28,42 @@ typedef struct {
 	std::set<size_t> exclusion_list;
 }atom_t;
 
+/**
+ * Bond data structure
+ */
 typedef struct {
-	mmpbsa_t energy_const;///<Proportionality constant for bond energy.
-	mmpbsa_t eq_distance;///<Equilibrium distance.
+	mmpbsa_t energy_const;///<Proportionality constant for bond energy, in kcal.
+	mmpbsa_t eq_distance;///<Equilibrium distance, in Angstroms.
 }bond_energy_t;
 
+/**
+ * Structure of a bond pair.
+ */
 typedef struct {
 	size_t atom_i,atom_j;///<Indices of atoms for bond pairs
 	bond_energy_t* bond_energy;///<Pointer to bond's energy data.
 }bond_t;
 
+/**
+ * Structure for an angle triplet
+ */
 typedef struct {
 	size_t atom_i,atom_j,atom_k;///<Indices of atoms of angle triplets
 	bond_energy_t* angle_energy;///<Pointer to bond's energy data.
 }angle_t;
 
+/**
+ * Dihedral energy struture.
+ */
 typedef struct{
 	mmpbsa_t periodicity;
-	mmpbsa_t energy_const;
+	mmpbsa_t energy_const;///<Dihedral energy in kcal
 	mmpbsa_t phase;///<radians
 }dihedral_energy_t;
 
+/**
+ * Structure for dihedral triplet
+ */
 typedef struct {
 	size_t atom_i,atom_j,atom_k,atom_l;///<Indices of atoms of angle triplets
 	struct{mmpbsa_t c6,c12;}lj;///<Lennard Jones Parameters
@@ -48,7 +71,9 @@ typedef struct {
 	dihedral_energy_t* dihedral_energy;///<Pointer to bond's energy data.
 }dihedral_t;
 
-
+/**
+ * Forcefield structure.
+ */
 typedef struct {
 	//indices
 	std::vector<bond_t> bonds_with_H,bonds_without_H;
@@ -67,6 +92,16 @@ typedef struct {
 }//end namespace mmpbsa
 
 namespace mmpbsa_io{
+/**
+ * Trajectory data structure. Abstracts away the type of trajectory
+ * file.
+ *
+ * This structure maintains the information needs for moving through
+ * trajectory fields and retrieving data. When using the data
+ * structure, the user does not need to know what type of trajectory
+ * is being used. Methods operating on the structure handle the
+ * file type accordingly.
+ */
 typedef struct {
 	size_t curr_snap;
 	std::iostream::streampos curr_pos;
@@ -83,8 +118,16 @@ typedef struct {
 
 }//mmpbsa_io namespace
 
-
+/**
+ * Initializes the forcefield.
+ */
 void init(mmpbsa::forcefield_t* ff);
+
+/**
+ * Destroys the forcefield.
+ *
+ * This should be called for every force field to prevent memory leaks.
+ */
 void destroy(mmpbsa::forcefield_t* ff);
 
 

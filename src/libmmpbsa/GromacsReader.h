@@ -7,7 +7,7 @@
 #ifndef GROMACSREADER_H
 #define GROMACSREADER_H
 
-#include "mmpbsa_utils.h"
+#include "globals.h"
 
 #include <string>
 #include <valarray>
@@ -91,8 +91,15 @@ size_t& get_gmxfunct_offset(mmpbsa_io::gromacs_idx_offsets& offsets,const size_t
 
 }//end namespace mmpbsa_io
 
+/**
+ * Initializes the gromacs offset structure.
+ */
 void init(mmpbsa_io::gromacs_idx_offsets& offset);
 
+/**
+ * Initializes the gromacs offset structure, using void init(mmpbsa_io::gromacs_idx_offsets& offset)
+ */
+void init(mmpbsa_io::gromacs_idx_offsets* offset){init(&offset);}
 
 #endif//GROMACSREADER_H
 #endif//use gromacs
