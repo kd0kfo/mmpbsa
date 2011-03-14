@@ -7,11 +7,15 @@
 #ifndef GROMACSREADER_H
 #define GROMACSREADER_H
 
-#include "globals.h"
 
 #include <string>
 #include <valarray>
+#include <vector>
 #include <iostream>
+#include <sstream>
+
+#include "globals.h"
+#include "mmpbsa_exceptions.h"
 
 #ifndef eCPP_OK
 //gromacs stuff
@@ -99,7 +103,7 @@ void init(mmpbsa_io::gromacs_idx_offsets& offset);
 /**
  * Initializes the gromacs offset structure, using void init(mmpbsa_io::gromacs_idx_offsets& offset)
  */
-void init(mmpbsa_io::gromacs_idx_offsets* offset){init(&offset);}
+void init(mmpbsa_io::gromacs_idx_offsets* offset);
 
 #endif//GROMACSREADER_H
 #endif//use gromacs

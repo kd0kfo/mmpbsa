@@ -79,12 +79,10 @@ size_t mmpbsa_io::total_gmx_trr_frames(const std::string& filename)
 {
 	t_fileio    *fpread/* ,*fpwrite */;
 	size_t         nframe/*,indent*/;
-	rvec        *x,*v,*f;
 	matrix      box;
 	t_trnheader trn;
 	gmx_bool        bOK;
 	size_t natoms;
-	static mmpbsa_t nm2angst = 10;
 
 	if(filename.size() == 0)
 		throw mmpbsa::MMPBSAException("mmpbsa_io::load_gmx_trr: File name required.");
@@ -95,7 +93,6 @@ size_t mmpbsa_io::total_gmx_trr_frames(const std::string& filename)
 
 	nframe = 0;
 	natoms = 0;
-	x = 0;
 	while (fread_trnheader(fpread,&trn,&bOK)) {
 		if (!fread_htrn(fpread,&trn,NULL,NULL, NULL,NULL))
 			std::cerr << "mmpbsa_io::load_gmx_trr: WARNING: Incomplete frame: nr " << nframe << ", t=" << trn.t << std::endl;
@@ -138,6 +135,11 @@ std::vector<size_t> mmpbsa_io::allowed_gmx_energies()
 	//returnMe.push_back(F_IDIHS);
 	returnMe.push_back(F_LJ14);
 	return returnMe;
+}
+
+void init(mmpbsa_io::gromacs_idx_offsets* offsets)
+{
+  init(*offsets);
 }
 
 void init(mmpbsa_io::gromacs_idx_offsets& offset)

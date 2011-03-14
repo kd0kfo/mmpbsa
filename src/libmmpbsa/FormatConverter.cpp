@@ -155,7 +155,7 @@ void mmpbsa_io::get_gromacs_forcefield(const char* fn,mmpbsa::forcefield_t** spl
 	size_t atom_offset = 0;
 	//unused
 //	FILE *gp;
-	int         fp,atot;
+	int         atot;
 //	t_state     state;
 	rvec        *f=NULL;
 //	t_inputrec  ir;

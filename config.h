@@ -82,7 +82,7 @@
 
 /* Define to compile with gromacs to read gromacs topology and trajectory
    files. */
-/* #undef USE_GROMACS */
+#define USE_GROMACS 1
 
 /* Define to compile with libz and use GZIP. Requires libz. */
 #define USE_GZIP 1
@@ -91,11 +91,11 @@
 /* #undef USE_JPEGLIB */
 
 /* Define to compile with MPI. */
-/* #undef USE_MPI */
+#define USE_MPI 1
 
 /* Define to use pthreads for multithread MMPBSA calculations. (Has no effect
    on MD). */
-/* #undef USE_PTHREADS */
+#define USE_PTHREADS 1
 
 /* Version number of package */
 #define VERSION "0.11.2"
