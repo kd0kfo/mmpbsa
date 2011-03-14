@@ -1,8 +1,5 @@
 This program does Molecule Mechanics, solves the Poisson Bolzmann equation, and calculates surface area.
 
-This project is available from a git directory, whose location is TBA. To obtain the latest version, run
-git clone http://stjudeathome2.stjude.org/mmpbsa
-
 Then a development log may be found by running
 git log (which is generally dumped into ChangeLog)
 
