@@ -27,7 +27,7 @@
 #include "libmmpbsa/SanderInterface.h"
 #include "libmmpbsa/MMPBSAState.h"
 
-#if USE_GZIP //#ifndef USE_GZIP
+#if USE_GZIP
 #include "libmmpbsa/Zipper.h"
 #endif
 
@@ -52,6 +52,7 @@ MMPBSA_SHMEM* gshmem;
 #else
 #define EXIT_CHILD_FAILED 195
 #endif
+
 
 double timeAtPreviousCheckpoint;
 double netFractionDone;
@@ -121,33 +122,22 @@ void printSnapshot(const mmpbsa::EMap& complexEMap, const mmpbsa::EMap& receptor
         const mmpbsa::EMap& ligandEMap, std::fstream& outFile);
 
 /**
- * Takes the command line arguments and performs the necessary functions.
+ * Takes the command line arguments and produces an MD/MMPBSA
+ * work queue.
  * 
  * @param argc
  * @param argv
- * @param mi
  */
-std::map<std::string,std::string> parseArgs(int argc, char** argv);
+std::vector<mmpbsa::MMPBSAState> parseArgs(int argc, char** argv);
 
 /**
- * When a command line argument provides data or information(to the right of an
- * equal sign), this method decides what to do with it.
+ * Takes a mapping of arugments and values and creates a process
+ * for the job work queue.
  *
- * @param arg
- * @param mi
+ * @param args
+ * @param currState mmpbsa::MMPBSAState work queue entry
  */
-int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi);
-int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& currState, mmpbsa::SanderInterface& si);
-
-/**
- * When a command line argument toggles a program flag, this method makes the
- * proper changes to the program.
- * 
- * @param flag
- * @param mi
- */
-int parseFlag(std::string flag, mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi);
-int parseFlag(std::string flag, mmpbsa::MMPBSAState& currState, mmpbsa::SanderInterface& si);
+int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& currState);
 
 
 /**

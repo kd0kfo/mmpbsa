@@ -27,82 +27,63 @@ int main(int argc, char** argv)
         mmpbsa_boinc_init();//must be called before any other BOINC routines. If BOINC is not used, nothing will happen.
         int retval = 0;
 
+        //Try to create a queue based on a provided queue file.
         ::processQueue = getQueueFile(argc,argv);
+
         //If no queue was found, run based on arguments in argv. These should
         //correspond to what is placed in the queue XML file.
         if(processQueue.size() == 0)
+        	::processQueue = parseArgs(argc,argv);
+        if(processQueue.size() == 0)
         {
-            MMPBSAState currState;
-            std::map<std::string,std::string> argMap = parseArgs(argc,argv);
-            mmpbsa::SanderInterface si;
-            retval = parseParameter(argMap,currState,si);
-            if(retval == 0)
-            {
-            	sander_run(currState,si);
-                if(!retval && !currState.MDOnly)
-                {
-                    mmpbsa::MeadInterface mi;
-                    retval = parseParameter(argMap,currState,mi);
-                    if(!retval)
-                        retval = mmpbsa_run(currState,mi);
-                }
-            }
-            else
-                retval--;
-#ifdef USE_MPI
-            if(has_filename(MMPBSA_OUT_TYPE,currState))
-            	mmpbsa_output_filename = get_filename(MMPBSA_OUT_TYPE,currState);
-            else if(has_filename(SANDER_MDOUT_TYPE,currState))
-            	mmpbsa_output_filename = get_filename(SANDER_MDOUT_TYPE,currState);
-#endif
+        	std::cout << helpString() << std::endl;
         }
         else
         {
             int queuePosition= 0;
-            for(std::vector<MMPBSAState>::iterator it = processQueue.begin();
-                    it != processQueue.end();it++)
+            for(std::vector<MMPBSAState>::iterator job = processQueue.begin();
+            		job != processQueue.end();job++,queuePosition++)
             {
-                switch(it->currentProcess)
+                switch(job->currentProcess)
                 {
                     case MMPBSAState::SANDER:
-                        restart_sander(*it,it->currentSI);
-                        if(it->placeInQueue > queuePosition)
+                        restart_sander(*job,job->currentSI);
+                        if(job->placeInQueue > queuePosition)
                         {
                             queuePosition++;
                             continue;
                         }
-                        else if(it->placeInQueue < queuePosition)
+                        else if(job->placeInQueue < queuePosition)
                         {
-                            it->currentSI.completed = false;
-                            it->fractionDone = 0;
-                            it->placeInQueue = queuePosition;
+                        	job->currentSI.completed = false;
+                        	job->fractionDone = 0;
+                        	job->placeInQueue = queuePosition;
                         }
-                        retval = sander_run(*it,it->currentSI);
+                        retval = sander_run(*job,job->currentSI);
                         break;
                     case MMPBSAState::MMPBSA:
-                        restart_mmpbsa(*it);
-                        if(it->placeInQueue > queuePosition)
+                        restart_mmpbsa(*job);
+                        if(job->placeInQueue > queuePosition)
                         {
                             queuePosition++;
                             continue;
                         }
-                        else if(it->placeInQueue < queuePosition)
+                        else if(job->placeInQueue < queuePosition)
                         {
-                            it->fractionDone = 0;
-                            it->placeInQueue = queuePosition;
+                        	job->fractionDone = 0;
+                        	job->placeInQueue = queuePosition;
                         }
-                        retval = mmpbsa_run(*it,it->currentMI);
+                        retval = mmpbsa_run(*job,job->currentMI);
 #ifdef USE_MPI
-                        if(has_filename(MMPBSA_OUT_TYPE,*it))
-                        	mmpbsa_output_filename = get_filename(MMPBSA_OUT_TYPE,*it);
-                        else if(has_filename(SANDER_MDOUT_TYPE,*it))
-                        	mmpbsa_output_filename = get_filename(SANDER_MDOUT_TYPE,*it);
+                        if(has_filename(MMPBSA_OUT_TYPE,*job))
+                        	mmpbsa_output_filename = get_filename(MMPBSA_OUT_TYPE,*job);
+                        else if(has_filename(SANDER_MDOUT_TYPE,*job))
+                        	mmpbsa_output_filename = get_filename(SANDER_MDOUT_TYPE,*job);
 #endif
                         break;
                 }
                 if(retval)
                     break;
-                queuePosition++;
             }
         }
 #ifdef USE_BOINC
@@ -711,12 +692,15 @@ int sander_run(mmpbsa::MMPBSAState& currState,mmpbsa::SanderInterface& si)
     return 0;
 }
 
-std::map<std::string,std::string> parseArgs(int argc, char** argv)
+std::vector<mmpbsa::MMPBSAState> parseArgs(int argc, char** argv)
 {
     using std::string;
-    std::map<std::string,std::string> returnMe;
-
+    using mmpbsa::MMPBSAState;
+    std::map<string,string> pseudo_queue;
+    MMPBSAState job_equivalent;
+    std::vector<MMPBSAState>returnMe;
     string name,value;
+    int retval;
     for(int i = 1;i<argc;i++)
     {
         string currArg = argv[i];
@@ -727,184 +711,161 @@ std::map<std::string,std::string> parseArgs(int argc, char** argv)
         {
             name = currArg.substr(0,currArg.find("="));
             value = currArg.substr(currArg.find("=")+1);
-            returnMe[name] = value;
-        }
-        else if(currArg == "verbose")
-        {
-        	mmpbsa_verbosity = 1;
+            pseudo_queue[name] = value;
         }
         else
         {
-            returnMe[currArg] = "";
+        	pseudo_queue[currArg] = "";
         }
     }
+
+    retval = parseParameter(pseudo_queue,job_equivalent);
+    if(retval == 0)
+    	returnMe.push_back(job_equivalent);
     return returnMe;
 }
 
-int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
-{
-    for(std::map<std::string,std::string>::const_iterator it = args.begin();it != args.end();it++)
-    {
-        if (it->second.find("=") != std::string::npos)
-        {
-            std::ostringstream error;
-            error << "Multiple occurrence of \"=\" in parameter: "
-                    << it->first << "=" << it->second << std::endl;
-            throw mmpbsa::MMPBSAException(error, mmpbsa::COMMAND_LINE_ERROR);
-        }
-
-        std::istringstream buff(it->second);
-        if (it->first == "istrength")
-        {
-            buff >> MMPBSA_FORMAT >> mi.istrength;
-        } 
-        else if (it->first == "surf_offset")
-        {
-            buff >> MMPBSA_FORMAT >> mi.surf_offset;
-        } 
-        else if (it->first == "surf_tension")
-        {
-            buff >> MMPBSA_FORMAT >> mi.surf_tension;
-        }
-        else if (it->first == "trust_prmtop")
-        {
-            currState.trustPrmtop = true;
-        }
-        else if(it->first == "multithread")
-        {
-#ifndef USE_PTHREADS
-        	std::cerr << "Warning: not compiled with threads. multithread tag." << std::endl;
-        	continue;
-#endif
-        	buff >> mi.multithread;
-        	if(buff.fail())
-        	{
-        		std::cerr << "Warning: '" << it->second << "' is not a valid value for the 'multithread' tag. Not using multithreading." << std::endl;
-        		mi.multithread = 0;
-        	}
-        }
-        else if(it->first == "traj_in_memory")
-        {
-        	int bool_buff;
-        	buff >> bool_buff;
-        	if(buff.fail())
-        	{
-        		std::cerr << "Warning: could not determine whether or not to keep trajectory in memory based on:  " << it->first << " = " << it->second << " Using default: " << ((currState.keep_traj_in_mem) ? "true" : "false") << std::endl;
-        	}
-        	currState.keep_traj_in_mem = (bool_buff != 0);
-        }
-        else if (it->first == "help" || it->first == "h")
-		{
-			std::cout << helpString() << std::endl;
-			return 1;
-		}
-		else if(it->first == "version")
-		{
-			std::cout << PACKAGE_STRING << std::endl;
-			return 1;
-		}
-		else if(it->first == "save_pdb")
-		{
-			currState.savePDB = (it->second != "0");
-		}
-		else if(it->first == "verbose")
-		{
-			buff >> mmpbsa_verbosity;
-			if(buff.fail())
-				throw mmpbsa::MMPBSAException("parse_parameters: \"" + it->second + "\" is an invalid verbosity level.",
-						mmpbsa::COMMAND_LINE_ERROR);
-		}
-		else if(it->first == "snap_list_offset")
-		{
-			buff >> mi.snap_list_offset;
-			if(buff.fail())
-				throw mmpbsa::MMPBSAException("parse_parameters: \"" + it->second + "\" is an invalid verbosity level.",
-						mmpbsa::COMMAND_LINE_ERROR);
-		}
-
-    }
-    return 0;
-}
-
-int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& currState, mmpbsa::SanderInterface& si)
+int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& currState)
 {
     using mmpbsa_utils::loadListArg;
+    using namespace mmpbsa;
     std::string resolved_filename;
     int returnMe = 0;
+    MeadInterface& mi = currState.currentMI;
+    SanderInterface& si = currState.currentSI;
     currState.receptorStartPos.insert(0);//in case these are not set manually by the use. This is the default.
     currState.ligandStartPos.insert(1);
     for(std::map<std::string,std::string>::const_iterator it = args.begin();it != args.end();it++)
     {
-        if (it->second.find("=") != string::npos)
-        {
-            std::ostringstream error;
-            error << "Multiple occurrence of \"=\" in parameter: " <<
-                    it->first << " = " << it->second << std::endl;
-            throw mmpbsa::MMPBSAException(error, mmpbsa::COMMAND_LINE_ERROR);
-        }
+    	if (it->second.find("=") != string::npos)
+    	{
+    		std::ostringstream error;
+    		error << "Multiple occurrence of \"=\" in parameter: " <<
+    				it->first << " = " << it->second << std::endl;
+    		throw mmpbsa::MMPBSAException(error, mmpbsa::COMMAND_LINE_ERROR);
+    	}
 
-        if (it->first == "rec_list") {
-            currState.receptorStartPos.clear();
-            loadListArg(it->second, currState.receptorStartPos,1);
-        } else if (it->first == "lig_list") {
-            currState.ligandStartPos.clear();
-            loadListArg(it->second, currState.ligandStartPos,1);
-        } else if (it->first == "snap_list" || it->first == "snaplist") {
-            currState.snapList.clear();
-            loadListArg(it->second, currState.snapList);
-        } else if (it->first == "help" || it->first == "h") {
-            std::cout << helpString() << std::endl;
-            return 1;
-        } else if(it->first == "version") {
-			std::cout << PACKAGE_STRING << std::endl;
-			return 1;
-		}
-        else if(it->first == "verbose")
-        {
-        	std::istringstream vbuff(it->second);
-        	vbuff >> mmpbsa_verbosity;
-        	if(vbuff.fail())
-        		throw mmpbsa::MMPBSAException("parse_parameters: \"" + it->second + "\" is an invalid verbosity level.",
-        				mmpbsa::COMMAND_LINE_ERROR);
-        }
-        else if(it->first == "sample_queue")
-        {
-            if(!it->second.size())
-            {
-                std::cout << "Parameter \"sample_queue\" requires a file name\"" << std::endl;
-                return 2;
-            }
-            std::string queueFilename;
-            mmpbsa_io::resolve_filename(it->second,queueFilename);
-            ::sampleQueue(queueFilename);
-            return 1;
-        }
-        else if (it->first == "trust_prmtop") {
-            currState.trustPrmtop = true;
-            return 0;
-        }
-        else if (it->first == "mmpbsa_only") {
-            si.completed = true;
-            currState.currentProcess = mmpbsa::MMPBSAState::MMPBSA;
-            return 0;
-        }
-        else if (it->first == "md_only")
-        {
-            currState.MDOnly = true;
-            return 0;
-        }
-        else if(it->first == "weight")
-        {
-            std::istringstream buff(it->second);
-            buff >> currState.weight;
-        }
-        else if(it->first == "id" || it->first == "prereq" || it->first == "snap_list_offset")//this is used by the queue system only. Not needed for calculations.
-        	continue;
-        else//assuming if the argument is not one of the parameters listed above, it's a filename
-        {
-        	mmpbsa_io::resolve_filename(it->second,resolved_filename);
-        	currState.filename_map[it->first] = resolved_filename;
-        }
+    	std::istringstream buff(it->second);
+    	if(it->first == "rec_list")
+    	{
+    		currState.receptorStartPos.clear();
+    		loadListArg(it->second, currState.receptorStartPos,1);
+    	}
+    	else if(it->first == "lig_list"){
+    		currState.ligandStartPos.clear();
+    		loadListArg(it->second, currState.ligandStartPos,1);
+    	}
+    	else if(it->first == "snap_list" || it->first == "snaplist")
+    	{
+    		currState.snapList.clear();
+    		loadListArg(it->second, currState.snapList);
+    	}
+    	else if(it->first == "help" || it->first == "h")
+    	{
+    		std::cout << helpString() << std::endl;
+    		return 1;
+    	}
+    	else if(it->first == "version")
+    	{
+    		std::cout << PACKAGE_STRING << std::endl;
+    		return 1;
+    	}
+    	else if(it->first == "verbose")
+    	{
+    		std::istringstream vbuff(it->second);
+    		vbuff >> mmpbsa_verbosity;
+    		if(vbuff.fail())
+    			throw mmpbsa::MMPBSAException("parse_parameters: \"" + it->second + "\" is an invalid verbosity level.",
+    					mmpbsa::COMMAND_LINE_ERROR);
+    	}
+    	else if(it->first == "sample_queue")
+    	{
+    		if(!it->second.size())
+    		{
+    			std::cout << "Parameter \"sample_queue\" requires a file name\"" << std::endl;
+    			return 2;
+    		}
+    		std::string queueFilename;
+    		mmpbsa_io::resolve_filename(it->second,queueFilename);
+    		::sampleQueue(queueFilename);
+    		return 1;
+    	}
+    	else if (it->first == "trust_prmtop") {
+    		currState.trustPrmtop = true;
+    		return 0;
+    	}
+    	else if (it->first == "mmpbsa_only") {
+    		si.completed = true;
+    		currState.currentProcess = mmpbsa::MMPBSAState::MMPBSA;
+    		return 0;
+    	}
+    	else if (it->first == "md_only")
+    	{
+    		currState.MDOnly = true;
+    		return 0;
+    	}
+    	else if(it->first == "weight")
+    	{
+    		std::istringstream buff(it->second);
+    		buff >> currState.weight;
+    	}
+    	else if(it->first == "id" || it->first == "prereq" || it->first == "snap_list_offset")//this is used by the queue system only. Not needed for calculations.
+    		continue;
+    	else if (it->first == "istrength")
+    	{
+    		buff >> MMPBSA_FORMAT >> mi.istrength;
+    	}
+    	else if (it->first == "surf_offset")
+    	{
+    		buff >> MMPBSA_FORMAT >> mi.surf_offset;
+    	}
+    	else if (it->first == "surf_tension")
+    	{
+    		buff >> MMPBSA_FORMAT >> mi.surf_tension;
+    	}
+    	else if (it->first == "trust_prmtop")
+    	{
+    		currState.trustPrmtop = true;
+    	}
+    	else if(it->first == "multithread" || it->first == "nthreads")
+    	{
+#ifndef USE_PTHREADS
+    		std::cerr << "Warning: not compiled with threads. Ignoring multithread tag." << std::endl;
+    		continue;
+#endif
+    		buff >> mi.multithread;
+    		if(buff.fail())
+    		{
+    			std::cerr << "Warning: '" << it->second << "' is not a valid value for the 'multithread' flag. Not using multithreading." << std::endl;
+    			mi.multithread = 0;
+    		}
+    	}
+    	else if(it->first == "traj_in_memory")
+    	{
+    		int bool_buff;
+    		buff >> bool_buff;
+    		if(buff.fail())
+    		{
+    			std::cerr << "Warning: could not determine whether or not to keep trajectory in memory based on:  " << it->first << " = " << it->second << " Using default: " << ((currState.keep_traj_in_mem) ? "true" : "false") << std::endl;
+    		}
+    		currState.keep_traj_in_mem = (bool_buff != 0);
+    	}
+    	else if(it->first == "save_pdb")
+    	{
+    		currState.savePDB = (it->second != "0");
+    	}
+    	else if(it->first == "snap_list_offset")
+    	{
+    		buff >> mi.snap_list_offset;
+    		if(buff.fail())
+    			throw mmpbsa::MMPBSAException("parse_parameters: \"" + it->second + "\" is an invalid verbosity level.",
+    					mmpbsa::COMMAND_LINE_ERROR);
+    	}
+    	else//assuming if the argument is not one of the parameters listed above, it's a filename
+    	{
+    		mmpbsa_io::resolve_filename(it->second,resolved_filename);
+    		currState.filename_map[it->first] = resolved_filename;
+    	}
 
     }
     return returnMe;
@@ -1283,25 +1244,14 @@ std::vector<mmpbsa::MMPBSAState> getQueueFile(int argc,char** argv)
         mmpbsa::SanderInterface si;
         std::map<std::string,std::string> tags = XMLParser::mapNode(sibling);
         if(sibling->getName() == "mmpbsa")
-        {
-            mmpbsa::MeadInterface mi;
-            parseParameter(tags,nodeState,si);
-            parseParameter(tags,nodeState,mi);
-            nodeState.currentMI = mi;
-            nodeState.currentProcess = MMPBSAState::MMPBSA;
-            nodeState.placeInQueue = queuePosition++;
-            returnMe.push_back(nodeState);
-        }
+        	nodeState.currentProcess = MMPBSAState::MMPBSA;
         else if(sibling->getName() == "molecular_dynamics" || sibling->getName() == "moledyn")
-        {
-            parseParameter(tags,nodeState,si);
-            nodeState.currentSI = si;
-            nodeState.currentProcess = MMPBSAState::SANDER;
-            nodeState.placeInQueue = queuePosition++;
-            returnMe.push_back(nodeState);
-        }
+        	nodeState.currentProcess = MMPBSAState::MMPBSA;
         else
         	throw mmpbsa::MMPBSAException("getQueueFile: " + sibling->getName() + " is an unknown process type.",mmpbsa::BAD_XML_TAG);
+        parseParameter(tags,nodeState);
+        nodeState.placeInQueue = queuePosition++;
+    	returnMe.push_back(nodeState);
     }
 
     return returnMe;
