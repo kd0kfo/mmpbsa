@@ -779,7 +779,7 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
         	buff >> mi.multithread;
         	if(buff.fail())
         	{
-        		std::cerr << "Warning: could not determine number of threads from " << it->first << " = " << it->second << "  Not using multithreading." << std::endl;
+        		std::cerr << "Warning: '" << it->second << "' is not a valid value for the 'multithread' tag. Not using multithreading." << std::endl;
         		mi.multithread = 0;
         	}
         }
