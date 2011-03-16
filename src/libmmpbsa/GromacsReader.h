@@ -16,6 +16,7 @@
 
 #include "globals.h"
 #include "mmpbsa_exceptions.h"
+#include "Vector.h"
 
 #ifndef eCPP_OK
 //gromacs stuff
@@ -43,8 +44,6 @@
 #include "gromacs/sparsematrix.h"
 #include "gromacs/mtxio.h"
 #endif//gromacs stuff
-
-
 
 namespace mmpbsa_io{
 
@@ -75,7 +74,7 @@ typedef struct {
  * file. If the requested frame is beyond the total number of frames, crds is set to an
  * empty array.
  */
-void load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>& crds,size_t frame_number,const size_t* natom_limit = 0);
+void load_gmx_trr(const std::string& filename,std::valarray<mmpbsa::Vector>& crds,size_t frame_number,const size_t* natom_limit = 0);
 
 /**
  * Determines whether or not the desired f rame is listed in the trr trajectory file.

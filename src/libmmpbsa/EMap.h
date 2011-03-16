@@ -23,6 +23,8 @@
 #include <sstream>
 #include "EmpEnerFun.h"
 
+class mmpbsa::Vector;
+
 namespace mmpbsa{
 
 class EMap{
@@ -50,9 +52,9 @@ public:
      * @param efun
      * @param crds
      */
-    EMap(const EmpEnerFun* efun,const std::valarray<mmpbsa_t>& crds);
+    EMap(const EmpEnerFun* efun,const std::valarray<Vector>& crds);
 
-    EMap(const std::vector<atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds);
+    EMap(const std::vector<atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<Vector>& crds);
 
     ~EMap(){}
 

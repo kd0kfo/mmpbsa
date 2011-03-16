@@ -29,22 +29,11 @@ mmpbsa::EMap::EMap(const mmpbsa::EMap& orig)
     sasol = orig.sasol;
 }
 
-mmpbsa::EMap::EMap(const mmpbsa::EmpEnerFun* efun, const std::valarray<mmpbsa_t>& crds)
+mmpbsa::EMap::EMap(const mmpbsa::EmpEnerFun* efun, const std::valarray<Vector>& crds)
 {
     if(efun == 0)
         throw mmpbsa::MMPBSAException("An attempt was made to create an EMap with a null"
                 " EmpEnerFun pointer.",mmpbsa::UNKNOWN_ERROR);
-
-#if 0//deprecated
-    bond = efun->total_bond_energy(crds);
-    angle = efun->total_angle_energy(crds);
-    dihed = efun->total_dihedral_energy(crds);
-    vdw14 = efun->total_vdw14_energy(crds);
-    ele14 = efun->total_elstat14_energy(crds);
-    vdwaals = efun->total_vdwaals_energy(crds);
-    vacele = efun->total_elstat_energy(crds);
-#endif
-
     forcefield_t ff;
     std::vector<mmpbsa::atom_t> atoms;
     efun->extract_atom_structs(atoms);
@@ -65,7 +54,7 @@ mmpbsa::EMap::EMap(const mmpbsa::EmpEnerFun* efun, const std::valarray<mmpbsa_t>
     destroy(&ff);
 }
 
-mmpbsa::EMap::EMap(const std::vector<atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds)
+mmpbsa::EMap::EMap(const std::vector<atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<Vector>& crds)
 {
     bond = mmpbsa::bond_energy_calc(ff.bonds_with_H,crds) + mmpbsa::bond_energy_calc(ff.bonds_without_H,crds);
     angle = mmpbsa::angle_energy_calc(ff.angles_with_H,crds) + mmpbsa::angle_energy_calc(ff.angles_without_H,crds);

@@ -123,7 +123,7 @@ public:
      * @param crds
      * @return 
      */
-    mmpbsa_t total_bond_energy(const std::valarray<mmpbsa_t>& crds)const;
+    mmpbsa_t total_bond_energy(const std::valarray<mmpbsa::Vector>& crds)const;
     mmpbsa::bond_energy_t* extract_bond_structs(std::vector<bond_t>& bonds_with_H,std::vector<bond_t>& bonds_without_H)const;
 
     /**
@@ -132,7 +132,7 @@ public:
      * @param crds
      * @return
      */
-    mmpbsa_t total_angle_energy(const std::valarray<mmpbsa_t>& crds)const;
+    mmpbsa_t total_angle_energy(const std::valarray<mmpbsa::Vector>& crds)const;
     bond_energy_t* extract_angle_structs(std::vector<mmpbsa::angle_t>& angles_with_H, std::vector<mmpbsa::angle_t>& angles_without_H)const;
     /**
      * Calculates the total dihedral energy for the given snapshot coordinates
@@ -140,7 +140,7 @@ public:
      * @param crds
      * @return
      */
-    mmpbsa_t total_dihedral_energy(const std::valarray<mmpbsa_t>& crds)const;
+    mmpbsa_t total_dihedral_energy(const std::valarray<mmpbsa::Vector>& crds)const;
 
     mmpbsa::dihedral_energy_t* extract_dihedral_structs(std::vector<mmpbsa::dihedral_t>& dihedrals_with_H,std::vector<mmpbsa::dihedral_t>& dihedrals_without_H)const;
     void extract_atom_structs(std::vector<mmpbsa::atom_t>& atoms)const;
@@ -151,7 +151,7 @@ public:
      * @param crds
      * @return
      */
-    mmpbsa_t total_vdw14_energy(const std::valarray<mmpbsa_t>& crds)const;
+    mmpbsa_t total_vdw14_energy(const std::valarray<mmpbsa::Vector>& crds)const;
 
     /**
      * Calculates the total Electrostatic energy between 1-4 pairs for the given snapshot coordinates
@@ -159,7 +159,7 @@ public:
      * @param crds
      * @return
      */
-    mmpbsa_t total_elstat14_energy(const std::valarray<mmpbsa_t>& crds)const;
+    mmpbsa_t total_elstat14_energy(const std::valarray<mmpbsa::Vector>& crds)const;
 
     /**
      * Calculates the total Van der Waals energy of the system for the given snapshot coordinates
@@ -167,7 +167,7 @@ public:
      * @param crds
      * @return
      */
-    mmpbsa_t total_vdwaals_energy(const std::valarray<mmpbsa_t>& crds)const;
+    mmpbsa_t total_vdwaals_energy(const std::valarray<mmpbsa::Vector>& crds)const;
 
     /**
      * Calculates the total Electrostatic energy for the given snapshot coordinates
@@ -175,7 +175,7 @@ public:
      * @param crds
      * @return
      */
-    mmpbsa_t total_elstat_energy(const std::valarray<mmpbsa_t>& crds)const;
+    mmpbsa_t total_elstat_energy(const std::valarray<mmpbsa::Vector>& crds)const;
 
     /**
      * Generates a report of the energy values for the given snapshot using
@@ -189,7 +189,7 @@ public:
      * @param crds
      * @return
      */
-    std::string ereport(const std::valarray<mmpbsa_t>& crds);
+    std::string ereport(const std::valarray<mmpbsa::Vector>& crds);
 
     void extract_lj_params(std::vector<mmpbsa::lj_params_t>& lj_params)const;
 
@@ -323,7 +323,7 @@ private:
 /**
  * Writes Energy data to PDB format (cf http://www.wwpdb.org/documentation/format32/sect9.html)
  */
-std::ostream& streamPDB(std::ostream& theStream, const mmpbsa::EmpEnerFun& energy, const std::valarray<mmpbsa_t>& crds) throw (mmpbsa::MMPBSAException);
+std::ostream& streamPDB(std::ostream& theStream, const mmpbsa::EmpEnerFun& energy, const std::valarray<mmpbsa::Vector>& crds) throw (mmpbsa::MMPBSAException);
 
 #endif	/* ENERGY_H */
 

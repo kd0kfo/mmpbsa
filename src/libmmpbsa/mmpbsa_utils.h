@@ -29,6 +29,7 @@
 #include "globals.h"
 #include "mmpbsa_exceptions.h"
 #include "StringTokenizer.h"
+#include "Vector.h"
 
 namespace mmpbsa_utils {
 
@@ -63,8 +64,10 @@ namespace mmpbsa_utils {
      * @return 6-element float array, where the first 3 elements are the minimum
      * coordinates and the last 3 elements are the maximum value coordinates
      */
-    float * interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
+    mead_data_t * interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
             const std::valarray<mmpbsa_t>& bcrds, const mmpbsa_t& cutoff = 4.0);
+    mead_data_t * interaction_minmax(const std::valarray<mmpbsa::Vector>& acrds,
+                const std::valarray<mmpbsa::Vector>& bcrds, const mmpbsa_t& cutoff = 4.0);
 
     /**
      * Performs a lookup of a radius of the given atom. The lookup is not as
@@ -205,6 +208,13 @@ namespace mmpbsa_utils {
     template<class T> T dot_product(const T* A, const T* B,
             const size_t& ndim = 3);
     
+    /**
+     * Finds the angle between two vectors, with better accuracy than
+     * simply using the dot product.
+     * Uses Heron's rule optimized for the possibility of "narrow" triangles
+     */
+    mmpbsa_t dihedral_angle(const mmpbsa::Vector& x, const mmpbsa::Vector& y);
+
     std::string get_human_time();
 
     

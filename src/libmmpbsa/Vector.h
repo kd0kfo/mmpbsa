@@ -5,8 +5,6 @@
 #include <vector>
 #include <algorithm>
 
-#include "mmpbsa_utils.h"
-
 namespace mmpbsa{
 
 //Similar to Mead's Coord, but improved

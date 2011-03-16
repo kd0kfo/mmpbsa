@@ -40,6 +40,8 @@
 #include "boinc/boinc_api.h"
 #endif
 
+class mmpbsa::Vector;
+
 namespace mmpbsa_io{
 
 
@@ -94,7 +96,7 @@ size_t count_snapshots(std::iostream& trajFile,const size_t& natoms, bool isPeri
  * @param natoms
  * @return
  */
-bool get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa_t>& snapshot,
+bool get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa::Vector>& snapshot,
     const size_t& natoms,bool isPeriodic = false);
 
 /**
@@ -123,7 +125,7 @@ std::string getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAException);
  *
  * Increments the trajectory_t data field, curr_snap.
  */
-bool get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa_t>& snapshot);
+bool get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa::Vector>& snapshot);
 
 /**
  * Skips ahead (or behind) to the specified snapshot/frame of the
@@ -201,6 +203,9 @@ template <class T> bool loadValarray(std::iostream& dataFile,
 
 template <> bool loadValarray<std::string>(std::iostream& dataFile,
             std::valarray<std::string>& dataArray, const size_t& arrayLength, const size_t& width,
+            const size_t& numberOfColumns);
+template <> bool loadValarray<mmpbsa::Vector>(std::iostream& dataFile,
+            std::valarray<mmpbsa::Vector>& dataArray, const size_t& arrayLength, const size_t& width,
             const size_t& numberOfColumns);
 
 
@@ -339,7 +344,7 @@ void destroy(mmpbsa_io::trajectory_t* traj);
  * Creates a PDB for the lsit of atoms in the given forcefield and
  * streams it to the output stream.
  */
-std::ostream& streamPDB(std::ostream& theStream, const std::vector<mmpbsa::atom_t>& atoms,const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds) throw (mmpbsa::MMPBSAException);
+std::ostream& streamPDB(std::ostream& theStream, const std::vector<mmpbsa::atom_t>& atoms,const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa::Vector>& crds) throw (mmpbsa::MMPBSAException);
 
 #endif	//SANDERIO_H
 

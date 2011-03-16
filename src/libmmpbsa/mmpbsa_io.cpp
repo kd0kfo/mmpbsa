@@ -27,10 +27,6 @@ void mmpbsa_io::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& c
     using std::valarray;
     using std::slice;
 
-    if(crds.size() % 3 != 0)
-        throw mmpbsa::SanderIOException("The number of elements in the coordinate array "
-                "must be a multiple of 3, ie 3-dimensions.",mmpbsa::DATA_FORMAT_ERROR);
-
     size_t natoms = size_t(crds.size()/3);
 
     std::fstream outFile(fileName,std::ios::out);
@@ -92,7 +88,7 @@ std::string mmpbsa_io::getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAExc
 
 
 
-bool mmpbsa_io::get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa_t>& snapshot,
+bool mmpbsa_io::get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa::Vector>& snapshot,
     const size_t& natoms,bool isPeriodic)
 {
     bool returnMe = loadValarray(trajFile,snapshot,natoms*3,8,10);
@@ -264,6 +260,71 @@ template <> bool mmpbsa_io::loadValarray<std::string>(std::iostream& dataFile,
 
     return true;
 }
+
+template <> bool mmpbsa_io::loadValarray<mmpbsa::Vector>(std::iostream& dataFile,
+        std::valarray<mmpbsa::Vector>& dataArray, const size_t& arrayLength, const size_t& width,
+        const size_t& numberOfColumns)
+{
+    using mmpbsa::Vector;
+    using std::string;
+
+    if(dataFile.eof())
+        return false;
+
+    //If the length is zero, there is no data, which will correspond to a blank
+    //line in the parmtop file. Pop that line and return (true);
+    if(arrayLength == 0)
+    {
+        getNextLine(dataFile);
+        return true;
+    }
+
+    if(dataArray.size() != arrayLength)
+        dataArray.resize(arrayLength);
+
+    size_t lineIndex = 0;
+    size_t dataIndex = 0;
+    mmpbsa::Vector curr_vector;
+    std::istringstream buff;
+    mmpbsa::Vector::value_type curr_value;
+    for(;dataIndex<arrayLength;)
+    {
+        if(dataFile.eof())
+            throw mmpbsa::SanderIOException("Data file ended in the middle of the "
+                    "data.",mmpbsa::BROKEN_TRAJECTORY_FILE);
+
+        string currentLine = getNextLine(dataFile);//do not trim string. Spaces are part of formatted size.
+        if(currentLine.size() % width )
+        {
+            std::cerr << "Data file contains a short line. "
+                    "Lines must be at least 36 characters, but line #"
+                    << lineIndex+1 << " is only "
+                    << currentLine.size() <<  " characters long." << std::endl;
+        }
+
+        //tokenize line into data. put data into valarray.
+
+        while(currentLine.size() > 0)
+        {
+        	if(dataIndex % 3 == 0)
+        		curr_vector.clear();
+        	buff.clear();buff.str(currentLine.substr(0,width));
+        	buff >> curr_value;
+        	if(buff.fail())
+        		throw mmpbsa::MMPBSAException("mmpbsa_io::loadValarray<mmpbsa::Vector>: invalid data for value type of vector: " + currentLine.substr(0,width),mmpbsa::FILE_IO_ERROR);
+        	curr_vector.push_back(curr_value);
+        	if((dataIndex + 1) % 3 == 0)
+        		dataArray[(size_t)dataIndex/3] = curr_vector;
+            currentLine.erase(0,width);
+        }
+
+        lineIndex++;
+    }
+
+
+    return true;
+}
+
 
 template <class T> std::ostream& mmpbsa_io::write_snapshot(std::ostream& the_stream,const std::valarray<T>& dataArray,const std::string& ifbox_data)
 {
@@ -622,7 +683,7 @@ std::string mmpbsa_io::pdbPad(const int& neededDigits,const int& currentNumber)
 	return returnMe;
 }
 
-std::ostream& streamPDB(std::ostream& theStream, const std::vector<mmpbsa::atom_t>& atoms,const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds) throw (mmpbsa::MMPBSAException)
+std::ostream& streamPDB(std::ostream& theStream, const std::vector<mmpbsa::atom_t>& atoms,const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa::Vector>& crds) throw (mmpbsa::MMPBSAException)
 {
 	using mmpbsa_io::pdbPad;
 	using namespace mmpbsa;
@@ -673,7 +734,7 @@ std::ostream& streamPDB(std::ostream& theStream, const std::vector<mmpbsa::atom_
 		for(size_t coordIndex = 0;coordIndex < 3;coordIndex++)
 		{
 			coordinateBuffer.width(8);
-			coordinateBuffer << crds[3*currAtom + coordIndex];
+			coordinateBuffer << crds[currAtom].at(coordIndex);
 			theStream << coordinateBuffer.str();
 			coordinateBuffer.str("");
 		}
@@ -689,7 +750,7 @@ std::ostream& streamPDB(std::ostream& theStream, const std::vector<mmpbsa::atom_
 
 
 
-bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa_t>& snapshot)
+bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa::Vector>& snapshot)
 {
 
 #ifdef USE_GROMACS

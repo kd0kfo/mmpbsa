@@ -1,6 +1,6 @@
 #include "GromacsReader.h"
 
-void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>& crds,size_t frame_number,const size_t* natom_limit)
+void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa::Vector>& crds,size_t frame_number,const size_t* natom_limit)
 {
   t_fileio    *fpread/* ,*fpwrite */;
   size_t         nframe/*,indent*/;
@@ -58,10 +58,10 @@ void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa_t>
 
   if(natoms != 0 && x != 0)
   {
-	  crds.resize(natoms*3,0);
+	  crds.resize(natoms);
 	  for(size_t i = 0;i<natoms;i++)
 		  for(size_t j = 0;j<3;j++)
-			  crds[i*3+j] = x[i][j]*nm2angst;
+			  crds[i].push_back(x[i][j]*nm2angst);
   }
   else
   {

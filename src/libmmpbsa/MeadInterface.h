@@ -35,6 +35,8 @@
 #include "MEAD/UniformDielectric.h"
 #include "MEAD/UniformElectrolyte.h"
 
+class Vector;
+
 namespace mmpbsa{
 class MeadException : public MMPBSAException {
     public:
@@ -81,8 +83,8 @@ public:
      * @param fine_grid_spacing
      * @return
      */
-    static FinDiffMethod createFDM(const std::valarray<mmpbsa_t>& complexCrds,
-        const std::valarray<mmpbsa_t>& receptorCrds, const std::valarray<mmpbsa_t>& ligandCrds,
+    static FinDiffMethod createFDM(const std::valarray<mmpbsa::Vector>& complexCrds,
+        const std::valarray<mmpbsa::Vector>& receptorCrds, const std::valarray<mmpbsa::Vector>& ligandCrds,
         const int& outbox_grid_dim = 41, const mmpbsa_t& fine_grid_spacing = 0.25) throw (mmpbsa::MeadException);
 
     /**
@@ -102,12 +104,12 @@ public:
      * @param surfOffset
      * @return 
      */
-    static EMap full_EMap(const EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
+    static EMap full_EMap(const EmpEnerFun& efun, const std::valarray<mmpbsa::Vector>& crds,
         const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
         const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
         const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException);
 
-    static EMap full_EMap(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds,
+    static EMap full_EMap(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa::Vector>& crds,
             const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
             const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
             const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException);
@@ -124,13 +126,13 @@ public:
      * @param exclusionRadius
      * @return 
      */
-    static mmpbsa_t* pbsa_solvation(const EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
+    static mmpbsa_t* pbsa_solvation(const EmpEnerFun& efun, const std::valarray<mmpbsa::Vector>& crds,
         const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
         const std::map<std::string,std::string>& residueMap,
         const mmpbsa_t& interactionStrength = 0.0, const mmpbsa_t& exclusionRadius = 2.0) throw (mmpbsa::MeadException);
 
     static mmpbsa_t* pbsa_solvation(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff,
-    		const std::valarray<mmpbsa_t>& crds,
+    		const std::valarray<mmpbsa::Vector>& crds,
     		const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
     		const std::map<std::string,std::string>& residueMap,
     		const mmpbsa_t& interactionStrength = 0.0, const mmpbsa_t& exclusionRadius = 2.0) throw (mmpbsa::MeadException);
@@ -155,9 +157,9 @@ public:
     
 };
 
-
-
 };//end namespace mmpbsa
+
+Coord ToCoord(const mmpbsa::Vector& v);
 
 #endif	/* MeadInterface_H */
 
