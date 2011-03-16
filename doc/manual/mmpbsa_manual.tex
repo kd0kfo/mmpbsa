@@ -1,4 +1,4 @@
-\documentclass[a4paper]{article}
+\documentclass[a4paper,12pt]{article}
 \usepackage{a4wide}
 \usepackage{makeidx}
 \usepackage{fancyhdr}
@@ -35,5 +35,35 @@
 \pagenumbering{roman}
 \tableofcontents
 \pagenumbering{arabic}
-\printindex
+\newpage
+\section{Units}
+\begin{center}
+\begin{tabular}[h]{|l|c|}
+\hline
+ & Units\\\hline
+Energy & kilocalories\\\hline
+Distance & Angstroms\\\hline
+Angles & radians\\\hline
+\end{tabular}
+\end{center}
+\section{Calculation Methods}
+\subsection{Interaction Energies}
+\subsubsection{Bonds}
+If the distance between two bonded atoms is $x$ and the equilibrium distance for that bond is $x_0$, then the bond energy is given by,
+\begin{equation}
+\label{eqn:bond_energy}
+E=k_b\left(x-x_0\right)^2 \,,
+\end{equation}
+where $k_b$ is the bond constant.
+\subsubsection{Angles}
+\begin{equation}
+\label{eqn:angle_energy}
+E=k_\theta\left(\theta - \theta_0\right)^2 \,,
+\end{equation}
+where $k_\theta$ is the energy constant.
+\subsection{Dihedrals}
+\begin{equation}
+\label{eqn:dihedral_energy}
+For four bonded atoms, $i$, $j$, $k$ and $l$, cross products are used to find the vectors normal to the planes made by $i$-$j$-$k$ and $j$-$k$-$l$ bonds. 
+\end{equation}
 \end{document}
