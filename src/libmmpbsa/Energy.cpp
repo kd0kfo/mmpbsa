@@ -106,7 +106,7 @@ mmpbsa_t mmpbsa::vdw14_energy_calc(const std::vector<dihedral_t>& dihedrals,cons
         mask = dihedral->nonbonded_masks.is_improper || dihedral->nonbonded_masks.should_ignore_end_grp || period_mask;
         if(!mask)
         {
-            rsqrd = (crds[dihedral->atom_i]-crds[dihedral->atom_j])*(crds[dihedral->atom_i]-crds[dihedral->atom_j]);
+            rsqrd = (crds[dihedral->atom_i]-crds[dihedral->atom_l])*(crds[dihedral->atom_i]-crds[dihedral->atom_l]);
             inv_r6 = 1/pow(rsqrd, 3);
             inv_r12 = inv_r6*inv_r6;
             totalEnergy += dihedral->lj.c12*inv_r12 - dihedral->lj.c6*inv_r6;
