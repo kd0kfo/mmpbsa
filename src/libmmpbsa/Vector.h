@@ -4,6 +4,10 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <cmath>
+
+#include "globals.h"
+#include "mmpbsa_exceptions.h"
 
 namespace mmpbsa{
 

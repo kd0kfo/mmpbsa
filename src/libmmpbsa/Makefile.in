@@ -69,7 +69,7 @@ am__libmmpbsa_a_SOURCES_DIST = EmpEnerFun.cpp EMap.cpp EnergyInfo.cpp \
 	mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp \
 	mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp \
 	StringTokenizer.cpp MMPBSAState.cpp Energy.cpp structs.cpp \
-	Zipper.cpp FormatConverter.cpp GromacsReader.cpp
+	Vector.cpp Zipper.cpp FormatConverter.cpp GromacsReader.cpp
 @BUILD_WITH_GZIP_TRUE@am__objects_1 = libmmpbsa_a-Zipper.$(OBJEXT)
 @BUILD_WITH_GROMACS_TRUE@am__objects_2 = libmmpbsa_a-FormatConverter.$(OBJEXT) \
 @BUILD_WITH_GROMACS_TRUE@	libmmpbsa_a-GromacsReader.$(OBJEXT)
@@ -85,8 +85,8 @@ am_libmmpbsa_a_OBJECTS = libmmpbsa_a-EmpEnerFun.$(OBJEXT) \
 	libmmpbsa_a-mmpbsa_io.$(OBJEXT) \
 	libmmpbsa_a-StringTokenizer.$(OBJEXT) \
 	libmmpbsa_a-MMPBSAState.$(OBJEXT) libmmpbsa_a-Energy.$(OBJEXT) \
-	libmmpbsa_a-structs.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_2)
+	libmmpbsa_a-structs.$(OBJEXT) libmmpbsa_a-Vector.$(OBJEXT) \
+	$(am__objects_1) $(am__objects_2)
 libmmpbsa_a_OBJECTS = $(am_libmmpbsa_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -102,7 +102,7 @@ am__libmmpbsa_a_include_HEADERS_DIST = EmpEnerFun.h EMap.h \
 	EnergyInfo.h SanderInterface.h MeadInterface.h SanderParm.h \
 	mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h \
 	StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h Energy.h \
-	structs.h Zipper.h FormatConverter.h GromacsReader.h
+	structs.h Vector.h Zipper.h FormatConverter.h GromacsReader.h
 libmmpbsa_a_includeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(libmmpbsa_a_include_HEADERS)
 ETAGS = etags
@@ -214,13 +214,13 @@ libmmpbsa_a_SOURCES = EmpEnerFun.cpp EMap.cpp EnergyInfo.cpp \
 	mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp \
 	mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp \
 	StringTokenizer.cpp MMPBSAState.cpp Energy.cpp structs.cpp \
-	$(am__append_1) $(am__append_3)
+	Vector.cpp $(am__append_1) $(am__append_3)
 libmmpbsa_a_includedir = $(includedir)/libmmpbsa
 libmmpbsa_a_include_HEADERS = EmpEnerFun.h EMap.h EnergyInfo.h \
 	SanderInterface.h MeadInterface.h SanderParm.h \
 	mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h \
 	StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h Energy.h \
-	structs.h $(am__append_2) $(am__append_4)
+	structs.h Vector.h $(am__append_2) $(am__append_4)
 all: all-am
 
 .SUFFIXES:
@@ -305,6 +305,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-SanderInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-SanderParm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-StringTokenizer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-Vector.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-XMLNode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-XMLParser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmmpbsa_a-Zipper.Po@am__quote@
@@ -551,6 +552,20 @@ libmmpbsa_a-structs.obj: structs.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='structs.cpp' object='libmmpbsa_a-structs.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-structs.obj `if test -f 'structs.cpp'; then $(CYGPATH_W) 'structs.cpp'; else $(CYGPATH_W) '$(srcdir)/structs.cpp'; fi`
+
+libmmpbsa_a-Vector.o: Vector.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-Vector.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-Vector.Tpo" -c -o libmmpbsa_a-Vector.o `test -f 'Vector.cpp' || echo '$(srcdir)/'`Vector.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-Vector.Tpo" "$(DEPDIR)/libmmpbsa_a-Vector.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-Vector.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Vector.cpp' object='libmmpbsa_a-Vector.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-Vector.o `test -f 'Vector.cpp' || echo '$(srcdir)/'`Vector.cpp
+
+libmmpbsa_a-Vector.obj: Vector.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-Vector.obj -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-Vector.Tpo" -c -o libmmpbsa_a-Vector.obj `if test -f 'Vector.cpp'; then $(CYGPATH_W) 'Vector.cpp'; else $(CYGPATH_W) '$(srcdir)/Vector.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libmmpbsa_a-Vector.Tpo" "$(DEPDIR)/libmmpbsa_a-Vector.Po"; else rm -f "$(DEPDIR)/libmmpbsa_a-Vector.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Vector.cpp' object='libmmpbsa_a-Vector.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libmmpbsa_a-Vector.obj `if test -f 'Vector.cpp'; then $(CYGPATH_W) 'Vector.cpp'; else $(CYGPATH_W) '$(srcdir)/Vector.cpp'; fi`
 
 libmmpbsa_a-Zipper.o: Zipper.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmmpbsa_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libmmpbsa_a-Zipper.o -MD -MP -MF "$(DEPDIR)/libmmpbsa_a-Zipper.Tpo" -c -o libmmpbsa_a-Zipper.o `test -f 'Zipper.cpp' || echo '$(srcdir)/'`Zipper.cpp; \

@@ -35,7 +35,7 @@
 #include "MEAD/UniformDielectric.h"
 #include "MEAD/UniformElectrolyte.h"
 
-class Vector;
+class mmpbsa::Vector;
 
 namespace mmpbsa{
 class MeadException : public MMPBSAException {

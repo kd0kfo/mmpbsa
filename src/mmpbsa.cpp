@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 }
 
 void writePDB(const std::vector<mmpbsa::atom_t>& atoms,const mmpbsa::forcefield_t& ff,
-		const std::valarray<mmpbsa_t>crds,const mmpbsa::MMPBSAState& currState,const std::string& molecule)
+		const std::valarray<mmpbsa::Vector>crds,const mmpbsa::MMPBSAState& currState,const std::string& molecule)
 {
 	std::fstream pdbFile;
 	std::string filename = "default";
@@ -383,7 +383,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
     //setup trajectory storage
     get_traj_title(trajFile);//Don't need title, but this ensure we are at the top of the file. If the title is needed later, hook this.
-    valarray<mmpbsa_t> snapshot(mol_list.size()*3);
+    valarray<mmpbsa::Vector> snapshot(mol_list.size());
     size_t complexSize,receptorSize,ligandSize;
     receptorSize = ligandSize = 0;
     for(size_t i = 0;i<mol_list.size();i++)
@@ -394,9 +394,9 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     		ligandSize++;
     }
     complexSize = receptorSize + ligandSize;
-    valarray<mmpbsa_t> complexSnap(complexSize*3);
-    valarray<mmpbsa_t> receptorSnap(receptorSize*3);
-    valarray<mmpbsa_t> ligandSnap(ligandSize*3);
+    valarray<mmpbsa::Vector> complexSnap(complexSize);
+    valarray<mmpbsa::Vector> receptorSnap(receptorSize);
+    valarray<mmpbsa::Vector> ligandSnap(ligandSize);
 
 
     //if the program is resuming a previously started calculation, advance to the
@@ -475,16 +475,16 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         size_t ligandCoordIndex = 0;
         for(size_t i = 0;i<mol_list.size();i++)
         {
-            std::slice_array<mmpbsa_t> currCoord = snapshot[slice(3*i,3,1)];
+            Vector& currCoord = snapshot[i];
             if(mol_list[i] == MMPBSAState::RECEPTOR)
             {
-            	complexSnap[slice(3*complexCoordIndex++,3,1)] = currCoord;
-            	receptorSnap[slice(3*receptorCoordIndex++,3,1)] = currCoord;
+            	complexSnap[complexCoordIndex++] = currCoord;
+            	receptorSnap[receptorCoordIndex++] = currCoord;
             }
             else if(mol_list[i] == MMPBSAState::LIGAND)
             {
-            	complexSnap[slice(3*complexCoordIndex++,3,1)] = currCoord;
-                ligandSnap[slice(3*ligandCoordIndex++,3,1)] = currCoord;
+            	complexSnap[complexCoordIndex++] = currCoord;
+                ligandSnap[ligandCoordIndex++] = currCoord;
             }
         }
 
@@ -1368,7 +1368,7 @@ void *do_mmpbsa_calculation_thread(void* args)
 
 int do_mmpbsa_calculation(void* thread_object,int useMultithread,
 		const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff,
-		const std::valarray<mmpbsa_t>& Snap,
+		const std::valarray<mmpbsa::Vector>& Snap,
 		const FinDiffMethod& fdm,const std::map<std::string,float>& radii,
 		const std::map<std::string,std::string>& residues,
 		const mmpbsa::MeadInterface& mi,
