@@ -91,7 +91,7 @@ std::string mmpbsa_io::getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAExc
 bool mmpbsa_io::get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa::Vector>& snapshot,
     const size_t& natoms,bool isPeriodic)
 {
-    bool returnMe = loadValarray(trajFile,snapshot,natoms*3,8,10);
+    bool returnMe = loadValarray(trajFile,snapshot,natoms,8,10);
     if(isPeriodic)
         getNextLine(trajFile);//ignoring periodic box information
     return returnMe;
@@ -282,12 +282,13 @@ template <> bool mmpbsa_io::loadValarray<mmpbsa::Vector>(std::iostream& dataFile
     if(dataArray.size() != arrayLength)
         dataArray.resize(arrayLength);
 
-    size_t lineIndex = 0;
-    size_t dataIndex = 0;
+    size_t lineIndex, dataIndex, dataSize;
     mmpbsa::Vector curr_vector;
     std::istringstream buff;
     mmpbsa::Vector::value_type curr_value;
-    for(;dataIndex<arrayLength;)
+    lineIndex = dataIndex = 0;
+    dataSize = arrayLength*3;
+    for(;dataIndex<dataSize;)
     {
         if(dataFile.eof())
             throw mmpbsa::SanderIOException("Data file ended in the middle of the "
@@ -316,6 +317,7 @@ template <> bool mmpbsa_io::loadValarray<mmpbsa::Vector>(std::iostream& dataFile
         	if((dataIndex + 1) % 3 == 0)
         		dataArray[(size_t)dataIndex/3] = curr_vector;
             currentLine.erase(0,width);
+            dataIndex++;
         }
 
         lineIndex++;
@@ -863,7 +865,6 @@ mmpbsa_io::trajectory_t mmpbsa_io::open_trajectory(const std::string& filename,c
 {
 	using std::fstream;
 	trajectory_t returnMe;
-	bool is_sander = true;
 	mmpbsa_io::default_trajectory(returnMe);
 
 #ifdef USE_GROMACS

@@ -64,8 +64,8 @@ mmpbsa_t mmpbsa::dihedral_energy_calc(const std::vector<dihedral_t>& dihedrals, 
     		continue;
 
         r_ij = crds[dihedral->atom_i]-crds[dihedral->atom_j];
-        r_kj = crds[3*dihedral->atom_k]-crds[dihedral->atom_j];
-        r_kl = crds[3*dihedral->atom_k]-crds[dihedral->atom_l];
+        r_kj = crds[dihedral->atom_k]-crds[dihedral->atom_j];
+        r_kl = crds[dihedral->atom_k]-crds[dihedral->atom_l];
         d = cross(r_ij,r_kj);
         g = cross(r_kl,r_kj);
         ap0 = dihedral_angle(d,g);
