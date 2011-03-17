@@ -44,6 +44,11 @@ void parse_opt(const int& key, mmpbsa_analyzer_arguments& args, char** argv)
 		args.command = SUMMARIZE;
 		args.parameter = optarg;
 		break;
+	case 'o':
+	  if(optarg == NULL)
+	    args_usage();
+	  args.output_filename = optarg;
+	  break;
 	case 'v':
 	  if(optarg == 0)
 	    {
@@ -378,7 +383,7 @@ int main(int argc, char** argv)
 
 	while(true)
 	{
-		getopt_retval = getopt_long(argc,argv,"s:v::",long_opts,&option_index);
+		getopt_retval = getopt_long(argc,argv,"s:v::o:",long_opts,&option_index);
 		if(getopt_retval == -1)
 			break;
 
