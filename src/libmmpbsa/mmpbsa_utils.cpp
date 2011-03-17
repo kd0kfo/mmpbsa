@@ -194,7 +194,7 @@ mead_data_t * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa::Vecto
         }
     }
 
-    mead_data_t * returnMe = new float[6];//x,y,z for min and max respectively
+    mead_data_t * returnMe = new mead_data_t[6];//x,y,z for min and max respectively
     for(size_t i = 0;i<3;i++)
     {
         returnMe[i] = min_corner[i];

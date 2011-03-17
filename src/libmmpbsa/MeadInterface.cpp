@@ -49,6 +49,7 @@ FinDiffMethod mmpbsa::MeadInterface::createFDM(const std::valarray<mmpbsa::Vecto
     Vector geoCenter;
     for(size_t i = 1;i<complexCrds.size();i++)
     {
+    	std::cout << "Coord: " << complexCrds[i] << std::endl;
         for(size_t j = 0;j<3;j++)
         {
             if(complexCrds[i].at(j) > comMax.at(j))
@@ -104,6 +105,8 @@ FinDiffMethod mmpbsa::MeadInterface::createFDM(const std::valarray<mmpbsa::Vecto
 
     fdm.add_level(fine_grid_dim,fine_grid_spacing,ON_CENT_OF_INTR);
     fdm.resolve(Coord(geoCenter[0],geoCenter[1],geoCenter[2]),Coord(intCenter[0],intCenter[1],intCenter[2]));
+
+    printf("Int min max: (%f, %f, %f) (%f, %f, %f)",int_minmax[0],int_minmax[1],int_minmax[2],int_minmax[3],int_minmax[4],int_minmax[5]);
 
     delete [] int_minmax;
     return fdm;
