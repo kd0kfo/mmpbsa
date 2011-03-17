@@ -142,8 +142,8 @@ mead_data_t * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa::Vecto
     using std::max;
     using std::min;
 
-    valarray<bool> aflags(false,acrds.size()/3);
-    valarray<bool> bflags(false,bcrds.size()/3);
+    valarray<bool> aflags(false,acrds.size());
+    valarray<bool> bflags(false,bcrds.size());
 
     mmpbsa_t r = 0;
     for(size_t i = 0;i<bflags.size();i++)
