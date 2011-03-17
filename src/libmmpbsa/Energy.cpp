@@ -129,7 +129,7 @@ mmpbsa_t mmpbsa::elstat14_energy_calc(const std::vector<dihedral_t>& dihedrals, 
     	mask = dihedral->nonbonded_masks.is_improper || dihedral->nonbonded_masks.should_ignore_end_grp || period_mask;
     	if(!mask)
         {
-    		rsqrd = (crds[dihedral->atom_i]-crds[dihedral->atom_j])*(crds[dihedral->atom_i]-crds[dihedral->atom_j]);
+    		rsqrd = (crds[dihedral->atom_i]-crds[dihedral->atom_l])*(crds[dihedral->atom_i]-crds[dihedral->atom_l]);
     		q_i = atoms.at(dihedral->atom_i).charge;
     		q_l = atoms.at(dihedral->atom_l).charge;
     		totalEnergy += (inv_scee/dielc)*q_i*q_l/sqrt(rsqrd);//Ah, Coulomb's law :-)

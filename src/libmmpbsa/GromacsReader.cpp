@@ -59,9 +59,12 @@ void mmpbsa_io::load_gmx_trr(const std::string& filename,std::valarray<mmpbsa::V
   if(natoms != 0 && x != 0)
   {
 	  crds.resize(natoms);
+	  //resize will call the default constructor,
+	  //which makes a 3-D vector, <0,0,0>. So here,
+	  //one should use at(j) instead of push_back
 	  for(size_t i = 0;i<natoms;i++)
 		  for(size_t j = 0;j<3;j++)
-			  crds[i].push_back(x[i][j]*nm2angst);
+			  crds[i].at(j) = x[i][j]*nm2angst;
   }
   else
   {
