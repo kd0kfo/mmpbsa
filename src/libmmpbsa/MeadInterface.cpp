@@ -31,40 +31,36 @@ mmpbsa::MeadInterface::~MeadInterface() {
     brad.clear();
 }
 
-FinDiffMethod mmpbsa::MeadInterface::createFDM(const std::valarray<mmpbsa_t>& complexCrds,
-        const std::valarray<mmpbsa_t>& receptorCrds, const std::valarray<mmpbsa_t>& ligandCrds,
+FinDiffMethod mmpbsa::MeadInterface::createFDM(const std::valarray<mmpbsa::Vector>& complexCrds,
+        const std::valarray<mmpbsa::Vector>& receptorCrds, const std::valarray<mmpbsa::Vector>& ligandCrds,
         const int& outbox_grid_dim, const mmpbsa_t& fine_grid_spacing) throw (mmpbsa::MeadException)
 {
     using std::max;
+    using mmpbsa::Vector;
     
     if(complexCrds.size() == 0 || receptorCrds.size() == 0 || ligandCrds.size() == 0)
         throw MeadException("Trivial coordinates supplied to createFDM must be 3-D.",DATA_FORMAT_ERROR);
     
-    if(complexCrds.size() % 3 != 0 || receptorCrds.size() % 3 != 0 || ligandCrds.size() % 3 != 0)
-        throw MeadException("Coordinates supplied to createFDM must be 3-D.",DATA_FORMAT_ERROR);
-
     //Obtain Complex dimensions and size
-    mmpbsa_t comMax[3] = {complexCrds[0],complexCrds[1],complexCrds[2]};
-    mmpbsa_t comMin[3] = {complexCrds[0],complexCrds[1],complexCrds[2]};
+    Vector comMax = complexCrds[0];
+    Vector comMin = complexCrds[0];
     mmpbsa_t comSize[3];
     mmpbsa_t maxComSize;
-    mmpbsa_t geoCenter[3];
-    for(size_t i = 3;i<complexCrds.size();i+=3)
+    Vector geoCenter;
+    for(size_t i = 1;i<complexCrds.size();i++)
     {
         for(size_t j = 0;j<3;j++)
         {
-            if(complexCrds[i+j] > comMax[j])
-                comMax[j] = complexCrds[i+j];
-            if(complexCrds[i+j] < comMin[j])
-                comMin[j] = complexCrds[i+j];
+            if(complexCrds[i].at(j) > comMax.at(j))
+                comMax.at(j) = complexCrds[i].at(j);
+            if(complexCrds[i].at(j) < comMin.at(j))
+                comMin.at(j) = complexCrds[i].at(j);
         }
     }
 
     for(size_t i = 0;i<3;i++)
-    {
-        comSize[i] = comMax[i] - comMin[i];
-        geoCenter[i] = (comMax[i]+comMin[i])/2;
-    }
+    	comSize[i] = comMax.at(i) - comMin.at(i);
+    geoCenter = (comMax+comMin)/2;
     
     maxComSize = comSize[0];
     if(comSize[1] > maxComSize)
@@ -113,7 +109,7 @@ FinDiffMethod mmpbsa::MeadInterface::createFDM(const std::valarray<mmpbsa_t>& co
     return fdm;
 }
 
-mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
+mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa::Vector>& crds,
         const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
         const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
         const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException)
@@ -128,7 +124,7 @@ mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const mmpbsa::EmpEnerFun& efun, co
     return returnMe;
 }
 
-mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& crds,
+mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa::Vector>& crds,
         const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
         const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
         const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException)
@@ -142,7 +138,7 @@ mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const std::vector<mmpbsa::atom_t>&
     return returnMe;
 }
 
-mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa_t>& crds,
+mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa::Vector>& crds,
         const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
         const std::map<std::string,std::string>& residueMap,
         const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius) throw (mmpbsa::MeadException)
@@ -160,16 +156,12 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, 
 }
 
 mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff,
-		const std::valarray<mmpbsa_t>& crds,
+		const std::valarray<mmpbsa::Vector>& crds,
 		const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
 		const std::map<std::string,std::string>& residueMap,
 		const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius) throw (mmpbsa::MeadException)
 {
-    if(crds.size() % 3 != 0)
-        throw mmpbsa::MeadException("Coordinates supplied to pbsa_solvation must be "
-                "3-D coordinates.", DATA_FORMAT_ERROR);
-
-    mmpbsa_t * returnMe = new mmpbsa_t[2];size_t esol = 0;size_t area = 1;
+    mmpbsa_t * returnMe = new mmpbsa_t[2];enum{esol = 0, area};
 
     mmpbsa::MeadInterface MI;//stores bond info for atoms not in radii.
     //PB
@@ -183,7 +175,7 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t
         currAtom.atname = atom->name;
         currAtom.resname = "FOO";//FIX ME???
         currAtom.resnum = i+1;//FIX ME???
-        currAtom.coord = Coord(crds[3*i],crds[3*i+1],crds[3*i+2]);
+        currAtom.coord = ToCoord(crds[i]);
         currAtom.charge = atom->charge;
         currAtom.rad = mmpbsa_utils::lookup_radius(currAtom.atname,radii);
 
@@ -206,25 +198,30 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t
     ElstatPot phi_ref(fdm, eps_ref, rho, ely_ref);
     phi_ref.solve();
     mmpbsa_t prod_ref = mmpbsa_t(phi_ref * rho);
-    //# esol will already be in kcal/mole because of Amber's charge units
+
     returnMe[esol] = (prod_sol - prod_ref) / 2.0;
-    /**/
-    size_t numCoords = size_t(crds.size()/3);
+
+    atmSet.clear();//Free a little memory before gobbling a lot for molsurf (which hopefully will be replaced)
+    size_t numCoords = crds.size();
     REAL_T xs[numCoords],ys[numCoords],zs[numCoords];
     REAL_T rads[numCoords];
     
+    //Surface Area
     for(size_t i = 0;i<numCoords;i++)
     {
-        xs[i] = crds[3*i];
-        ys[i] = crds[3*i+1];
-        zs[i] = crds[3*i+2];
+        xs[i] = crds[i].x();
+        ys[i] = crds[i].y();
+        zs[i] = crds[i].z();
         rads[i] = mmpbsa_utils::lookup_radius(atoms.at(i).name,MI.brad) + 1.4;//SA radii are not necessarily the same as PB radii
     }
-    //Surface Area
     returnMe[area] = molsurf(xs,ys,zs,rads,numCoords,0);//replace with molsurf stuff42;//
 
     return returnMe;
 }
 
+Coord ToCoord(const mmpbsa::Vector& v)
+{
+	return Coord(v.x(),v.y(),v.z());
+}
 
 

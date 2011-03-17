@@ -232,7 +232,7 @@ void send_status_message(mmpbsa::SanderInterface& si, double frac_done,
         double checkpoint_cpu_time);
 
 int do_mmpbsa_calculation(void* thread_object,int useMultithread,const std::vector<mmpbsa::atom_t>& atoms,
-		const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa_t>& Snap,
+		const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa::Vector>& Snap,
 		const FinDiffMethod& fdm,const std::map<std::string,float>& radii,
 		const std::map<std::string,std::string>& residues,
 		const mmpbsa::MeadInterface& mi,
@@ -247,7 +247,7 @@ typedef struct mmpbsa_thread_arg
 {
 	const std::vector<mmpbsa::atom_t>* atoms;
 	const mmpbsa::forcefield_t* ff;
-	const std::valarray<mmpbsa_t>* snap;
+	const std::valarray<mmpbsa::Vector>* snap;
 	const FinDiffMethod* fdm;
 	const std::map<std::string,float>* pradii;
 	const std::map<std::string,std::string>* residues;

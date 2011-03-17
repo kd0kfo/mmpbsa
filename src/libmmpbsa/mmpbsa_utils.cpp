@@ -63,7 +63,7 @@ std::string mmpbsa_utils::trimString(const std::string& theString)
     return bean;
 }
 
-float * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
+mead_data_t * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
         const std::valarray<mmpbsa_t>& bcrds, const mmpbsa_t& cutoff)
 {
     using std::valarray;
@@ -71,10 +71,6 @@ float * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
     using std::max;
     using std::min;
     
-    if(acrds.size() % 3 != 0 || bcrds.size() % 3 != 0)
-        throw mmpbsa::MMPBSAException("interaction_minmax was supply coordinates "
-                "that were not 3-D.",mmpbsa::DATA_FORMAT_ERROR);
-
     mmpbsa_t cutsqrd = cutoff*cutoff;
     valarray<bool> aflags(false,size_t(acrds.size()/3));
     valarray<bool> bflags(false,size_t(bcrds.size()/3));
@@ -94,7 +90,7 @@ float * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
         }
 
     }
-    float max_corner[3],min_corner[3];
+    mead_data_t max_corner[3],min_corner[3];
     bool seenFirstInteractor = false;
     for(size_t i = 0;i<aflags.size();i++)
     {
@@ -129,7 +125,7 @@ float * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
         }
     }
 
-    float * returnMe = new float[6];//x,y,z for min and max respectively
+    mead_data_t * returnMe = new float[6];//x,y,z for min and max respectively
     for(size_t i = 0;i<3;i++)
     {
         returnMe[i] = min_corner[i];
@@ -137,6 +133,76 @@ float * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa_t>& acrds,
     }
     return returnMe;
 }
+
+mead_data_t * mmpbsa_utils::interaction_minmax(const std::valarray<mmpbsa::Vector>& acrds,
+                const std::valarray<mmpbsa::Vector>& bcrds, const mmpbsa_t& cutoff)
+{
+    using std::valarray;
+    using std::slice;
+    using std::max;
+    using std::min;
+
+    valarray<bool> aflags(false,acrds.size());
+    valarray<bool> bflags(false,bcrds.size());
+
+    mmpbsa_t r = 0;
+    for(size_t i = 0;i<bflags.size();i++)
+    {
+        for(size_t j = 0;j<aflags.size();j++)
+        {
+            r = (bcrds[i]-acrds[j]).modulus();
+            if(r < cutoff)
+            {
+                bflags[i] = true;
+                aflags[j] = true;
+            }
+        }
+
+    }
+    mead_data_t max_corner[3],min_corner[3];
+    bool seenFirstInteractor = false;
+    for(size_t i = 0;i<aflags.size();i++)
+    {
+        if(aflags[i])
+        {
+            if(!seenFirstInteractor)
+            {
+                for(size_t j = 0;j<3;j++)
+                    min_corner[j] = max_corner[j] = acrds[i].at(j);
+                seenFirstInteractor = true;
+            }
+            else
+            {
+                for(size_t j = 0;j<3;j++)
+                {
+                    max_corner[j] = max(acrds[i].at(j),mmpbsa_t(max_corner[j]));//mead_data_type is not necessarily the same as mmpbsa_t, unfortunately. :-( Indeed, Coord is single precision.
+                    min_corner[j] = min(acrds[i].at(j),mmpbsa_t(min_corner[j]));
+                }
+            }
+        }
+    }
+
+    for(size_t i = 0;i<bflags.size();i+=3)
+    {
+        if(bflags[i])
+        {
+            for(size_t j = 0;j<3;j++)
+            {
+                max_corner[j] = max(bcrds[i].at(j),mmpbsa_t(max_corner[j]));
+                min_corner[j] = min(bcrds[i].at(j),mmpbsa_t(min_corner[j]));
+            }
+        }
+    }
+
+    mead_data_t * returnMe = new mead_data_t[6];//x,y,z for min and max respectively
+    for(size_t i = 0;i<3;i++)
+    {
+        returnMe[i] = min_corner[i];
+        returnMe[i+3] = max_corner[i];
+    }
+    return returnMe;
+}
+
 float mmpbsa_utils::lookup_radius(const std::string& atomName,
        const std::map<std::string,float>& radiusMap)
             throw (mmpbsa::MMPBSAException)
@@ -191,6 +257,43 @@ float mmpbsa_utils::lookup_radius(const std::string& atomName,
     
     //iff there is one match.
     return float(possibleMatches[0]);
+}
+
+mmpbsa_t mmpbsa_utils::dihedral_angle(const mmpbsa::Vector& x, const mmpbsa::Vector& y)
+{
+        mmpbsa_t d[3];//vector lengths
+        mmpbsa_t temp,angle;
+        using std::swap;
+
+        d[0] = x.modulus();
+        d[1] = y.modulus();
+        d[2] = (x-y).modulus();
+
+        //sort distances, so that d[0] < d[1] < d[2]
+        if (d[1] < d[0]) swap(d[1], d[0]);
+        if (d[2] < d[1]) swap(d[2], d[1]);
+        if (d[1] < d[0]) swap(d[1], d[0]);
+
+        //Is this really a triangle?
+        if(d[0]-(d[2]-d[1]) < 0)
+                return 0;
+
+        if(d[1] >= d[0] && d[0] >= 0)
+        	temp = d[0]-(d[2]-d[1]);
+        else if(d[0] > d[1] && d[1] >= 0)
+        	temp = d[1]-(d[2]-d[0]);
+        else
+        	return 0;//not a real triangle
+
+        //Heron's rule. Parenthesis are important for floating-point precision
+        angle = ((d[2]-d[1])+d[0])*temp/((d[2]+(d[1]+d[0]))*((d[2]-d[0])+d[1]));
+        angle = 2*atan(sqrt(angle));
+
+        //arctan(+/0) is determined (pi/2), but arctan(0/0) is undefinied (i.e. NAN)
+        if(isnan(angle))
+        	if(((d[2]-d[1])+d[0])*temp > 0 && ((d[2]+(d[1]+d[0]))*((d[2]-d[0])+d[1])) == 0)
+        		return MMPBSA_HALF_PI;
+        return angle;
 }
 
 std::string mmpbsa_utils::get_human_time()

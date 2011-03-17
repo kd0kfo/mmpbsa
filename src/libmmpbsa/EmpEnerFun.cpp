@@ -313,7 +313,7 @@ mmpbsa::EmpEnerFun& mmpbsa::EmpEnerFun::operator=(const mmpbsa::EmpEnerFun& orig
     return *this;
 }
 
-std::string mmpbsa::EmpEnerFun::ereport(const std::valarray<mmpbsa_t>& crds)
+std::string mmpbsa::EmpEnerFun::ereport(const std::valarray<mmpbsa::Vector>& crds)
 {
     char ereport[512];
     mmpbsa_t bon,ang,dihe,vdw14,ele14,vdw,ele;
@@ -637,7 +637,7 @@ mmpbsa::bond_energy_t* mmpbsa::EmpEnerFun::extract_bond_structs(std::vector<bond
 	return bond_energy_data;
 }
 
-mmpbsa_t mmpbsa::EmpEnerFun::total_bond_energy(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_bond_energy(const std::valarray<mmpbsa::Vector>& crds)const
 {
 	std::vector<bond_t> bonds_with_H, bonds_without_H;
 	mmpbsa::bond_energy_t* energy_data = extract_bond_structs(bonds_with_H,bonds_without_H);
@@ -680,7 +680,7 @@ mmpbsa::bond_energy_t* mmpbsa::EmpEnerFun::extract_angle_structs(std::vector<mmp
 	return angle_energy_data;
 }
 
-mmpbsa_t mmpbsa::EmpEnerFun::total_angle_energy(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_angle_energy(const std::valarray<mmpbsa::Vector>& crds)const
 {
 	std::vector<mmpbsa::angle_t> angles_with_H, angles_without_H;
 	mmpbsa::bond_energy_t* angle_bond_energies = extract_angle_structs(angles_with_H, angles_without_H);
@@ -758,7 +758,7 @@ void mmpbsa::EmpEnerFun::extract_atom_structs(std::vector<mmpbsa::atom_t>& atoms
 	}
 }
 
-mmpbsa_t mmpbsa::EmpEnerFun::total_dihedral_energy(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_dihedral_energy(const std::valarray<mmpbsa::Vector>& crds)const
 {
 	//Make Structs
 	std::vector<mmpbsa::dihedral_t> dihedrals_with_H,dihedrals_without_H;
@@ -771,7 +771,7 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_dihedral_energy(const std::valarray<mmpbsa_t>
 	return returnMe;
 }
 
-mmpbsa_t mmpbsa::EmpEnerFun::total_vdw14_energy(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_vdw14_energy(const std::valarray<mmpbsa::Vector>& crds)const
 {
 	//Make Structs
 	std::vector<mmpbsa::dihedral_t> dihedrals_with_H,dihedrals_without_H;
@@ -784,7 +784,7 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_vdw14_energy(const std::valarray<mmpbsa_t>& c
 	return returnMe;
 }
 
-mmpbsa_t mmpbsa::EmpEnerFun::total_elstat14_energy(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_elstat14_energy(const std::valarray<mmpbsa::Vector>& crds)const
 {
 	//Make Structs
 	std::vector<mmpbsa::dihedral_t> dihedrals_with_H,dihedrals_without_H;
@@ -810,7 +810,7 @@ void mmpbsa::EmpEnerFun::extract_lj_params(std::vector<mmpbsa::lj_params_t>& lj_
 	}
 }
 
-mmpbsa_t mmpbsa::EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa::Vector>& crds)const
 {
 	std::vector<mmpbsa::atom_t> atoms;
 	std::vector<mmpbsa::lj_params_t> lj_params;
@@ -822,12 +822,8 @@ mmpbsa_t mmpbsa::EmpEnerFun::total_vdwaals_energy(const std::valarray<mmpbsa_t>&
 }
 
 
-mmpbsa_t mmpbsa::EmpEnerFun::total_elstat_energy(const std::valarray<mmpbsa_t>& crds)const
+mmpbsa_t mmpbsa::EmpEnerFun::total_elstat_energy(const std::valarray<mmpbsa::Vector>& crds)const
 {
-    if(crds.size() % 3 != 0)
-        throw mmpbsa::MMPBSAException("mmpbsa::EmpEnerFun::total_elstat_energy: Coordinate arrays must be a multiple of 3. "
-                "bond_energy_calc was given one that was not.",mmpbsa::INVALID_ARRAY_SIZE);
-
     std::vector<mmpbsa::atom_t> atoms;
     extract_atom_structs(atoms);
 
@@ -993,7 +989,7 @@ template <class M> void mmpbsa::EmpEnerFun::updatePhiMasks(std::valarray<bool>& 
     }
 }//end updatePhiMasks
 
-std::ostream& streamPDB(std::ostream& theStream, const mmpbsa::EmpEnerFun& energy, const std::valarray<mmpbsa_t>& crds) throw (mmpbsa::MMPBSAException)
+std::ostream& streamPDB(std::ostream& theStream, const mmpbsa::EmpEnerFun& energy, const std::valarray<mmpbsa::Vector>& crds) throw (mmpbsa::MMPBSAException)
 {
 	std::vector<mmpbsa::atom_t> atoms;
 	mmpbsa::forcefield_t ff;
