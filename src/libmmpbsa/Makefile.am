@@ -4,7 +4,7 @@ libmmpbsa_a_CPPFLAGS = -Wall  $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ -I../ $(BO
 libmmpbsa_a_SOURCES = EmpEnerFun.cpp EMap.cpp EnergyInfo.cpp SanderInterface.cpp MeadInterface.cpp SanderParm.cpp mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp StringTokenizer.cpp MMPBSAState.cpp Energy.cpp structs.cpp Vector.cpp
 
 libmmpbsa_a_includedir = $(includedir)/libmmpbsa
-libmmpbsa_a_include_HEADERS = EmpEnerFun.h EMap.h EnergyInfo.h SanderInterface.h MeadInterface.h SanderParm.h mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h Energy.h structs.h Vector.h
+libmmpbsa_a_include_HEADERS = EmpEnerFun.h EMap.h EnergyInfo.h SanderInterface.h MeadInterface.h SanderParm.h mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h Energy.h structs.h Vector.h globals.h
 
 if BUILD_WITH_GZIP
 libmmpbsa_a_SOURCES += Zipper.cpp
