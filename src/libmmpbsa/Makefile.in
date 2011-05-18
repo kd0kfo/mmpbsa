@@ -35,11 +35,12 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-@BUILD_WITH_GZIP_TRUE@am__append_1 = Zipper.cpp
-@BUILD_WITH_GZIP_TRUE@am__append_2 = Zipper.h
-@BUILD_WITH_GROMACS_TRUE@am__append_3 = FormatConverter.cpp GromacsReader.cpp
-@BUILD_WITH_GROMACS_TRUE@am__append_4 = FormatConverter.h GromacsReader.h
-@BUILD_WITH_GROMACS_TRUE@am__append_5 = -I $(GROMACS_PATH)/include/
+@BUILD_WITH_MPI_TRUE@am__append_1 = -I $(MPI_PATH)/include/
+@BUILD_WITH_GZIP_TRUE@am__append_2 = Zipper.cpp
+@BUILD_WITH_GZIP_TRUE@am__append_3 = Zipper.h
+@BUILD_WITH_GROMACS_TRUE@am__append_4 = FormatConverter.cpp GromacsReader.cpp
+@BUILD_WITH_GROMACS_TRUE@am__append_5 = FormatConverter.h GromacsReader.h
+@BUILD_WITH_GROMACS_TRUE@am__append_6 = -I $(GROMACS_PATH)/include/
 subdir = src/libmmpbsa
 DIST_COMMON = $(am__libmmpbsa_a_include_HEADERS_DIST) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -102,7 +103,8 @@ am__libmmpbsa_a_include_HEADERS_DIST = EmpEnerFun.h EMap.h \
 	EnergyInfo.h SanderInterface.h MeadInterface.h SanderParm.h \
 	mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h \
 	StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h Energy.h \
-	structs.h Vector.h Zipper.h FormatConverter.h GromacsReader.h
+	structs.h Vector.h globals.h Zipper.h FormatConverter.h \
+	GromacsReader.h
 libmmpbsa_a_includeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(libmmpbsa_a_include_HEADERS)
 ETAGS = etags
@@ -158,6 +160,7 @@ LIBS = @LIBS@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MEAD_PATH = @MEAD_PATH@
+MPI_PATH = @MPI_PATH@
 MULTITHREAD_LIBS = @MULTITHREAD_LIBS@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -208,19 +211,19 @@ target_alias = @target_alias@
 lib_LIBRARIES = libmmpbsa.a
 libmmpbsa_adir = $(libdir)
 libmmpbsa_a_CPPFLAGS = -Wall $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ \
-	-I../ $(BOINC_CPPFLAGS) $(am__append_5)
+	-I../ $(BOINC_CPPFLAGS) $(am__append_1) $(am__append_6)
 libmmpbsa_a_SOURCES = EmpEnerFun.cpp EMap.cpp EnergyInfo.cpp \
 	SanderInterface.cpp MeadInterface.cpp SanderParm.cpp \
 	mmpbsa_exceptions.cpp mmpbsa_utils_templates.cpp \
 	mmpbsa_utils.cpp XMLParser.cpp XMLNode.cpp mmpbsa_io.cpp \
 	StringTokenizer.cpp MMPBSAState.cpp Energy.cpp structs.cpp \
-	Vector.cpp $(am__append_1) $(am__append_3)
+	Vector.cpp $(am__append_2) $(am__append_4)
 libmmpbsa_a_includedir = $(includedir)/libmmpbsa
 libmmpbsa_a_include_HEADERS = EmpEnerFun.h EMap.h EnergyInfo.h \
 	SanderInterface.h MeadInterface.h SanderParm.h \
 	mmpbsa_exceptions.h mmpbsa_utils.h mmpbsa_io.h \
 	StringTokenizer.h XMLParser.h XMLNode.h MMPBSAState.h Energy.h \
-	structs.h Vector.h $(am__append_2) $(am__append_4)
+	structs.h Vector.h globals.h $(am__append_3) $(am__append_5)
 all: all-am
 
 .SUFFIXES:

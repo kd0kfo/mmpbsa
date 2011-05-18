@@ -17,6 +17,11 @@ mmpbsa_analyzer_DEPENDENCIES = libmmpbsa
 mmpbsa_analyzer_SOURCES = mmpbsa_analyzer.cpp
 
 
+if BUILD_WITH_MPI
+mmpbsa_CPPFLAGS += -I $(MPI_PATH)/include/
+endif
+
+
 if BUILD_WITH_GZIP
 mmpbsa_LDADD += -lz
 endif
