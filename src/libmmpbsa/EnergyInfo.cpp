@@ -154,7 +154,11 @@ void mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
         if(currentLine.size() == 0 || currentLine.find("------------------------------------") != std::string::npos)
         	break;//end of data section.
         if(currentLine.find(CR_CHAR) != std::string::npos)
+        {
         	currentLine.erase(currentLine.find(CR_CHAR),1);
+        	if(currentLine.size() == 0)
+        		break;
+        }
         mmpbsa_utils::StringTokenizer tokens(currentLine);
 	try{
         while(tokens.hasMoreTokens())
