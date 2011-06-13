@@ -147,6 +147,7 @@ void foreach(mmpbsa_utils::XMLNode* beginning, mmpbsa_utils::XMLNode* end,
     }
 }
 
+#if 0 //old, less flexible method of sorting
 std::vector<mmpbsa_utils::XMLNode*> quick_sort(mmpbsa_utils::XMLNode* node_to_sort,
 		int sort_algo(mmpbsa_utils::XMLNode* partition_element, mmpbsa_utils::XMLNode* test_element))
 {
@@ -243,4 +244,5 @@ std::vector<mmpbsa_utils::XMLNode*> quick_sort(mmpbsa_utils::XMLNode* node_to_so
 
 	return returnMe;
 }
+#endif
 

@@ -212,7 +212,7 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t
         xs[i] = crds[i].x();
         ys[i] = crds[i].y();
         zs[i] = crds[i].z();
-        rads[i] = mmpbsa_utils::lookup_radius(atoms.at(i).name,MI.brad) + 1.4;//SA radii are not necessarily the same as PB radii
+        rads[i] = mmpbsa_utils::lookup_radius(atoms.at(i).name,radii) + 1.4;//SA radii are not necessarily the same as PB radii
     }
     returnMe[area] = molsurf(xs,ys,zs,rads,numCoords,0);//replace with molsurf stuff42;//
 

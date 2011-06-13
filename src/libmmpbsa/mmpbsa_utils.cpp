@@ -243,7 +243,8 @@ float mmpbsa_utils::lookup_radius(const std::string& atomName,
         float deeperSearch = lookup_radius(theAtom.erase(theAtom.size()-1),radiusMap);
         if(deeperSearch == -1)
         {
-            std::string error = "No radius found for '%s' in Radii Map" + atomName;
+            std::ostringstream error;
+            error << "No radius found for '" << atomName << "' in Radii Map";
             throw mmpbsa::MMPBSAException(error,mmpbsa::DATA_FORMAT_ERROR);
         }
         return deeperSearch;

@@ -15,7 +15,7 @@
 #define	XMLNODE_H
 
 #include <string>
-#include <vector>
+#include <set>
 
 #include "mmpbsa_exceptions.h"
 
@@ -205,24 +205,6 @@ private:
  */
 void foreach(mmpbsa_utils::XMLNode* beginning, mmpbsa_utils::XMLNode* end,
         void function(mmpbsa_utils::XMLNode*));
-
-/**
- * Provides an index table into the provided XMLNode which can be used to sort
- * the node based on the sort_algo sort algorithm. This function should have
- * the following return values:
- * 4 if the test_element is less than the partition_element,
- * 5 if the test_element is less than or equal to the partition_element,
- * 1 if they are equal,
- * 3 if test_element is greater than or equal to the partition_element,
- * 2 if the test_element is greater than the partition_element. The method
- * of deciding which condition is true is up to the implementor.
- * (Notice the return values correspond to bit values LGE, where L means less
- * than, G means greater than and E means equal.)
- *
- * Note: the vector contains the points of the child nodes of node_to_sort.
- */
-std::vector<mmpbsa_utils::XMLNode*> quick_sort(mmpbsa_utils::XMLNode* node_to_sort,
-		int sort_algo(mmpbsa_utils::XMLNode* test_element, mmpbsa_utils::XMLNode* partition_element));
 
 #endif	/* XMLNODE_H */
 
