@@ -33,11 +33,12 @@ public:
   value_type distance(const mmpbsa::Vector& other_point)const;
   value_type modulus()const;
 
-  friend std::ostream& operator<<(std::ostream& ost,const mmpbsa::Vector& v);
 
 };
 
 }//namespace mmpbsa
+
+std::ostream& operator<<(std::ostream& ost,const mmpbsa::Vector& v);
 
 mmpbsa::Vector::value_type dot (const mmpbsa::Vector& a, const mmpbsa::Vector& b);
 mmpbsa::Vector cross (const mmpbsa::Vector& a, const mmpbsa::Vector& b);

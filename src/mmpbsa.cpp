@@ -1248,7 +1248,7 @@ std::vector<mmpbsa::MMPBSAState> getQueueFile(int argc,char** argv)
         if(sibling->getName() == "mmpbsa")
         	nodeState.currentProcess = MMPBSAState::MMPBSA;
         else if(sibling->getName() == "molecular_dynamics" || sibling->getName() == "moledyn")
-        	nodeState.currentProcess = MMPBSAState::MMPBSA;
+        	nodeState.currentProcess = MMPBSAState::SANDER;
         else
         	throw mmpbsa::MMPBSAException("getQueueFile: " + sibling->getName() + " is an unknown process type.",mmpbsa::BAD_XML_TAG);
         parseParameter(tags,nodeState);

@@ -1,3 +1,8 @@
+#include <cmath>
+#ifndef isnan
+#define isnan(X) __isnan(X)
+#endif
+
 #include "Energy.h"
 
 //Energy Calculations

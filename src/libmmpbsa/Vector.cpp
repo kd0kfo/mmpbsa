@@ -178,7 +178,7 @@ bool operator != (const mmpbsa::Vector& a, const mmpbsa::Vector& b)
 	return false;
 }
 
-std::ostream& mmpbsa::operator<<(std::ostream& ost,const mmpbsa::Vector& v)
+std::ostream& operator<<(std::ostream& ost,const mmpbsa::Vector& v)
 {
     ost << "(";
     mmpbsa::Vector::const_iterator val = v.begin();
