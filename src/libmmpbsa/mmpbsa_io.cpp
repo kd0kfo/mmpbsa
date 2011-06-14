@@ -83,8 +83,8 @@ std::string mmpbsa_io::getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAExc
 
     std::string returnMe;
     getline(file,returnMe);
-    while(returnMe.find((char)0xd) != std::string::npos)
-      returnMe.erase(returnMe.find((char)0xd),1);
+    while(returnMe.find((char)CR_CHAR) != std::string::npos)
+      returnMe.erase(returnMe.find((char)CR_CHAR),1);
 
     return returnMe;
 }
