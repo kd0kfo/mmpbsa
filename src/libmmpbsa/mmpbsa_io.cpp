@@ -83,9 +83,9 @@ std::string mmpbsa_io::getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAExc
 
     std::string returnMe;
     getline(file,returnMe);
-    while(returnMe.find(0xd) != std::string::npos)
-      returnMe.erase(returnMe.find(0xd),1);
-      
+    while(returnMe.find((char)0xd) != std::string::npos)
+      returnMe.erase(returnMe.find((char)0xd),1);
+
     return returnMe;
 }
 
@@ -774,7 +774,7 @@ bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbs
 		if(traj.sander_filename == 0)
 			throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Filename for sander trajectory is a null pointer.",mmpbsa::NULL_POINTER);
 		fstream* sander_fstream = new fstream;
-		sander_fstream->open(traj.sander_filename->c_str(),std::ios::in);;
+		sander_fstream->open(traj.sander_filename->c_str(),std::ios::in | std::ios::binary);
 		sander_file = sander_fstream;
 	}
 	sander_file->seekg(traj.curr_pos,sander_file->beg);
@@ -793,7 +793,6 @@ bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbs
 		traj.curr_snap++;
 	if(sander_file != traj.sander_crd_stream)
 		delete sander_file;
-
 	return returnMe;
 }
 
@@ -936,11 +935,11 @@ std::string mmpbsa_io::get_traj_title(mmpbsa_io::trajectory_t& traj)
 	}
 	else if(traj.sander_filename != 0)
 	{
-		std::string returnMe;
-		std::fstream sander_file(traj.sander_filename->c_str(),std::ios::in);
-		returnMe = mmpbsa_io::get_traj_title(sander_file);
-		traj.curr_pos = sander_file.tellg();
-		return returnMe;
+	  std::string returnMe;
+	  std::fstream sander_file(traj.sander_filename->c_str(),std::ios::in | std::ios::binary);
+	  returnMe = mmpbsa_io::get_traj_title(sander_file);
+	  traj.curr_pos = sander_file.tellg();
+	  return returnMe;
 	}
 	else if(traj.gromacs_filename != 0)
 	{
