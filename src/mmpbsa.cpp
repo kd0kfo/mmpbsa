@@ -809,7 +809,7 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
     		std::istringstream buff(it->second);
     		buff >> currState.weight;
     	}
-    	else if(it->first == "id" || it->first == "prereq" || it->first == "snap_list_offset")//this is used by the queue system only. Not needed for calculations.
+    	else if(it->first == "id" || it->first == "prereq")//this is used by the queue system only. Not needed for calculations.
     		continue;
     	else if (it->first == "istrength")
     	{

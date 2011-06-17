@@ -195,7 +195,7 @@ template <class T> bool mmpbsa_io::loadValarray(std::iostream& dataFile,
         	std::cerr << "Data file contains a short line. "
         			"Lines must be at least 36 characters, but line #"
         			<< lineIndex+1 << " is only " << currentLine.size()
-        			<< " characters long." << std::endl;
+        			<< " characters long. Data:\n" << currentLine  << std::endl;
         }
 
         //tokenize line into data. put data into valarray.
@@ -247,7 +247,7 @@ template <> bool mmpbsa_io::loadValarray<std::string>(std::iostream& dataFile,
             std::cerr << "Data file contains a short line. "
                     "Lines must be at least 36 characters, but line #"
                     << lineIndex+1 << " is only "
-                    << currentLine.size() <<  " characters long." << std::endl;
+                    << currentLine.size() <<  " characters long. Data:\n" << currentLine  << std::endl;
         }
 
         //tokenize line into data. put data into valarray.
@@ -303,7 +303,7 @@ template <> bool mmpbsa_io::loadValarray<mmpbsa::Vector>(std::iostream& dataFile
             std::cerr << "Data file contains a short line. "
                     "Lines must be at least 36 characters, but line #"
                     << lineIndex+1 << " is only "
-                    << currentLine.size() <<  " characters long." << std::endl;
+                    << currentLine.size() <<  " characters long. Data:\n" << currentLine  << std::endl;
         }
 
         //tokenize line into data. put data into valarray.
@@ -326,7 +326,7 @@ template <> bool mmpbsa_io::loadValarray<mmpbsa::Vector>(std::iostream& dataFile
         lineIndex++;
     }
 
-
+    exit(0);
     return true;
 }
 
@@ -814,7 +814,7 @@ void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos)
 		if(traj.sander_filename == 0)
 			throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Filename for sander trajectory is a null pointer.",mmpbsa::NULL_POINTER);
 		fstream* sander_fstream = new fstream;
-		sander_fstream->open(traj.sander_filename->c_str(),std::ios::in);
+		sander_fstream->open(traj.sander_filename->c_str(),std::ios::in |std::ios::binary);
 		sander_file = sander_fstream;
 	}
 	sander_file->seekg(traj.curr_pos,sander_file->beg);
@@ -878,7 +878,7 @@ mmpbsa_io::trajectory_t mmpbsa_io::open_trajectory(const std::string& filename,c
 	}
 #endif
 	//Test whether the file can be opened. If so, setup trajectory. Otherwise, throw exception.
-	fstream* trajDiskFile = new fstream(filename.c_str(),std::ios::in);
+	fstream* trajDiskFile = new fstream(filename.c_str(),std::ios::in | std::ios::binary);
 	if(!trajDiskFile->good())
 		throw mmpbsa::MMPBSAException("mmpbsa_io::open_trajectory: Unable to read from trajectory file",mmpbsa::BROKEN_TRAJECTORY_FILE);
 	returnMe.sander_filename = new std::string(filename);
