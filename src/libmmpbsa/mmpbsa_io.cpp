@@ -326,7 +326,6 @@ template <> bool mmpbsa_io::loadValarray<mmpbsa::Vector>(std::iostream& dataFile
         lineIndex++;
     }
 
-    exit(0);
     return true;
 }
 
