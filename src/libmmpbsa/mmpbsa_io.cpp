@@ -326,6 +326,13 @@ template <> bool mmpbsa_io::loadValarray<mmpbsa::Vector>(std::iostream& dataFile
         lineIndex++;
     }
 
+    if(dataIndex != arrayLength * 3)
+    {
+    	std::cerr << "Could not load all of snapshot" << std::endl
+    			<< "Size: " << (double)arrayLength << " Loaded: " << dataIndex/3. << std::endl;
+    	throw mmpbsa::MMPBSAException("mmpbsa_io::loadValarray<mmpbsa::Vector>: Error!!",mmpbsa::FILE_IO_ERROR);
+    }
+
     return true;
 }
 
@@ -776,7 +783,7 @@ bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbs
 		sander_fstream->open(traj.sander_filename->c_str(),std::ios::in | std::ios::binary);
 		sander_file = sander_fstream;
 	}
-	sander_file->seekg(traj.curr_pos,sander_file->beg);
+	seek(*sander_file,traj.natoms,traj.ifbox,traj.curr_snap);
 	if(traj.natoms == 0 || sander_file == 0)
 		throw mmpbsa::MMPBSAException("mmpbsa_io::get_next_snap: Sander parameters and/or sander coordinate stream is missing.",mmpbsa::DATA_FORMAT_ERROR);
 	if(!sander_file->good())
@@ -796,7 +803,27 @@ bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbs
 }
 
 
-void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos)
+void mmpbsa_io::seek(std::iostream& stream, size_t natoms, int ifbox, size_t snap_pos)
+{
+	int offset;
+	if(!stream.good())
+	{
+		std::ostringstream error;
+		error << "mmpbsa_io::seek(stream): Problem skipping to snap number " << snap_pos;
+		throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_IO_ERROR);
+	}
+
+	offset = 81;//skip first line
+	offset += (snap_pos-1)*natoms*3*8;//number of characters due to coordinates
+	offset += (snap_pos-1)*((int)ceil(natoms*3.0/10.0));// number of line returns (assuming LF not CRLF)
+
+	if(ifbox > 0)
+		offset += 25*(snap_pos-1);// number of box boundaries
+	stream.seekg(offset,stream.beg);
+}
+
+
+void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,size_t snap_pos)
 {
 #ifdef USE_GROMACS
 	if(traj.gromacs_filename != 0)
@@ -805,7 +832,6 @@ void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos)
 		return;
 	}
 #endif
-	size_t i = traj.curr_snap;
 	using std::fstream;using std::iostream;
 	iostream* sander_file = traj.sander_crd_stream;
 	if(sander_file == 0)
@@ -816,24 +842,18 @@ void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos)
 		sander_fstream->open(traj.sander_filename->c_str(),std::ios::in |std::ios::binary);
 		sander_file = sander_fstream;
 	}
-	sander_file->seekg(traj.curr_pos,sander_file->beg);
 	if(traj.natoms == 0)
 		throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Trajectory cannot be read without paramters. However, sander paramter object is a null pointer.",mmpbsa::NULL_POINTER);
 
-	for(;i<snap_pos;i++)
+	seek(*sander_file,traj.natoms,traj.ifbox,snap_pos);
+
+	if(sander_file->fail())
 	{
-		sander_file->seekg(traj.natoms * 24,sander_file->cur);//3 coordinates per atom and 8 characters per coordinate.
-		sander_file->seekg(ceil(traj.natoms * 24/80),sander_file->cur);//account for space and end of line characters for each line.
-		if(sander_file->fail())
-		{
-			std::ostringstream error;
-			error << "mmpbsa_io::seek: Problem skipping to snap number " << snap_pos;
-			throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_IO_ERROR);
-		}
+		std::ostringstream error;
+		error << "mmpbsa_io::seek: Problem skipping to snap number " << snap_pos;
+		throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_IO_ERROR);
 	}
 
-	if(traj.ifbox > 0)
-		sander_file->seekg(26,sander_file->cur);
 
 	traj.curr_snap = snap_pos;
 	traj.curr_pos = sander_file->tellg();

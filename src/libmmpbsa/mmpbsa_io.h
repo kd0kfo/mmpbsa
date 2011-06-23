@@ -130,9 +130,11 @@ bool get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa::Vector>&
 /**
  * Skips ahead (or behind) to the specified snapshot/frame of the
  * trajectory. No data is actually retrieved.
+ *
+ * snap_pos is one-indexed
  */
-void seek(mmpbsa_io::trajectory_t& traj,const size_t& snap_pos);
-
+void seek(mmpbsa_io::trajectory_t& traj, size_t snap_pos);
+void seek(std::iostream& stream, size_t natoms, int ifbox, size_t snap_pos);
 /**
  * Initializes the trajectory structure, trajectory_t
  *
