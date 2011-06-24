@@ -1,7 +1,12 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <getopt.h>
 #include <iostream>
 #include <string>
 #include <sstream>
+
 
 #include "libmmpbsa/XMLParser.h"
 #include "libmmpbsa/EMap.h"
@@ -10,6 +15,7 @@ static char mmpbsa_analyzer_doc[] = "mmpbsa_analyzer -- Program for analyzing an
 static char mmpbsa_analyzer_usage[] = "Usage: mmpbsa_analyzer [options]";
 void args_usage();
 
+enum NON_CHAR_OPTIONS{VERSION_OPT = 1};
 enum ANALYZER_COMMANDS{SUMMARIZE,NUM_COMMANDS};
 enum ERR_CODES{INVALID_INPUT_PARAMETER,INVALID_CLI_ARGUMENT};
 typedef struct{
@@ -31,6 +37,7 @@ const mmpbsa_analyzer_options options[] = {
 		{{"verbose",optional_argument,0,'v'},"Sets the verbosity of the program. Higher the level, the more verbose.","INTEGER"},
 		{{"output",required_argument,0,'o'},"Send output to the specified file. DEFAULT: standard output.","FILE"},
 		{{"help",no_argument,0,'h'},"This help dialog",""},
+		{{"version",no_argument,0,VERSION_OPT},"Display version",""},
 		{{"usage",no_argument,0,0},"Same as --help",""},
 		{{0,0,0,0},"",""}
 };
@@ -63,6 +70,9 @@ void parse_opt(const int& key, mmpbsa_analyzer_arguments& args, char** argv)
 			exit(INVALID_INPUT_PARAMETER);
 		}
 		break;
+	case VERSION_OPT:
+	  std::cout << "mmpbsa_analyzer " << PACKAGE_VERSION << std::endl;
+	  exit(0);
 	case 0:case '?':case 'h':
 	  args_usage();
 	  break;
