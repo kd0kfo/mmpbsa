@@ -11,8 +11,8 @@ mmpbsa_graphics_LDADD = $(BOINC_LIBS) $(GRAPHICS_LIBS) $(CUSTOM_LIBS)
 mmpbsa_graphics_SOURCES = mmpbsa_graphics.cpp mmpbsa_gutil.cpp
 
 mmpbsa_analyzer_CPPFLAGS = -Wall -I.
-mmpbsa_analyzer_LDADD = -lmmpbsa -lz
-mmpbsa_analyzer_LDFLAGS = -L./libmmpbsa
+mmpbsa_analyzer_LDADD = -lmmpbsa -lz $(CUSTOM_LIBS)
+mmpbsa_analyzer_LDFLAGS = -L./libmmpbsa $(CUSTOM_LDFLAGS)
 mmpbsa_analyzer_DEPENDENCIES = libmmpbsa
 mmpbsa_analyzer_SOURCES = mmpbsa_analyzer.cpp
 
