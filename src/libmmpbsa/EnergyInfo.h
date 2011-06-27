@@ -9,17 +9,13 @@
 #ifndef ENERGYINFO_H
 #define	ENERGYINFO_H
 
-#include <cmath>
 #include <valarray>
 #include <string>
-#include <sstream>
-#include <fstream>
-
-#include "StringTokenizer.h"
-#include "mmpbsa_io.h"
-#include "mmpbsa_utils.h"
+#include "globals.h"
 
 namespace mmpbsa{
+//forward declarations
+class SanderIOException;
 
 class EnergyInfo : public std::valarray<mmpbsa_t> {
 public:

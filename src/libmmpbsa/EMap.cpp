@@ -1,3 +1,7 @@
+#include <iomanip>
+#include "XMLNode.h"
+#include "EmpEnerFun.h"
+#include "Energy.h"
 #include "EMap.h"
 
 mmpbsa::EMap::EMap()

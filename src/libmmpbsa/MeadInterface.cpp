@@ -1,5 +1,28 @@
 #include "MeadInterface.h"
 
+//mmpbsa
+#include "mmpbsa_utils.h"
+#include "Vector.h"
+#include "EmpEnerFun.h"
+#include "EMap.h"
+
+//molsurf
+#include "molsurf/molsurf.h"
+
+//MEAD
+#include "MEAD/Coord.h"
+#include "MEAD/FinDiffMethod.h"
+#include "MEAD/CenteringStyle.h"
+#include "MEAD/Atom.h"
+#include "MEAD/AtomChargeSet.h"
+#include "MEAD/ChargeDist.h"
+#include "MEAD/DielByAtoms.h"
+#include "MEAD/ElectrolyteByAtoms.h"
+#include "MEAD/UniformDielectric.h"
+#include "MEAD/UniformElectrolyte.h"
+#include "MEAD/AtomSet.h"
+#include "MEAD/FinDiffElstatPot.h"
+
 mmpbsa::MeadInterface::MeadInterface() {
     brad["N"] = 1.550;
     brad["H"] = 1.200;

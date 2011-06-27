@@ -1,9 +1,12 @@
 #include "mmpbsa_io.h"
+#include "mmpbsa_utils.h"
+#include <fstream>
+#include <iomanip>
 
 std::string mmpbsa_io::read_crds(std::fstream& crdFile, std::valarray<mmpbsa_t>& crds)
 {
     using std::string;
-    using namespace mmpbsa_utils;
+    using mmpbsa_utils::trimString;
     
     if(!crdFile.good())
         throw mmpbsa::SanderIOException("Cannot open coordinate file",mmpbsa::FILE_IO_ERROR);

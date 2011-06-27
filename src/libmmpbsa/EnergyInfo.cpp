@@ -1,3 +1,12 @@
+#include <iomanip>
+
+#include <fstream>
+#include <iostream>
+
+#include "mmpbsa_io.h"
+#include "mmpbsa_utils.h"
+#include "mmpbsa_exceptions.h"
+#include "StringTokenizer.h"
 #include "EnergyInfo.h"
 
 bool mmpbsa::EnergyInfo::operator>(const mmpbsa::EnergyInfo& rhs)const

@@ -15,21 +15,17 @@
 #ifndef MMPBSA_UTILS_H
 #define	MMPBSA_UTILS_H
 
-#include <fstream>
-#include <iomanip>
-#include <cmath>
-#include <cctype>
+#include <string>
 #include <vector>
+#include <map>
 #include <set>
 #include <valarray>
-#include <map>
-#include <algorithm>
-#include <sys/time.h>
 
 #include "globals.h"
 #include "mmpbsa_exceptions.h"
-#include "StringTokenizer.h"
-#include "Vector.h"
+
+//Forward declaration
+namespace mmpbsa{class Vector;}
 
 namespace mmpbsa_utils {
 

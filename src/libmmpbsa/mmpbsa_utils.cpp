@@ -3,7 +3,13 @@
 #define isnan(X) __isnan(X)
 #endif
 
+
+#include "StringTokenizer.h"
+#include "Vector.h"
+
 #include "mmpbsa_utils.h"
+
+
 
 int mmpbsa_utils::loadListArg(const std::string& values,std::vector<size_t>& array, const size_t& offset)
 {

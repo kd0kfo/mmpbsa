@@ -13,21 +13,16 @@
 #include "config.h"
 #endif
 
-//Standard Includes
 #include <string>
-#include <cstring>
-#include <fstream>
 #include <valarray>
-#include <streambuf>
-#include <sstream>
 #include <iostream>
+#include <map>
 
-//project specific stuff
-#include "mmpbsa_utils.h"
-#include "mmpbsa_exceptions.h"
+#include "globals.h"
 #include "structs.h"
+#include "mmpbsa_exceptions.h"
 #include "SanderParm.h"
-#include "Zipper.h"
+#include "Vector.h"
 
 #ifdef USE_GROMACS
 #include "GromacsReader.h"
@@ -39,8 +34,6 @@
 #endif
 #include "boinc/boinc_api.h"
 #endif
-
-class mmpbsa::Vector;
 
 namespace mmpbsa_io{
 

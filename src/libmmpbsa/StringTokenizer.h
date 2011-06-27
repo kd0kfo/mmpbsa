@@ -14,6 +14,21 @@
 
 #include "mmpbsa_exceptions.h"
 
+namespace mmpbsa{
+
+class TokenizerException : public MMPBSAException
+{
+public:
+	TokenizerException(const std::string&err): MMPBSAException(err){}
+	TokenizerException(const std::string& err, const MMPBSAErrorTypes& errorType)
+	: MMPBSAException(err,errorType){}
+
+	const char* identifier(){return "String Tokenizer Error";}
+
+};
+
+}
+
 namespace mmpbsa_utils{
 
   class StringTokenizer
@@ -122,21 +137,6 @@ namespace mmpbsa_utils{
 
 }
 
-namespace mmpbsa{
-    
-class TokenizerException : public MMPBSAException
-{
-public:
-    TokenizerException(const std::string& error) : MMPBSAException( error){}
-
-    TokenizerException(const std::string& error, const MMPBSAErrorTypes& errorType)
-        : MMPBSAException(error,errorType){}
-
-    const char* identifier(){return "String Tokenizer Error";}
-
-  };
-
-}
 
 #endif
 

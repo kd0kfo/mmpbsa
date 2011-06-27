@@ -8,36 +8,22 @@
 #ifndef MeadInterface_H
 #define	MeadInterface_H
 
-//std lib
-#include <cmath>
 #include <valarray>
-#include <algorithm>
-
-//mmpbsa stuff
-#include "globals.h"
-#include "mmpbsa_utils.h"
+#include <map>
 #include "mmpbsa_exceptions.h"
-#include "EMap.h"
-#include "mmpbsa_io.h"
-#include "molsurf/molsurf.h"
+#include "globals.h"
+#include "structs.h"
 
-//MEAD
-#include "MEAD/Coord.h"
-#include "MEAD/FinDiffMethod.h"
-#include "MEAD/CenteringStyle.h"
-#include "MEAD/AtomSet.h"
-#include "MEAD/Atom.h"
-#include "MEAD/AtomChargeSet.h"
-#include "MEAD/ChargeDist.h"
-#include "MEAD/DielByAtoms.h"
-#include "MEAD/ElectrolyteByAtoms.h"
-#include "MEAD/FinDiffElstatPot.h"
-#include "MEAD/UniformDielectric.h"
-#include "MEAD/UniformElectrolyte.h"
-
-class mmpbsa::Vector;
+//forward declare mead class
+class FinDiffMethod;
+class Coord;
 
 namespace mmpbsa{
+//forward declarations
+class Vector;
+class EMap;
+class EmpEnerFun;
+
 class MeadException : public MMPBSAException {
     public:
 

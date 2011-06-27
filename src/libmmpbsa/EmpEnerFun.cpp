@@ -1,4 +1,8 @@
 #include "EmpEnerFun.h"
+#include <vector>
+#include "mmpbsa_io.h"
+#include "SanderParm.h"
+#include "Energy.h"
 
 mmpbsa::EmpEnerFun::EmpEnerFun()
 {

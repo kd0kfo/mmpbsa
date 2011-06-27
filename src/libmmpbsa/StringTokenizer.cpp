@@ -1,5 +1,6 @@
 #include "StringTokenizer.h"
 
+
 mmpbsa_utils::StringTokenizer::StringTokenizer(const std::string& string)
 	{
 		StringTokenizer temp(string," ",false);
@@ -44,28 +45,28 @@ mmpbsa_utils::StringTokenizer mmpbsa_utils::StringTokenizer::operator=(const Str
 	}
 
 std::string mmpbsa_utils::StringTokenizer::nextToken(bool keepD)
+{
+	if(tokenStream.eof())
+		throw mmpbsa::TokenizerException("No more tokens in string tokenizer");
+
+	std::string returnMe;
+
+	if(delim[0] == ' '  && !keepD)//optimized for ' ' delimiter by taking advantage of stringstream's operator>>
 	{
-	  if(tokenStream.eof())
-	    throw mmpbsa::TokenizerException("No more tokens in string tokenizer");
-
-	  std::string returnMe;
-
-          if(delim[0] == ' '  && !keepD)//optimized for ' ' delimiter by taking advantage of stringstream's operator>>
-          {
-              tokenStream >> returnMe;
-              return returnMe;
-          }
-          
-	  if(this->string[index] == delim[0] && keepD)
-	    {
-	      index++;
-	      return delim;
-	    }
-	  
-	  getline(tokenStream,returnMe,delim[0]);
-	  index += returnMe.size();
-	  return returnMe;
+		tokenStream >> returnMe;
+		return returnMe;
 	}
+
+	if(this->string[index] == delim[0] && keepD)
+	{
+		index++;
+		return delim;
+	}
+
+	getline(tokenStream,returnMe,delim[0]);
+	index += returnMe.size();
+	return returnMe;
+}
 	
 bool mmpbsa_utils::StringTokenizer::hasMoreTokens()
 {

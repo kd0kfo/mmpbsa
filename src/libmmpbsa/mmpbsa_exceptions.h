@@ -67,24 +67,6 @@ private:
 
 };
 
-/**
- * @class mmpbsa::SanderIOException
- * @brief Exception to be used when there is a problem reading Sander files.
- *
- * Created by David Coss, 2010
- */
-class SanderIOException : public MMPBSAException {
-public:
-    SanderIOException(const std::string& error) : MMPBSAException( error){}
-    
-    SanderIOException(const std::string& error, const MMPBSAErrorTypes& errorType)
-        : MMPBSAException(error,errorType){}
-    SanderIOException(const std::ostringstream& error,const MMPBSAErrorTypes& errorType)
-        : MMPBSAException(error,errorType){}
-
-    const char* identifier(){return "SanderIO Error";}
-};
-
 };//end namespace mmpbsa
 
 std::ostream& operator<<(std::ostream& theStream,mmpbsa::MMPBSAException& me);

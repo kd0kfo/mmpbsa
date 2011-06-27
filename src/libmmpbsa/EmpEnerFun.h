@@ -9,20 +9,18 @@
 #ifndef ENERGY_H
 #define	ENERGY_H
 
-#include <cmath>
 #include <valarray>
-#include <vector>
-#include <fstream>
 
-#include "mmpbsa_utils.h"
-#include "mmpbsa_io.h"
-#include "SanderParm.h"
+#include "mmpbsa_exceptions.h"
+#include "globals.h"
 #include "structs.h"
-#include "Energy.h"
-#include "XMLNode.h"
-#include "XMLParser.h"
+
 
 namespace mmpbsa{
+
+//Forward declarations
+class Vector;
+class SanderParm;
 
 class EmpEnerFun{
 public:

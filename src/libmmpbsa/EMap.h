@@ -19,13 +19,18 @@
 #include "config.h"
 #endif
 
+#include <vector>
 #include <valarray>
-#include <sstream>
-#include "EmpEnerFun.h"
+#include "structs.h"
+#include "globals.h"
 
-class mmpbsa::Vector;
+namespace mmpbsa_utils{ class XMLNode;}
 
 namespace mmpbsa{
+
+//forward declarations
+class Vector;
+class EmpEnerFun;
 
 class EMap{
 public:

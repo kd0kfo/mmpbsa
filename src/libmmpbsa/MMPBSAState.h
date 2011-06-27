@@ -22,6 +22,7 @@
 
 
 namespace mmpbsa{
+//forward declarations
 
 class MMPBSAState
 {

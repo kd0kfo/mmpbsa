@@ -1,5 +1,9 @@
-#include "SanderParm.h"
+#include "mmpbsa_utils.h"
+#include "mmpbsa_io.h"
 
+#include <fstream>
+
+#include "SanderParm.h"
 
 mmpbsa::SanderParm::SanderParm() {
     natom = 0;// total number of atoms
