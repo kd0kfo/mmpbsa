@@ -199,10 +199,11 @@ mmpbsa_graphics_CPPFLAGS = -Wall $(BOINC_CPPFLAGS) $(GRAPHICS_CPPFLAGS)
 mmpbsa_graphics_LDFLAGS = $(BOINC_LDFLAGS) $(GRAPHICS_LDFLAGS)
 mmpbsa_graphics_LDADD = $(BOINC_LIBS) $(GRAPHICS_LIBS) $(CUSTOM_LIBS)
 mmpbsa_graphics_SOURCES = mmpbsa_graphics.cpp mmpbsa_gutil.cpp
-mmpbsa_analyzer_CPPFLAGS = -Wall -I. $(am__append_6)
-mmpbsa_analyzer_LDADD = -lmmpbsa -lz $(CUSTOM_LIBS) $(am__append_8)
+mmpbsa_analyzer_CPPFLAGS = -Wall -I. $(BOINC_CPPFLAGS) $(am__append_6)
+mmpbsa_analyzer_LDADD = -lmmpbsa -lz $(CUSTOM_LIBS) $(BOINC_LIBS) \
+	$(am__append_8)
 mmpbsa_analyzer_LDFLAGS = -L./libmmpbsa $(CUSTOM_LDFLAGS) \
-	$(am__append_7)
+	$(BOINC_LDFLAGS) $(am__append_7)
 mmpbsa_analyzer_DEPENDENCIES = libmmpbsa
 mmpbsa_analyzer_SOURCES = mmpbsa_analyzer.cpp
 all: all-am
