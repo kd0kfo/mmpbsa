@@ -16,6 +16,7 @@ mmpbsa::EMap::EMap()
     elstat_solv = 0;
     area = 0;
     sasol = 0;
+    molsurf_failed = false;
 }
 
 
@@ -31,6 +32,7 @@ mmpbsa::EMap::EMap(const mmpbsa::EMap& orig)
     elstat_solv = orig.elstat_solv;
     area = orig.area;
     sasol = orig.sasol;
+    molsurf_failed = orig.molsurf_failed;
 }
 
 mmpbsa::EMap::EMap(const mmpbsa::EmpEnerFun* efun, const std::valarray<Vector>& crds)
@@ -54,7 +56,7 @@ mmpbsa::EMap::EMap(const mmpbsa::EmpEnerFun* efun, const std::valarray<Vector>& 
     elstat_solv = 0;
     area = 0;
     sasol = 0;
-
+    molsurf_failed = false;
     destroy(&ff);
 }
 
@@ -70,6 +72,7 @@ mmpbsa::EMap::EMap(const std::vector<atom_t>& atoms, const mmpbsa::forcefield_t&
     elstat_solv = 0;
     area = 0;
     sasol = 0;
+    molsurf_failed = false;
 }
 
 namespace mmpbsa{
@@ -89,7 +92,11 @@ std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite)
     theStream << "PBSOL " << toWrite.elstat_solv << std::endl;
     theStream << "SASOL " << toWrite.sasol << std::endl;
 #ifndef WITHOUT_MOLSURF
-    theStream << "area " << toWrite.area;
+    theStream << "AREA ";
+    if(toWrite.molsurf_failed)
+    	theStream << MOLSURF_FAILED_WARNING;
+    else
+    	theStream << toWrite.area;
 #endif
     theStream.precision(prevPrecision);
     theStream.setf(prevFloatfield,std::ios::floatfield);
@@ -332,7 +339,10 @@ mmpbsa_utils::XMLNode* mmpbsa::EMap::toXML(const std::string& name)const
     value << MMPBSA_FORMAT << sasol;
     theNode->insertChild("SASOL",value.str());value.str("");
     value << MMPBSA_FORMAT << area;
-    theNode->insertChild("AREA",value.str());
+    if(molsurf_failed)
+    	theNode->insertChild("AREA",MOLSURF_FAILED_WARNING);
+    else
+    	theNode->insertChild("AREA",value.str());
 
     return theNode;
 }
@@ -404,7 +414,21 @@ mmpbsa::EMap mmpbsa::EMap::loadXML(const mmpbsa_utils::XMLNode* xmlEnergy)
 
         if(data_type == "AREA")
         {
-            data >> MMPBSA_FORMAT >> returnMe.area;
+        	// Area, which is calculated by molsurf, needs to be check
+        	// for calculation validity, since molsurf, by design, can
+        	// crash.
+        	std::string area_val;
+        	data >> area_val;
+        	if(area_val == MOLSURF_FAILED_WARNING)
+        	{
+        		returnMe.molsurf_failed = true;
+        		returnMe.area = 0;
+        	}
+        	else
+        	{
+        		std::istringstream areabuff(area_val);
+        		areabuff >> MMPBSA_FORMAT >> returnMe.area;
+        	}
             continue;
         }
 

@@ -35,6 +35,9 @@ class MeadException : public MMPBSAException {
         MeadException(const std::string& error) 
             : mmpbsa::MMPBSAException(error) {}
 
+        MeadException(const std::ostringstream& error, const MMPBSAErrorTypes& code):
+        	mmpbsa::MMPBSAException(error,code) {}
+
         MeadException(const std::string& error, const mmpbsa::MMPBSAErrorTypes& errorType)
             : MMPBSAException(error, errorType) {}
 

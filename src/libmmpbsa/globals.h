@@ -34,6 +34,9 @@
 typedef float mead_data_t;///<MEAD uses single precision. If that every changes, this provides one location to keep up with MEAD's precision.
 typedef double mmpbsa_t;///<Default floating point data type. This can be used to control single versus double precision.
 
+//Messages
+#define MOLSURF_FAILED_WARNING "MOLSURF_FAILED"
+
 #endif
 
 

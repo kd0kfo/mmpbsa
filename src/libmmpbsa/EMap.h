@@ -153,6 +153,8 @@ public:
     mmpbsa_t area;///<Solvant Accessible Surface Area of Molecule
     mmpbsa_t sasol;///<Surface area contribution to solvation energy.
 
+    bool molsurf_failed;
+
 };
 
 }//end namespace mmpbsa

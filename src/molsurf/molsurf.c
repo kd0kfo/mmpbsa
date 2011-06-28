@@ -189,6 +189,7 @@ struct sigaction new_sigact, old_sigact;
 void segv_handler(int sig)
 {
   fprintf(stderr, "segv_handler called\n");
+  fflush(stderr);
   free_memory();
   longjmp(jmpbuf, 1);
 }

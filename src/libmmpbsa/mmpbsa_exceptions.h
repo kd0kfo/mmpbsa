@@ -29,7 +29,8 @@ enum MMPBSAErrorTypes {UNKNOWN_ERROR = 1, /*!General (default) error number. Sho
     BAD_XML_TAG,
     INVALID_XML_REQUEST, /*!Trying to access or modify nodes and node information that does not exist or is broken.*/
     NULL_POINTER,/* :-( */
-    MPI_ERROR
+    MPI_ERROR,
+    SYSTEM_ERROR/* OS and/or system call problems */
 };
 
 class MMPBSAException : public std::runtime_error
