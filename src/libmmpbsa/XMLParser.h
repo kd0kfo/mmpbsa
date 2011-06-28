@@ -75,7 +75,7 @@ public:
      * @param xmlFile
      */
     void parse(const std::string& xmlFile) throw (mmpbsa::XMLParserException);
-    static mmpbsa_utils::XMLNode* parse(std::iostream& xmlFile);
+    static mmpbsa_utils::XMLNode* parse(std::istream& xmlFile);
 
     /**
      * Parses a line and turns it into a pair, where the first component of the

@@ -63,7 +63,7 @@ void mmpbsa_utils::XMLParser::parse(const std::string& xmlFilename) throw (mmpbs
     xmlFile.close();
 }
 
-mmpbsa_utils::XMLNode* mmpbsa_utils::XMLParser::parse(std::iostream& xmlFile)
+mmpbsa_utils::XMLNode* mmpbsa_utils::XMLParser::parse(std::istream& xmlFile)
 {
 
     using mmpbsa_io::getNextLine;

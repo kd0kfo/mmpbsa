@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 
+#include <cerrno>
 
 #include "libmmpbsa/XMLParser.h"
 #include "libmmpbsa/EMap.h"
@@ -26,16 +27,15 @@ typedef struct{
 typedef struct {
 	int verbosity;
 	int command;
-	std::string parameter,output_filename;
+	std::istream *input;
+	std::ostream *output;
 }mmpbsa_analyzer_arguments ;
 
 /**
  * Possible options provided to the command line.
  */
 const mmpbsa_analyzer_options options[] = {
-		{{"summarize",required_argument,0,'s'},"Summarizes the data by averaging over all snapshots/frames.","FILE"},
 		{{"verbose",optional_argument,0,'v'},"Sets the verbosity of the program. Higher the level, the more verbose.","INTEGER"},
-		{{"output",required_argument,0,'o'},"Send output to the specified file. DEFAULT: standard output.","FILE"},
 		{{"help",no_argument,0,'h'},"This help dialog",""},
 		{{"version",no_argument,0,VERSION_OPT},"Display version",""},
 		{{"usage",no_argument,0,0},"Same as --help",""},
@@ -47,15 +47,6 @@ void parse_opt(const int& key, mmpbsa_analyzer_arguments& args, char** argv)
 	std::istringstream buff;
 	switch(key)
 	{
-	case 's':
-		args.command = SUMMARIZE;
-		args.parameter = optarg;
-		break;
-	case 'o':
-	  if(optarg == NULL)
-	    args_usage();
-	  args.output_filename = optarg;
-	  break;
 	case 'v':
 	  if(optarg == 0)
 	    {
@@ -85,8 +76,9 @@ void parse_opt(const int& key, mmpbsa_analyzer_arguments& args, char** argv)
 
 void mmpbsa_analyzer_defaults(mmpbsa_analyzer_arguments& args)
 {
-	args.command = NUM_COMMANDS;
-	args.parameter = args.output_filename = "";
+	args.command = SUMMARIZE;
+	args.input = &std::cin;
+	args.output = &std::cout;
 	args.verbosity = 0;
 }
 
@@ -271,39 +263,27 @@ void summarize(mmpbsa_analyzer_arguments& args)
 	using mmpbsa_utils::XMLNode;
 	using mmpbsa::EMap;
 
-	if(args.parameter.size() == 0)
-		return;
-
-	const string& input_filename = args.parameter;
-
-	//open output. If a file is specified, use it. Otherwise, use stdout
-	ostream* output = &std::cout;
-	if(args.output_filename.size() != 0)
-	{
-		std::fstream* outfile = new std::fstream(args.output_filename.c_str(),std::ios::out);
-		if(!outfile->good())
-		{
-			std::cerr << "Could not read from " << args.output_filename << std::endl;
-			return;
-		}
-		output = outfile;
-	}
+	if(args.input == NULL)
+		throw mmpbsa::MMPBSAException("summarize: No input stream provided.",mmpbsa::FILE_IO_ERROR);
+	if(args.output == NULL)
+		throw mmpbsa::MMPBSAException("summarize: No output stream provided.",mmpbsa::FILE_IO_ERROR);
 
 	bool added_snapshot;
 	size_t snapshot_counter = 0;
-	XMLParser data;
 	EMap curr_delta,curr,ecomplex[2],receptor[2],ligand[2],delta[2];//[0] = mean, [1] = stddev.
 	size_t num_complex,num_receptor,num_ligand;
 	mmpbsa_t gas_energies[4];//complex, receptor, ligand, delta
+	XMLNode *data = XMLParser::parse(*args.input);
+	if(data == NULL)
+		throw mmpbsa::MMPBSAException("summarize: Could not parse data from input stream.",mmpbsa::FILE_IO_ERROR);
 	num_complex = num_receptor = num_ligand = 0;
-	data.parse(input_filename);
 
 	for(size_t i = 0;i<4;i++)
 		gas_energies[i] = 0;
 
-	if(data.getHead() != 0 && data.getHead()->children != 0)
+	if(data->children != 0)
 	{
-		XMLNode *molecule, *snap = data.getHead()->children;
+		XMLNode *molecule, *snap = data->children;
 		for(;snap != 0;snap = snap->siblings)
 		{
 			EMap curr_delta;
@@ -360,13 +340,12 @@ void summarize(mmpbsa_analyzer_arguments& args)
 	ligand[0] /= num_complex;ligand[1] /= num_complex;ligand[1] = sqrt(ligand[1] - stddev_couple(ligand[0],useless));
 	delta[0] /= num_complex;delta[1] /= num_complex;delta[1] = sqrt(delta[1] - stddev_couple(delta[0],useless));
 
-	*output << "Summary of " << snapshot_counter << " snapshots." << std::endl;
+	*args.output << "Summary of " << snapshot_counter << " snapshots." << std::endl;
 
-	summarize_molecules(output,ecomplex,receptor,ligand,gas_energies);
-	summarize_delta(output,delta,&gas_energies[3]);
+	summarize_molecules(args.output,ecomplex,receptor,ligand,gas_energies);
+	summarize_delta(args.output,delta,&gas_energies[3]);
 
-	if(output != &std::cout)
-		delete output;
+	delete data;
 
 }
 
@@ -379,8 +358,6 @@ int main(int argc, char** argv)
 	mmpbsa_analyzer_options curr_ma_opt;
 	size_t num_opts = 0;
 
-	if(argc < 2)
-		args_usage();
 	mmpbsa_analyzer_defaults(args);
 
 	curr_ma_opt = options[num_opts];
@@ -391,19 +368,35 @@ int main(int argc, char** argv)
 	for(size_t i = 0;i<num_opts;i++)
 		long_opts[i] = options[i].getoptions;
 
-	while(true)
-	{
-		getopt_retval = getopt_long(argc,argv,"s:v::o:",long_opts,&option_index);
-		if(getopt_retval == -1)
-			break;
-
+	while((getopt_retval = getopt_retval = getopt_long(argc,argv,"v::",long_opts,&option_index)) != -1)
 		parse_opt(getopt_retval,args,argv);
+
+	if(optind < argc)
+	{
+		std::fstream *input = new std::fstream;
+		if(access(argv[optind],R_OK))
+		{
+			fprintf(stderr,"Cannot read (%d)%s\nReason: %s",optind,argv[optind],strerror(errno));
+			return errno;
+		}
+
+		input->open(argv[optind],std::ios::in);
+		if(!input->good())
+		{
+			std::ostringstream err;
+			delete input;
+			fprintf(stderr, "Could not open %s for reading.",argv[optind]);
+			return 42;
+		}
+		args.input = input;
 	}
 
 	delete [] long_opts;
 
 	if(args.command == SUMMARIZE)
 		summarize(args);
+	if(args.input != &std::cin)
+		delete args.input;
 	return 0;
 
 }

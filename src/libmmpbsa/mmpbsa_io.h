@@ -66,7 +66,7 @@ void write_crds(const char* fileName,const std::valarray<mmpbsa_t>& crds,
  * @param trajFile
  * @return title
  */
-std::string get_traj_title(std::iostream& trajFile);
+std::string get_traj_title(std::istream& trajFile);
 
 /**
  * Counts the number of snap shots in the given file.
@@ -111,7 +111,7 @@ void skip_next_snap(std::iostream& trajFile, const size_t& natoms,
  * @param file
  * @return 
  */
-std::string getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAException);
+std::string getNextLine(std::istream& file) throw (mmpbsa::MMPBSAException);
 
 /**
  * Retrieves the next snapshot of the trajectory described by traj.

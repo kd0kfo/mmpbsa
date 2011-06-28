@@ -73,13 +73,13 @@ void mmpbsa_io::write_crds(const char* fileName,const std::valarray<mmpbsa_t>& c
 }
 
 
-std::string mmpbsa_io::get_traj_title(std::iostream& trajFile)
+std::string mmpbsa_io::get_traj_title(std::istream& trajFile)
 {
     trajFile.seekg(0,std::ios::beg);
     return getNextLine(trajFile);
 }
 
-std::string mmpbsa_io::getNextLine(std::iostream& file) throw (mmpbsa::MMPBSAException)
+std::string mmpbsa_io::getNextLine(std::istream& file) throw (mmpbsa::MMPBSAException)
 {
     if(!file.good())
         throw mmpbsa::MMPBSAException("Could not read from file");
