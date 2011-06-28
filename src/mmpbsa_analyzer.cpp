@@ -272,12 +272,13 @@ void summarize(mmpbsa_analyzer_arguments& args)
 	size_t snapshot_counter = 0;
 	EMap curr_delta,curr,ecomplex[2],receptor[2],ligand[2],delta[2];//[0] = mean, [1] = stddev.
 	size_t num_complex,num_receptor,num_ligand;
+	size_t bad_area_com,bad_area_rec,bad_area_lig;
 	mmpbsa_t gas_energies[4];//complex, receptor, ligand, delta
 	XMLNode *data = XMLParser::parse(*args.input);
 	if(data == NULL)
 		throw mmpbsa::MMPBSAException("summarize: Could not parse data from input stream.",mmpbsa::FILE_IO_ERROR);
 	num_complex = num_receptor = num_ligand = 0;
-
+	bad_area_com = bad_area_lig = bad_area_rec = 0;
 	for(size_t i = 0;i<4;i++)
 		gas_energies[i] = 0;
 
@@ -297,6 +298,8 @@ void summarize(mmpbsa_analyzer_arguments& args)
 					ecomplex[1] += stddev_couple(curr,gas_energies[0]);
 					curr_delta += curr;
 					num_complex++;
+					if(curr.molsurf_failed)
+						bad_area_com++;
 				}
 				else if(molecule->getName() == "RECEPTOR")
 				{
@@ -305,6 +308,8 @@ void summarize(mmpbsa_analyzer_arguments& args)
 					receptor[1] += stddev_couple(curr,gas_energies[1]);
 					curr_delta -= curr;
 					num_receptor++;
+					if(curr.molsurf_failed)
+						bad_area_rec++;
 				}
 				else if(molecule->getName() == "LIGAND")
 				{
@@ -313,6 +318,8 @@ void summarize(mmpbsa_analyzer_arguments& args)
 					ligand[1] += stddev_couple(curr,gas_energies[2]);
 					curr_delta -= curr;
 					num_ligand++;
+					if(curr.molsurf_failed)
+						bad_area_lig++;
 				}
 			}
 			delta[0] += curr_delta;
@@ -334,7 +341,27 @@ void summarize(mmpbsa_analyzer_arguments& args)
 	for(size_t i = 0;i<4;i++)
 		gas_energies[i] /= num_complex;
 
+	//Finish average and std. dev. calculations
 	mmpbsa_t useless;
+	// adjust for failed data
+	if(bad_area_com > 0)
+	{
+		fprintf(stderr,"Data contains %d occurances where molsurf failed in complex.\n",bad_area_com);
+		for(size_t areaidx = 0;areaidx<2;areaidx++)
+			ecomplex[areaidx].area *= (num_complex)/(num_complex - bad_area_com);
+	}
+	if(bad_area_lig > 0)
+	{
+		fprintf(stderr,"Data contains %d occurances where molsurf failed in ligand.\n",bad_area_lig);
+		for(size_t areaidx = 0;areaidx<2;areaidx++)
+			ligand[areaidx].area *= (num_complex)/(num_complex - bad_area_lig);
+	}
+	if(bad_area_rec > 0)
+	{
+		fprintf(stderr,"Data contains %d occurances where molsurf failed in receptor.\n",bad_area_rec);
+		for(size_t areaidx = 0;areaidx<2;areaidx++)
+			receptor[areaidx].area *= (num_complex)/(num_complex - bad_area_rec);
+	}
 	ecomplex[0] /= num_complex;ecomplex[1] /= num_complex;ecomplex[1] = sqrt(ecomplex[1] - stddev_couple(ecomplex[0],useless));
 	receptor[0] /= num_complex;receptor[1] /= num_complex;receptor[1] = sqrt(receptor[1] - stddev_couple(receptor[0],useless));
 	ligand[0] /= num_complex;ligand[1] /= num_complex;ligand[1] = sqrt(ligand[1] - stddev_couple(ligand[0],useless));

@@ -154,6 +154,7 @@ mmpbsa::EMap& mmpbsa::EMap::operator=(const mmpbsa::EMap& rhs)
     elstat_solv = rhs.elstat_solv;
     area = rhs.area;
     sasol = rhs.sasol;
+    molsurf_failed = rhs.molsurf_failed;
     return *this;
 }
 
@@ -435,6 +436,9 @@ mmpbsa::EMap mmpbsa::EMap::loadXML(const mmpbsa_utils::XMLNode* xmlEnergy)
         std::cerr << "Emap::loadXML was given an unknown data type (" <<
                 data_type << "), which will be ignored.";
     }
+
+    if(returnMe.molsurf_failed)
+    	returnMe.sasol = 0;
 
     return returnMe;
 }
