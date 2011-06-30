@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+
 int molsurf_error_counter = 0;
 
 mmpbsa::MeadInterface::MeadInterface() {
@@ -201,6 +202,25 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, 
 }
 
 
+mmpbsa_t mmpbsa::MeadInterface::molsurf_area(const std::vector<mmpbsa::atom_t>& atoms,
+		const std::valarray<mmpbsa::Vector>& crds,
+		const std::map<std::string,mead_data_t>& radii)
+{
+	size_t numCoords = crds.size();
+	REAL_T xs[numCoords],ys[numCoords],zs[numCoords];
+	REAL_T rads[numCoords];
+
+	for(size_t i = 0;i<numCoords;i++)
+	{
+		xs[i] = crds[i].x();
+		ys[i] = crds[i].y();
+		zs[i] = crds[i].z();
+		rads[i] = mmpbsa_utils::lookup_radius(atoms.at(i).name,radii) + MOLSURF_RADII_ADJUSTMENT;//SA radii are not necessarily the same as PB radii
+	}
+
+	return molsurf(xs,ys,zs,rads,numCoords,0);
+}
+
 mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff,
 		const std::valarray<mmpbsa::Vector>& crds,
 		const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
@@ -248,45 +268,11 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t
     returnMe[esol] = (prod_sol - prod_ref) / 2.0;
 
     atmSet.clear();//Free a little memory before gobbling a lot for molsurf (which hopefully will be replaced)
-    size_t numCoords = crds.size();
-    REAL_T xs[numCoords],ys[numCoords],zs[numCoords];
-    REAL_T rads[numCoords];
     
-    //Surface Area
-    for(size_t i = 0;i<numCoords;i++)
-    {
-        xs[i] = crds[i].x();
-        ys[i] = crds[i].y();
-        zs[i] = crds[i].z();
-        rads[i] = mmpbsa_utils::lookup_radius(atoms.at(i).name,radii) + 1.4;//SA radii are not necessarily the same as PB radii
-    }
-
     // Start Molsurf and it's monitor
-
-#if 0
-    struct sigaction molsurf_monitor,old_monitor;
-    memset(&molsurf_monitor,0,sizeof(struct sigaction));
-    molsurf_monitor.sa_handler = molsurf_failed_counter;
-    molsurf_error_counter = 0;
-    if(sigaction(SIGSEGV,&molsurf_monitor,&old_monitor))
-    {
-    	delete [] returnMe;
-    	throw MeadException("Could not setup a SIGSEGV monitor for molsurf.",SYSTEM_ERROR);
-    }
-    else
-    {
-    	std::cout << "Starting molsurf... ";
-    	std::cout.flush();
-    	returnMe[area] = molsurf(xs,ys,zs,rads,numCoords,0);//replace with molsurf stuff42;//
-    	std::cout << "finished" << std::endl;
-    	std::cout.flush();
-    	if(molsurf_error_counter != 0)
-    		returnMe[area] = 0;
-    }
-#endif
-
     pid_t molsurf_pid;
     int molsurf_fd[2];
+    molsurf_error_counter = 0;
     if(pipe(molsurf_fd) == -1)
     {
     	std::ostringstream error;
@@ -329,7 +315,7 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t
     {
     	mmpbsa_t areaval;
     	close(molsurf_fd[0]);//child writes molsurf data to parent
-    	areaval = molsurf(xs,ys,zs,rads,numCoords,0);
+    	areaval = molsurf_area(atoms,crds,radii);
     	write(molsurf_fd[1],&areaval,sizeof(mmpbsa_t));
     	close(molsurf_fd[1]);
     	exit(0);
