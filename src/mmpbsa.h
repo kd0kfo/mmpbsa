@@ -86,6 +86,8 @@ std::vector<mmpbsa::MMPBSAState> processQueue;///<Array of calculations to be ru
  */
 int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi);
 
+int molsurf_run(mmpbsa::MMPBSAState& currState);
+
 /**
  * Forks and monitors a Sander Process. Parameters are stored in the
  * mmpbsa::SanderInterface object and progress is reported by the MMPBSAState

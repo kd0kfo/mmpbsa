@@ -221,6 +221,48 @@ mmpbsa_t mmpbsa::MeadInterface::molsurf_area(const std::vector<mmpbsa::atom_t>& 
 	return molsurf(xs,ys,zs,rads,numCoords,0);
 }
 
+mmpbsa_t mmpbsa::MeadInterface::pb_solvation(const std::vector<mmpbsa::atom_t>& atoms,
+		const std::valarray<mmpbsa::Vector>& crds,
+		const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
+		const std::map<std::string,std::string>& residueMap,
+		const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius)
+{
+	AtomSet atmSet;
+	std::vector<mmpbsa::atom_t>::const_iterator atom;
+
+	size_t i = 0;
+	for(atom = atoms.begin();atom != atoms.end();atom++,i++)
+	{
+		Atom currAtom;
+		currAtom.atname = atom->name;
+		currAtom.resname = "FOO";//FIX ME???
+		currAtom.resnum = i+1;//FIX ME???
+		currAtom.coord = ToCoord(crds[i]);
+		currAtom.charge = atom->charge;
+		currAtom.rad = mmpbsa_utils::lookup_radius(currAtom.atname,radii);
+
+		if(currAtom.rad < 0.1 || currAtom.rad > 3.0)
+			std::cerr << "WARNING: strange radius, " << currAtom.rad << ", for atom "
+			<< currAtom.atname << " (index = " << i << ")";
+		atmSet.insert(currAtom);
+	}
+	//Solvent energy
+	ChargeDist rho(new AtomChargeSet(atmSet));
+	DielectricEnvironment eps(new TwoValueDielectricByAtoms(atmSet,1.0,80.0,1.4));
+	ElectrolyteEnvironment ely( new ElectrolyteByAtoms(atmSet,interactionStrength,exclusionRadius));
+	ElstatPot phi_solv(fdm, eps, rho, ely);
+	phi_solv.solve();
+	mmpbsa_t prod_sol = mmpbsa_t(phi_solv * rho);
+
+	//Electrolyte
+	ElectrolyteEnvironment ely_ref( new UniformElectrolyte(0.0));
+	DielectricEnvironment  eps_ref( new UniformDielectric(1.0));
+	ElstatPot phi_ref(fdm, eps_ref, rho, ely_ref);
+	phi_ref.solve();
+	mmpbsa_t prod_ref = mmpbsa_t(phi_ref * rho);
+	return (prod_sol - prod_ref) / 2.0;
+}
+
 mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff,
 		const std::valarray<mmpbsa::Vector>& crds,
 		const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
@@ -229,46 +271,10 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t
 {
     mmpbsa_t * returnMe = new mmpbsa_t[2];enum{esol = 0, area};
 
-    mmpbsa::MeadInterface MI;//stores bond info for atoms not in radii.
     //PB
-    AtomSet atmSet;
-    std::vector<mmpbsa::atom_t>::const_iterator atom;
+    returnMe[esol] = pb_solvation(atoms,crds,fdm, radii,residueMap,interactionStrength, exclusionRadius);
 
-    size_t i = 0;
-    for(atom = atoms.begin();atom != atoms.end();atom++,i++)
-    {
-        Atom currAtom;
-        currAtom.atname = atom->name;
-        currAtom.resname = "FOO";//FIX ME???
-        currAtom.resnum = i+1;//FIX ME???
-        currAtom.coord = ToCoord(crds[i]);
-        currAtom.charge = atom->charge;
-        currAtom.rad = mmpbsa_utils::lookup_radius(currAtom.atname,radii);
-
-        if(currAtom.rad < 0.1 || currAtom.rad > 3.0)
-            std::cerr << "WARNING: strange radius, " << currAtom.rad << ", for atom "
-                    << currAtom.atname << " (index = " << i << ")";
-        atmSet.insert(currAtom);
-    }
-    //Solvent energy
-    ChargeDist rho(new AtomChargeSet(atmSet));
-    DielectricEnvironment eps(new TwoValueDielectricByAtoms(atmSet,1.0,80.0,1.4));
-    ElectrolyteEnvironment ely( new ElectrolyteByAtoms(atmSet,interactionStrength,exclusionRadius));
-    ElstatPot phi_solv(fdm, eps, rho, ely);
-    phi_solv.solve();
-    mmpbsa_t prod_sol = mmpbsa_t(phi_solv * rho);
-    
-    //Electrolyte
-    ElectrolyteEnvironment ely_ref( new UniformElectrolyte(0.0));
-    DielectricEnvironment  eps_ref( new UniformDielectric(1.0));
-    ElstatPot phi_ref(fdm, eps_ref, rho, ely_ref);
-    phi_ref.solve();
-    mmpbsa_t prod_ref = mmpbsa_t(phi_ref * rho);
-
-    returnMe[esol] = (prod_sol - prod_ref) / 2.0;
-
-    atmSet.clear();//Free a little memory before gobbling a lot for molsurf (which hopefully will be replaced)
-    
+#ifndef _WIN32
     // Start Molsurf and it's monitor
     pid_t molsurf_pid;
     int molsurf_fd[2];
@@ -320,7 +326,9 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t
     	close(molsurf_fd[1]);
     	exit(0);
     }
-
+#else
+    returnMe[area] = molsurf_area(atoms,crds,radii);
+#endif
     return returnMe;
 }
 

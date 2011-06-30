@@ -145,6 +145,12 @@ public:
     		const std::map<std::string,std::string>& residueMap,
     		const mmpbsa_t& interactionStrength = 0.0, const mmpbsa_t& exclusionRadius = 2.0) throw (mmpbsa::MeadException);
 
+    static mmpbsa_t pb_solvation(const std::vector<mmpbsa::atom_t>& atoms,
+    		const std::valarray<mmpbsa::Vector>& crds,
+    		const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
+    		const std::map<std::string,std::string>& residueMap,
+    		const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius);
+
     static mmpbsa_t molsurf_area(const std::vector<mmpbsa::atom_t>& atoms,
     		const std::valarray<mmpbsa::Vector>& crds,
     		const std::map<std::string,mead_data_t>& radii);

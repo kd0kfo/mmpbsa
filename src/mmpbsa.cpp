@@ -62,6 +62,18 @@ int main(int argc, char** argv)
                         }
                         retval = sander_run(*job,job->currentSI);
                         break;
+                    case MMPBSAState::MOLSURF:
+                    	if(job->placeInQueue > queuePosition)
+                    	{
+                    		queuePosition++;
+                    		continue;
+                    	}
+                    	else if(job->placeInQueue < queuePosition)
+                    	{
+                    		job->placeInQueue = queuePosition;
+                    	}
+                    	molsurf_run(*job);
+                    	break;
                     case MMPBSAState::MMPBSA:
                         restart_mmpbsa(*job);
                         if(job->placeInQueue > queuePosition)
@@ -312,6 +324,117 @@ void get_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t** split_
 	}
 #endif
 	get_sander_forcefield(currState,split_ff,atom_lists,mol_list,trajfile);
+}
+
+void dump_crds(const std::valarray<mmpbsa::Vector>& crds)
+{
+	size_t size = crds.size();
+	std::cout << "---- Start Coordinates ----" << std::endl;
+	for(size_t i = 0;i<size;i++)
+		std::cout << crds[i] << std::endl;
+	std::cout << "---- End Coordinates ----" << std::endl;
+}
+
+int molsurf_run(mmpbsa::MMPBSAState& currState)
+{
+	using std::valarray;
+	using std::map;
+	using namespace mmpbsa;
+	mmpbsa_t area_value;
+	std::vector<size_t>::const_iterator curr_snap;
+	//Setup Trajectory Structure
+	if(!has_filename(MMPBSA_TRAJECTORY_TYPE,currState))
+		throw mmpbsa::MMPBSAException("mmpbsa_run: no trajectory file was given.",BROKEN_TRAJECTORY_FILE);
+	mmpbsa_io::trajectory_t trajFile = mmpbsa_io::open_trajectory(get_filename(MMPBSA_TRAJECTORY_TYPE,currState),currState.keep_traj_in_mem);
+
+
+
+	//Get forcefield data
+	mmpbsa::forcefield_t* split_ff = 0;
+	std::vector<atom_t>* atom_lists = 0;
+	std::valarray<MMPBSAState::MOLECULE> mol_list;
+	get_forcefield(currState,&split_ff,&atom_lists,mol_list,trajFile);
+
+
+	//load radii data, if available
+	map<std::string,float> radii;//later, check to see if radii.size() > 0 before calling full_EMap(...)
+	map<std::string,std::string> residues;
+	if(has_filename(RADII_TYPE,currState))
+	{
+		std::string radiiFilename = get_filename(RADII_TYPE,currState);
+		std::fstream radiiFile(radiiFilename.c_str(),std::ios::in);
+		std::stringstream radiiData;
+		mmpbsa_io::smart_read(radiiData,radiiFile,&radiiFilename);
+		if(currState.verbose)
+			std::cout << "Reading radii from " << radiiFilename  << std::endl;
+		radiiFile.close();
+		mmpbsa_io::read_siz_file(radiiData,radii, residues);
+	}
+	else
+	{
+		mmpbsa::MeadInterface default_radii;
+		radii = default_radii.brad;
+	}
+
+	//setup trajectory storage
+	get_traj_title(trajFile);//Don't need title, but this ensure we are at the top of the file. If the title is needed later, hook this.
+	curr_snap = currState.snapList.begin();
+	for(;curr_snap != currState.snapList.end();curr_snap++)
+	{
+		valarray<mmpbsa::Vector> snapshot(mol_list.size());
+		mmpbsa_io::seek(trajFile,*curr_snap);
+		mmpbsa_io::get_next_snap(trajFile,snapshot);
+		size_t complexSize,receptorSize,ligandSize;
+		receptorSize = ligandSize = 0;
+		for(size_t i = 0;i<mol_list.size();i++)
+		{
+			if(mol_list[i] == MMPBSAState::RECEPTOR)
+				receptorSize++;
+			else if(mol_list[i] == MMPBSAState::LIGAND)
+				ligandSize++;
+		}
+		complexSize = receptorSize + ligandSize;
+		valarray<mmpbsa::Vector> complexSnap(complexSize);
+		valarray<mmpbsa::Vector> receptorSnap(receptorSize);
+		valarray<mmpbsa::Vector> ligandSnap(ligandSize);
+
+		//separate coordinates
+		size_t complexCoordIndex = 0;
+		size_t receptorCoordIndex = 0;
+		size_t ligandCoordIndex = 0;
+		for(size_t i = 0;i<mol_list.size();i++)
+		{
+			Vector& currCoord = snapshot[i];
+			if(mol_list[i] == MMPBSAState::RECEPTOR)
+			{
+				complexSnap[complexCoordIndex++] = currCoord;
+				receptorSnap[receptorCoordIndex++] = currCoord;
+			}
+			else if(mol_list[i] == MMPBSAState::LIGAND)
+			{
+				complexSnap[complexCoordIndex++] = currCoord;
+				ligandSnap[ligandCoordIndex++] = currCoord;
+			}
+		}
+
+		switch(currState.currentMolecule)
+		{
+		case MMPBSAState::RECEPTOR:
+			area_value = MeadInterface::molsurf_area(atom_lists[MMPBSAState::RECEPTOR],receptorSnap,radii);
+			break;
+		case MMPBSAState::COMPLEX:
+			area_value = MeadInterface::molsurf_area(atom_lists[MMPBSAState::COMPLEX],complexSnap,radii);
+			break;
+		case MMPBSAState::LIGAND:
+			area_value = MeadInterface::molsurf_area(atom_lists[MMPBSAState::LIGAND],ligandSnap,radii);
+			break;
+		default:
+			throw mmpbsa::MMPBSAException("molsurf_run: invalid molecule type");
+		}
+
+		std::cout << area_value << std::endl;
+	}//end of iteration through snap list
+	return 0;
 }
 
 int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
@@ -799,6 +922,25 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
     		si.completed = true;
     		currState.currentProcess = mmpbsa::MMPBSAState::MMPBSA;
     		return 0;
+    	}
+    	else if(it->first == "surface_area"){
+    		if(it->second.size() == 0)
+    		{
+    			std::cerr << "surface_area flag needs a molecule type (COMPLEX, RECEPTOR, LIGAND)" << std::endl;
+    			return 2;
+    		}
+    		if(it->second == "COMPLEX")
+    			currState.currentMolecule = mmpbsa::MMPBSAState::COMPLEX;
+    		else if(it->second == "RECEPTOR")
+    			currState.currentMolecule = mmpbsa::MMPBSAState::RECEPTOR;
+    		else if(it->second == "LIGAND")
+    			currState.currentMolecule = mmpbsa::MMPBSAState::LIGAND;
+    		else
+    		{
+    			std::cerr << "surface_area flag needs a molecule type (COMPLEX, RECEPTOR, LIGAND)" << std::endl;
+    			return 2;
+    		}
+    		currState.currentProcess = mmpbsa::MMPBSAState::MOLSURF;
     	}
     	else if (it->first == "md_only")
     	{

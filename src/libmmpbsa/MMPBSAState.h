@@ -51,12 +51,15 @@ public:
     /**
      * Stage in the program.
      */
-    enum SimProcess{MMPBSA,SANDER} currentProcess;
+    enum SimProcess{MMPBSA,SANDER,MOLSURF} currentProcess;
     int placeInQueue;//zero ordered place in queue.
     float weight;//factor by which to multiple time in queue(i.e. weight = 1 means process will take equal time as other processes).
 
     bool trustPrmtop;///<Flag to indicate if the sanity check of the SanderParm object should be ignored. This is not suggested, but if the sanity check fails and one *does* believe it should work, this is provided as a work around, for whatever reason might arise.
     bool keep_traj_in_mem;///<Flag to indicate whether or not the trajectory stream should stay in memory. Default: false
+    bool surface_area_only;///<Flag to indicate that only SA should be done in PBSA
+
+    int verbose;///<Flag to indicate whether the program needs to be verbose. Added in version 0.12.5. Not fully implemented yet
 
     /**
      * Stores variables needed to restart the program. This is needed for running

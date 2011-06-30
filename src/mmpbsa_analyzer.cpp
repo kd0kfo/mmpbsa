@@ -346,19 +346,19 @@ void summarize(mmpbsa_analyzer_arguments& args)
 	// adjust for failed data
 	if(bad_area_com > 0)
 	{
-		fprintf(stderr,"Data contains %d occurances where molsurf failed in complex.\n",bad_area_com);
+		fprintf(stderr,"Data contains %ld occurances where molsurf failed in complex.\n",bad_area_com);
 		for(size_t areaidx = 0;areaidx<2;areaidx++)
 			ecomplex[areaidx].area *= (num_complex)/(num_complex - bad_area_com);
 	}
 	if(bad_area_lig > 0)
 	{
-		fprintf(stderr,"Data contains %d occurances where molsurf failed in ligand.\n",bad_area_lig);
+		fprintf(stderr,"Data contains %ld occurances where molsurf failed in ligand.\n",bad_area_lig);
 		for(size_t areaidx = 0;areaidx<2;areaidx++)
 			ligand[areaidx].area *= (num_complex)/(num_complex - bad_area_lig);
 	}
 	if(bad_area_rec > 0)
 	{
-		fprintf(stderr,"Data contains %d occurances where molsurf failed in receptor.\n",bad_area_rec);
+		fprintf(stderr,"Data contains %ld occurances where molsurf failed in receptor.\n",bad_area_rec);
 		for(size_t areaidx = 0;areaidx<2;areaidx++)
 			receptor[areaidx].area *= (num_complex)/(num_complex - bad_area_rec);
 	}

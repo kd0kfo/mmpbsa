@@ -9,7 +9,7 @@
 #define MMPBSA_4_PI 12.566370612
 #define MMPBSA_DEG_TO_RAD 0.0174532925199432957692
 #define MMPBSA_FORMAT std::setprecision(5)//Precision used with importing data, e.g. Sander input files.
-
+#define MOLSURF_RADII_ADJUSTMENT 1.4
 //Electrostatic constants
 #define DEFAULT_SCNB 2.0
 #define DEFAULT_SCEE 1.2

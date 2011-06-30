@@ -14,6 +14,8 @@ mmpbsa::MMPBSAState::MMPBSAState()
     MDOnly = false;
     savePDB = false;
     keep_traj_in_mem = false;
+    surface_area_only = false;
+    verbose = 0;
 }
 
 mmpbsa::MMPBSAState::MMPBSAState(const mmpbsa::MMPBSAState& orig)
@@ -35,6 +37,8 @@ mmpbsa::MMPBSAState::MMPBSAState(const mmpbsa::MMPBSAState& orig)
     placeInQueue = orig.placeInQueue;
     weight = orig.weight;
     filename_map = orig.filename_map;
+    surface_area_only = orig.surface_area_only;
+    verbose = 0;
 }
 
 mmpbsa::MMPBSAState& mmpbsa::MMPBSAState::operator=(const mmpbsa::MMPBSAState& orig)
@@ -59,6 +63,8 @@ mmpbsa::MMPBSAState& mmpbsa::MMPBSAState::operator=(const mmpbsa::MMPBSAState& o
     placeInQueue = orig.placeInQueue;
     weight = orig.weight;
     filename_map = orig.filename_map;
+    surface_area_only = orig.surface_area_only;
+    verbose = orig.verbose;
 
     return *this;
 }
