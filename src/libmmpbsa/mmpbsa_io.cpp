@@ -105,13 +105,18 @@ bool mmpbsa_io::get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa::Vec
 
 size_t mmpbsa_io::count_snapshots(std::iostream& trajFile,const size_t& natoms, bool isPeriodic)
 {
-    get_traj_title(trajFile);
     size_t snapcount = 0;
+    int filesize;
     try
     {
-        while(!trajFile.eof())
+    	trajFile.seekg(0,trajFile.end);
+    	filesize = trajFile.tellg();
+    	get_traj_title(trajFile);
+    	while(!trajFile.eof() && trajFile.tellg() < filesize)
         {
-            skip_next_snap(trajFile,natoms,isPeriodic);
+        	if(!trajFile.good())
+        		throw mmpbsa::SanderIOException("mmpbsa_io::count_snapshots: Cannot read from trajectory.",mmpbsa::FILE_IO_ERROR);
+            seek(trajFile,natoms,((isPeriodic)?1:0),snapcount+1);
             snapcount++;
         }
     }
@@ -121,7 +126,7 @@ size_t mmpbsa_io::count_snapshots(std::iostream& trajFile,const size_t& natoms, 
             return snapcount;
         throw sioe;
     }
-    return snapcount;
+    return snapcount - 1;
 }
 
 void mmpbsa_io::skip_next_snap(std::iostream& trajFile, const size_t& natoms, bool isPeriodic)
@@ -854,6 +859,8 @@ void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,size_t snap_pos)
 	{
 		std::ostringstream error;
 		error << "mmpbsa_io::seek: Problem skipping to snap number " << snap_pos;
+		if(traj.sander_filename != NULL)
+			error << " with file " << *traj.sander_filename;
 		throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_IO_ERROR);
 	}
 
