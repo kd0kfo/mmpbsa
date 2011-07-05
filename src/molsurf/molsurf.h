@@ -5,10 +5,9 @@
 
 #ifdef __cplusplus
  extern "C" {
-#include <csetjmp>//:-(
 #endif
 
-#include "nab.h" // moved to molsurf.h because molsurf.h ITSELF has a dependency on nab.h (or files referenced therein). This is glossed over in nab
+#include "nab.h" //dc: moved to molsurf.h because molsurf.h ITSELF has a dependency on nab.h (or files referenced therein). This is glossed over in nab
 
 #define ERROR (-1)
 #define PI   3.14159265358979323846
@@ -230,7 +229,7 @@ typedef struct extreme_vertex {
 
 REAL_T molsurf(REAL_T *xcrds, REAL_T *ycrds, REAL_T *zcrds,
 		REAL_T *radii,
-		size_t num_atoms, REAL_T probe_rad);//forward declaration of routine used outside of molsurf.c
+		size_t num_atoms, REAL_T probe_rad);//dc: forward declaration of routine used outside of molsurf.c
 
 #if 0
 /*  routine declarations   */

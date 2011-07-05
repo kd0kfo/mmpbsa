@@ -1,3 +1,13 @@
+/**
+ * This is an adaptation of the AmberTools v1.4 adaptation
+ * of Paul Beroza's molsurf program (see comment below) to be
+ * used to calculate surface area of molecules for MMPBSA calculations
+ * Program copied and then adapted from the nab program, per the terms
+ * of GPL
+ *
+ * 5 Jul 2011 -- David Coss
+ */
+
 /*
    This is an adaptation of Paul Beroza's "molsurf" program;
    modified by dac to exist as an NAB subroutine that gets passed
@@ -15,7 +25,7 @@
 #include <math.h>
 #include <assert.h>
 
-//#include "nab.h" // moved to molsurf.h because molsurf.h ITSELF has a dependency on nab.h (or files referenced therein). This is glossed over in nab
+//#include "nab.h" // dc: moved to molsurf.h because molsurf.h ITSELF has a dependency on nab.h (or files referenced therein). This is glossed over in nab
 #include "molsurf.h"
 
 static int natm_sel;
@@ -241,7 +251,7 @@ static void allocate_memory(void);
 static void free_memory(void);
 
 
-#if 0
+#if 0 //dc: changed definition for its use in mmpbsa
 REAL_T molsurf(MOLECULE_T ** m, char **aex, REAL_T * probe_rad_in)
 #else
 REAL_T molsurf(REAL_T *xcrds, REAL_T *ycrds, REAL_T *zcrds,
