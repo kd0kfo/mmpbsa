@@ -6,13 +6,16 @@
    area, using the coordinates and radii in from the protion of the
    input molecule that matches aex.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
 
-#include "nab.h"
+//#include "nab.h" // moved to molsurf.h because molsurf.h ITSELF has a dependency on nab.h (or files referenced therein). This is glossed over in nab
 #include "molsurf.h"
 
 static int natm_sel;
@@ -237,7 +240,14 @@ static REAL_T interior_angle(int, int, int, int, EDGE[], CIRCLE[],
 static void allocate_memory(void);
 static void free_memory(void);
 
+
+#if 0
 REAL_T molsurf(MOLECULE_T ** m, char **aex, REAL_T * probe_rad_in)
+#else
+REAL_T molsurf(REAL_T *xcrds, REAL_T *ycrds, REAL_T *zcrds,
+		REAL_T *radii,
+		size_t num_atoms, REAL_T probe_rad)
+#endif
 {
 
    int nat = 0, nres = 0, n_torus = 0, n_probes = 0, n_vertex = 0;
@@ -255,15 +265,14 @@ REAL_T molsurf(MOLECULE_T ** m, char **aex, REAL_T * probe_rad_in)
    int i;
 
    int r, a, n;
-   REAL_T probe_rad;
    STRAND_T *sp;
    RESIDUE_T *resp;
-   ATOM_T *ap;
+   //ATOM_T *ap;
 
 /*  Take info from NAB molecule and put into Paul's data structure,
    (only for atoms matching aex).                                    */
 
-   natm_sel = countmolatoms(*m, aex ? *aex : NULL);
+   natm_sel = num_atoms;
    allocate_memory();
 #ifdef DEBUG
    memory_usage();
@@ -271,7 +280,7 @@ REAL_T molsurf(MOLECULE_T ** m, char **aex, REAL_T * probe_rad_in)
 
 /*  Set up local and compacted arrays of the atoms and their properties
     that will be used for this calculation:                              */
-
+#if 0//original nab data filler
    for (n = 0, sp = (*m)->m_strands; sp; sp = sp->s_next) {
       for (r = 0; r < sp->s_nresidues; r++) {
          nres++;
@@ -300,7 +309,19 @@ REAL_T molsurf(MOLECULE_T ** m, char **aex, REAL_T * probe_rad_in)
          }
       }
    }
-   probe_rad = *probe_rad_in;
+#else // MMPBSA data filler
+   for(n = 0; n<natm_sel; n++)
+   {
+	   atom[n].pos[0] = xcrds[n];
+	   atom[n].pos[1] = ycrds[n];
+	   atom[n].pos[2] = zcrds[n];
+	   atom[n].rad = radii[n];
+	   atom[n].area = 0.0;
+   }
+#endif
+
+
+
    nat = n;
    if ((res = (RES *) malloc(10 * natm_sel * sizeof(RES))) == NULL) {
       fprintf(stderr, "Unable to allocate space for res\n");
@@ -498,6 +519,7 @@ REAL_T molsurf(MOLECULE_T ** m, char **aex, REAL_T * probe_rad_in)
 /*   place the convex area parts (which can be associated uniquely with an
      individual atom) back into the molecule in the "float1" attribute:     */
 
+#if 0// nab data filler. not needed in MMPBSA
    for (n = 0, sp = (*m)->m_strands; sp; sp = sp->s_next) {
       for (r = 0; r < sp->s_nresidues; r++) {
          resp = sp->s_residues[r];
@@ -510,6 +532,7 @@ REAL_T molsurf(MOLECULE_T ** m, char **aex, REAL_T * probe_rad_in)
          }
       }
    }
+#endif
 
    free_memory();
    return (broken_conc_area + conv_area + conc_area + sad_area +

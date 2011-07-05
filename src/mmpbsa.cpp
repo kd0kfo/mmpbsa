@@ -340,7 +340,7 @@ int molsurf_run(mmpbsa::MMPBSAState& currState)
 	using std::valarray;
 	using std::map;
 	using namespace mmpbsa;
-	mmpbsa_t area_value;
+	mmpbsa_t area_value,msms_value;
 	std::vector<size_t>::const_iterator curr_snap;
 	//Setup Trajectory Structure
 	if(!has_filename(MMPBSA_TRAJECTORY_TYPE,currState))
@@ -378,6 +378,14 @@ int molsurf_run(mmpbsa::MMPBSAState& currState)
 
 	//setup trajectory storage
 	get_traj_title(trajFile);//Don't need title, but this ensure we are at the top of the file. If the title is needed later, hook this.
+	if(currState.snapList.size() == 0)
+	{
+		std::fstream trajstream(trajFile.sander_filename->c_str(),std::ios::in);
+		size_t num_snaps = mmpbsa_io::count_snapshots(trajstream,trajFile.natoms,trajFile.ifbox > 0);
+		trajstream.close();
+		for(size_t filler = 0;filler < num_snaps;filler++)
+			currState.snapList.push_back(filler + 1);
+	}
 	curr_snap = currState.snapList.begin();
 	for(;curr_snap != currState.snapList.end();curr_snap++)
 	{
@@ -417,22 +425,33 @@ int molsurf_run(mmpbsa::MMPBSAState& currState)
 			}
 		}
 
+		std::vector<atom_t>* atoms;
+		valarray<mmpbsa::Vector> *snap;
+		std::string molname;
 		switch(currState.currentMolecule)
 		{
 		case MMPBSAState::RECEPTOR:
-			area_value = MeadInterface::molsurf_area(atom_lists[MMPBSAState::RECEPTOR],receptorSnap,radii);
+			atoms = &atom_lists[MMPBSAState::RECEPTOR];
+			snap = &receptorSnap;
+			molname = "RECEPTOR";
 			break;
 		case MMPBSAState::COMPLEX:
-			area_value = MeadInterface::molsurf_area(atom_lists[MMPBSAState::COMPLEX],complexSnap,radii);
+			atoms = &atom_lists[MMPBSAState::COMPLEX];
+			snap = &complexSnap;
+			molname = "COMPLEX";
 			break;
 		case MMPBSAState::LIGAND:
-			area_value = MeadInterface::molsurf_area(atom_lists[MMPBSAState::LIGAND],ligandSnap,radii);
+			atoms = &atom_lists[MMPBSAState::LIGAND];
+			snap = &ligandSnap;
+			molname = "LIGAND";
 			break;
 		default:
 			throw mmpbsa::MMPBSAException("molsurf_run: invalid molecule type");
 		}
-
-		std::cout << area_value << std::endl;
+		std::cout << molname << ": ";
+		std::cout << MeadInterface::molsurf_area(*atoms,*snap,radii) << " : ";//molsurf
+//		std::cout << MeadInterface::msms_area(*atoms,*snap,radii);
+		std::cout << std::endl;
 	}//end of iteration through snap list
 	return 0;
 }
