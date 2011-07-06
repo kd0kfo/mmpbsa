@@ -193,7 +193,7 @@ mmpbsa_LDFLAGS = $(CUSTOM_LDFLAGS) -L$(MEAD_PATH)/lib -L./libmmpbsa \
 mmpbsa_LDADD = -lmmpbsa -lmolsurf -lmead $(BOINC_LIBS) \
 	$(GRAPHICS_FLAGS) $(XML_LIBS) $(CUSTOM_LIBS) $(am__append_2) \
 	$(am__append_5)
-mmpbsa_DEPENDENCIES = libmmpbsa
+mmpbsa_DEPENDENCIES = libmmpbsa molsurf
 mmpbsa_SOURCES = mmpbsa.cpp $(am__append_9)
 mmpbsa_graphics_CPPFLAGS = -Wall $(BOINC_CPPFLAGS) $(GRAPHICS_CPPFLAGS)
 mmpbsa_graphics_LDFLAGS = $(BOINC_LDFLAGS) $(GRAPHICS_LDFLAGS)
