@@ -230,6 +230,8 @@ mmpbsa_t molsurf_posix(const std::vector<mmpbsa::atom_t>& atoms,
 	// Start Molsurf and it's monitor
 	pid_t molsurf_pid;
 	mmpbsa_t areaval;
+	const char *molsurf_stdout = "molsurf.stdout";
+	const char *molsurf_stderr = "molsurf.stderr";
 	int molsurf_fd[2];
 	mmpbsa_molsurf_error = 0;
 	if(pipe(molsurf_fd) == -1)
@@ -259,13 +261,29 @@ mmpbsa_t molsurf_posix(const std::vector<mmpbsa::atom_t>& atoms,
 			mmpbsa_molsurf_error++;
 		if(mmpbsa_molsurf_error != 0)
 			areaval = 0;
+
+		if(access(molsurf_stdout,W_OK) != -1)
+			remove(molsurf_stdout);
+		if(access(molsurf_stderr,W_OK) != -1)
+			remove(molsurf_stderr);
 	}
 	else
 	{
+		FILE* stdholders[2];
 		close(molsurf_fd[0]);//child writes molsurf data to parent
+
+		//capture stdout and stderr
+		stdholders[0] = freopen(molsurf_stdout,"w",stdout);
+		stdholders[1] = freopen(molsurf_stderr,"w",stderr);
+
+		// run molsurf
 		areaval = MeadInterface::molsurf_area(atoms,crds,radii);
 		write(molsurf_fd[1],&areaval,sizeof(mmpbsa_t));
 		close(molsurf_fd[1]);
+
+		//clean up
+		for(size_t i = 0;i<2;i++)
+			fclose(stdholders[i]);
 		exit(0);
 	}
 	return areaval;
