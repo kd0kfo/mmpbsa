@@ -427,29 +427,24 @@ int molsurf_run(mmpbsa::MMPBSAState& currState)
 
 		std::vector<atom_t>* atoms;
 		valarray<mmpbsa::Vector> *snap;
-		std::string molname;
 		switch(currState.currentMolecule)
 		{
 		case MMPBSAState::RECEPTOR:
 			atoms = &atom_lists[MMPBSAState::RECEPTOR];
 			snap = &receptorSnap;
-			molname = "RECEPTOR";
 			break;
 		case MMPBSAState::COMPLEX:
 			atoms = &atom_lists[MMPBSAState::COMPLEX];
 			snap = &complexSnap;
-			molname = "COMPLEX";
 			break;
 		case MMPBSAState::LIGAND:
 			atoms = &atom_lists[MMPBSAState::LIGAND];
 			snap = &ligandSnap;
-			molname = "LIGAND";
 			break;
 		default:
 			throw mmpbsa::MMPBSAException("molsurf_run: invalid molecule type");
 		}
-		std::cout << molname << ": ";
-		std::cout << MeadInterface::molsurf_area(*atoms,*snap,radii) << " : ";//molsurf
+		std::cout << MeadInterface::molsurf_area(*atoms,*snap,radii);//molsurf
 //		std::cout << MeadInterface::msms_area(*atoms,*snap,radii);
 		std::cout << std::endl;
 	}//end of iteration through snap list

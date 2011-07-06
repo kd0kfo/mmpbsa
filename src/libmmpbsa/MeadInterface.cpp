@@ -29,7 +29,7 @@
 #include <sys/wait.h>
 
 
-int molsurf_error_counter = 0;
+int mmpbsa_molsurf_error = 0;
 
 mmpbsa::MeadInterface::MeadInterface() {
     brad["N"] = 1.550;
@@ -163,7 +163,7 @@ mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const mmpbsa::EmpEnerFun& efun, co
 	throw mmpbsa::MMPBSAException("mmpbsa::MeadInterface::full_EMap: Deprecated!");
     mmpbsa::EMap returnMe(&efun,crds);
     mmpbsa_t * pbsa_values = pbsa_solvation(efun,crds,fdm,radii,residueMap,interactionStrength);
-    if(molsurf_error_counter != 0)
+    if(mmpbsa_molsurf_error != 0)
     	returnMe.molsurf_failed = true;
     mmpbsa_update_emap(returnMe,pbsa_values,surfTension,surfOffset);
     delete [] pbsa_values;
@@ -177,7 +177,7 @@ mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const std::vector<mmpbsa::atom_t>&
 {
     mmpbsa::EMap returnMe(atoms,ff,crds);
     mmpbsa_t * pbsa_values = pbsa_solvation(atoms,ff,crds,fdm,radii,residueMap,interactionStrength);
-    if(molsurf_error_counter != 0)
+    if(mmpbsa_molsurf_error != 0)
     	returnMe.molsurf_failed = true;
     mmpbsa_update_emap(returnMe,pbsa_values,surfTension,surfOffset);
     delete [] pbsa_values;
@@ -202,6 +202,7 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, 
 }
 
 
+
 mmpbsa_t mmpbsa::MeadInterface::molsurf_area(const std::vector<mmpbsa::atom_t>& atoms,
 		const std::valarray<mmpbsa::Vector>& crds,
 		const std::map<std::string,mead_data_t>& radii)
@@ -217,8 +218,79 @@ mmpbsa_t mmpbsa::MeadInterface::molsurf_area(const std::vector<mmpbsa::atom_t>& 
 		zs[i] = crds[i].z();
 		rads[i] = mmpbsa_utils::lookup_radius(atoms.at(i).name,radii) + MOLSURF_RADII_ADJUSTMENT;//SA radii are not necessarily the same as PB radii
 	}
-
 	return molsurf(xs,ys,zs,rads,numCoords,0);
+}
+
+#ifndef _WIN32
+mmpbsa_t molsurf_posix(const std::vector<mmpbsa::atom_t>& atoms,
+		const std::valarray<mmpbsa::Vector>& crds,
+		const std::map<std::string,mead_data_t>& radii)
+{
+	using namespace mmpbsa;
+	// Start Molsurf and it's monitor
+	pid_t molsurf_pid;
+	mmpbsa_t areaval;
+	int molsurf_fd[2];
+	mmpbsa_molsurf_error = 0;
+	if(pipe(molsurf_fd) == -1)
+	{
+		std::ostringstream error;
+		error << "mmpbsa::MeadInterface::pbsa_solvation: Could not setup pipe for molsurf. Reason: " << strerror(errno);
+		perror("pipe error");
+		throw MeadException(error,SYSTEM_ERROR);
+	}
+	molsurf_pid = fork();
+	if(molsurf_pid == -1)
+		throw MeadException("mmpbsa::MeadInterface::pbsa_solvation: Could not setup a fork for molsurf.",SYSTEM_ERROR);
+
+	if(molsurf_pid)
+	{
+		// parent
+		int molsurf_retval;
+		close(molsurf_fd[1]);// parent reads from child and does not write to child
+
+		molsurf_retval = read(molsurf_fd[0],&areaval,sizeof(mmpbsa_t));
+		if(molsurf_retval < 1)
+			mmpbsa_molsurf_error++;
+		close(molsurf_fd[0]);
+		if(waitpid(molsurf_pid,&molsurf_retval,0) != molsurf_pid)
+			fprintf(stderr,"wait error: %s\n",strerror(errno));
+		if(molsurf_retval != 0)
+			mmpbsa_molsurf_error++;
+		if(mmpbsa_molsurf_error != 0)
+			areaval = 0;
+	}
+	else
+	{
+		close(molsurf_fd[0]);//child writes molsurf data to parent
+		areaval = MeadInterface::molsurf_area(atoms,crds,radii);
+		write(molsurf_fd[1],&areaval,sizeof(mmpbsa_t));
+		close(molsurf_fd[1]);
+		exit(0);
+	}
+	return areaval;
+}
+#endif
+
+#ifdef _WIN32
+mmpbsa_t molsurf_win32(const std::vector<mmpbsa::atom_t>& atoms,
+		const std::valarray<mmpbsa::Vector>& crds,
+		const std::map<std::string,mead_data_t>& radii)
+{
+	throw "Add non posix environment to molsurf_win32";
+}
+#endif
+
+mmpbsa_t molsurf_wrapper(const std::vector<mmpbsa::atom_t>& atoms,
+		const std::valarray<mmpbsa::Vector>& crds,
+		const std::map<std::string,mead_data_t>& radii)
+{
+#ifdef _WIN32
+#error Add non posix environment to molsurf wrapper
+#else //posix
+	return molsurf_posix(atoms,crds,radii);
+#endif
+
 }
 
 mmpbsa_t mmpbsa::MeadInterface::pb_solvation(const std::vector<mmpbsa::atom_t>& atoms,
@@ -274,61 +346,9 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t
     //PB
     returnMe[esol] = pb_solvation(atoms,crds,fdm, radii,residueMap,interactionStrength, exclusionRadius);
 
-#ifndef _WIN32
-    // Start Molsurf and it's monitor
-    pid_t molsurf_pid;
-    int molsurf_fd[2];
-    molsurf_error_counter = 0;
-    if(pipe(molsurf_fd) == -1)
-    {
-    	std::ostringstream error;
-    	error << "mmpbsa::MeadInterface::pbsa_solvation: Could not setup pipe for molsurf. Reason: " << strerror(errno);
-    	perror("pipe error");
-    	throw MeadException(error,SYSTEM_ERROR);
-    }
-    molsurf_pid = fork();
-    if(molsurf_pid == -1)
-    {
-    	delete [] returnMe;
-    	throw MeadException("mmpbsa::MeadInterface::pbsa_solvation: Could not setup a fork for molsurf.",SYSTEM_ERROR);
-    }
+    //SA
+    returnMe[area] = molsurf_wrapper(atoms,crds,radii);
 
-    if(molsurf_pid)
-    {
-    	// parent
-    	int molsurf_retval;
-    	mmpbsa_t areaval;
-    	close(molsurf_fd[1]);// parent reads from child and does not write to child
-
-    	molsurf_retval = read(molsurf_fd[0],&areaval,sizeof(mmpbsa_t));
-    	if(molsurf_retval > 0)
-    		returnMe[area] = areaval;
-    	else
-    	{
-    		returnMe[area] = 0;
-    		molsurf_error_counter++;
-    	}
-    	close(molsurf_fd[0]);
-    	if(waitpid(molsurf_pid,&molsurf_retval,0) != molsurf_pid)
-    		fprintf(stderr,"wait error: %s\n",strerror(errno));
-    	if(molsurf_retval != 0)
-    	{
-    		molsurf_error_counter++;
-    		returnMe[area] = 0;
-    	}
-    }
-    else
-    {
-    	mmpbsa_t areaval;
-    	close(molsurf_fd[0]);//child writes molsurf data to parent
-    	areaval = molsurf_area(atoms,crds,radii);
-    	write(molsurf_fd[1],&areaval,sizeof(mmpbsa_t));
-    	close(molsurf_fd[1]);
-    	exit(0);
-    }
-#else
-    returnMe[area] = molsurf_area(atoms,crds,radii);
-#endif
     return returnMe;
 }
 
