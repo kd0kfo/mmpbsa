@@ -326,14 +326,17 @@ void get_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t** split_
 	get_sander_forcefield(currState,split_ff,atom_lists,mol_list,trajfile);
 }
 
-void dump_crds(const std::valarray<mmpbsa::Vector>& crds)
+void dump_crds(const std::vector<mmpbsa::atom_t>& atoms,
+		const std::valarray<mmpbsa::Vector>& crds,
+		std::map<std::string,float> radii)
 {
 	size_t size = crds.size();
 	std::cout << "---- Start Coordinates ----" << std::endl;
 	for(size_t i = 0;i<size;i++)
-		std::cout << crds[i] << std::endl;
+		std::cout << crds[i].x() << " " << crds[i].y() << " " << crds[i].z() << " " << mmpbsa_utils::lookup_radius(atoms[i].name,radii) << std::endl;
 	std::cout << "---- End Coordinates ----" << std::endl;
 }
+
 
 int molsurf_run(mmpbsa::MMPBSAState& currState)
 {
@@ -506,7 +509,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 
 
     //load radii data, if available
-    map<std::string,float> radii;//later, check to see if radii.size() > 0 before calling full_EMap(...)
+    map<std::string,mead_data_t> radii = mi.brad;// if there is no radii file, use MeadInterface's default.
     map<std::string,std::string> residues;
     if(has_filename(RADII_TYPE,currState))
     {
@@ -634,33 +637,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         	writePDB(atom_lists[MMPBSAState::LIGAND],split_ff[MMPBSAState::LIGAND],ligandSnap,currState,"ligand");
         }
 
-        //This is the section where we actually do the MMPBSA calculations.
-        //For the sake of multithreading, one FDM will be made and
-        //two pointers will be created for ligand and receptor. If
-        //multithreading is used, eg on a multicore processor,
-        //those pointers will point to unique FDM objects. If
-        //multithreading is not used, they will point to comp_fdm.
-        //Number of threads is specified in the MeadInterface object,
-        //to allow the number of threads to be dynamically set.
-        FinDiffMethod *ligand_fdm,*recpt_fdm,comp_fdm = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
-    	ligand_fdm = recpt_fdm = &comp_fdm;
-    	if(mi.multithread)
-        {
-        	ligand_fdm = new FinDiffMethod;
-        	*ligand_fdm = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
-        	recpt_fdm = new FinDiffMethod;
-        	*recpt_fdm = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
-        }
-
-        //Radii information
-        map<std::string,float>* pradii = &(mi.brad);//don't delete!!!
-        if(radii.size())//if the radius map is empty, use MeadInterface's lookup table.
-            pradii = &radii;
-
-        //output-ing is broken up by section, in case the program needs to be
-        //monitored or paused.
-
-        //Check to see if we just ended one snap shot and need to start the
+         //Check to see if we just ended one snap shot and need to start the
         //next snap shot at the beginning (which is the whole COMPLEX. If
         //so, reset the current Molecule to Complex and increment the snap count.
         if(currState.currentMolecule == MMPBSAState::END_OF_MOLECULES)
@@ -672,42 +649,66 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
             continue;//Restarted program at the end of a snapshot. So, move on.
         }
         
-        //MMPBSA on Complex
-        int comp_thread_retval, recpt_thread_retval, ligand_retval;
-    	//map<std::string,float> recpt_radii = *pradii;
+        // Iterate through the three parts of the complex and calculate energies
+        for(;currState.currentMolecule < MMPBSAState::END_OF_MOLECULES;++currState.currentMolecule)
+        {
+        	FinDiffMethod fdm = MeadInterface::createFDM(complexSnap,receptorSnap,ligandSnap);
+        	const std::valarray<Vector> *curr_crds;
+        	mmpbsa_t energy;
+        	std::string mol_name;
+        	int molsurf_error_flag = 0;
 
-#ifdef USE_PTHREADS
-      pthread_t comp_thread,recpt_thread,ligand_thread;
-#else
-      unsigned short comp_thread, recpt_thread, ligand_thread,mmpbsa_mutex;//will be ignored. Dummy variable name
+        	switch(currState.currentMolecule)
+        	{
+        	case MMPBSAState::COMPLEX:
+        		curr_crds = &complexSnap;
+        		mol_name = "COMPLEX";
+        		break;
+        	case MMPBSAState::RECEPTOR:
+        		curr_crds = &receptorSnap;
+        		mol_name = "RECEPTOR";
+        		break;
+        	case MMPBSAState::LIGAND:
+        		curr_crds = &ligandSnap;
+        		mol_name = "LIGAND";
+        		break;
+        	default:
+        		throw MMPBSAException("mmpbsa_run: invalid molecule in switch.",mmpbsa::DATA_FORMAT_ERROR);
+        	}
+
+        	std::cout << "Calculating " << mol_name << std::endl;
+
+        	// Constructor performs MM
+        	EMap results(atom_lists[currState.currentMolecule],split_ff[currState.currentMolecule],*curr_crds);
+
+        	// PB
+        	energy = MeadInterface::pb_solvation(atom_lists[currState.currentMolecule],*curr_crds,fdm,radii,residues,mi.istrength);
+        	results.set_elstat_solv(energy);
+
+        	// SA
+#ifdef _WIN32
+        	energy = MeadInterface::molsurf_win32(&molsurf_error_flag);
+#else //posix
+        	energy = MeadInterface::molsurf_posix(atom_lists[currState.currentMolecule],*curr_crds,radii,&molsurf_error_flag);
 #endif
-        if(currState.currentMolecule == MMPBSAState::COMPLEX)
-        {
-        	do_mmpbsa_calculation((void*) &comp_thread, mi.multithread, atom_lists[MMPBSAState::COMPLEX], split_ff[MMPBSAState::COMPLEX], complexSnap,comp_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::RECEPTOR,"COMPLEX",(void*)&mmpbsa_mutex);
+        	if(molsurf_error_flag != 0)
+        	{
+        		results.molsurf_failed = true;
+        		results.set_area(0.0);
+        		results.set_sasol(0.0);
+        	}
+        	else
+        	{
+        		results.molsurf_failed = false;
+        		results.set_area(energy);
+        		results.set_sasol(energy*mi.surf_tension+mi.surf_offset);
+        	}
+
+        	// Current molecule calculation has finished. Checkpoint.
+        	thread_safe_checkpoint(mol_name.c_str(),results, currState,snapshotXML, NULL);
+
         }
 
-        //MMPBSA on Receptor
-        if(currState.currentMolecule == MMPBSAState::RECEPTOR || mi.multithread)
-        {
-        	do_mmpbsa_calculation((void*) &recpt_thread, mi.multithread,  atom_lists[MMPBSAState::RECEPTOR], split_ff[MMPBSAState::RECEPTOR], receptorSnap,*recpt_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::LIGAND,"RECEPTOR",(void*)&mmpbsa_mutex);
-        }
-
-        //MMPBSA on Ligand
-        if(currState.currentMolecule == MMPBSAState::LIGAND || mi.multithread)
-        {
-        	do_mmpbsa_calculation((void*) &ligand_thread,mi.multithread,  atom_lists[MMPBSAState::LIGAND], split_ff[MMPBSAState::LIGAND], ligandSnap,*ligand_fdm,*pradii,residues,mi,currState,snapshotXML,MMPBSAState::END_OF_MOLECULES,"LIGAND",(void*)&mmpbsa_mutex);
-        }
-
-#ifdef USE_PTHREADS
-        if(mi.multithread)
-        {
-			std::cout << "Waiting to join threads.... ";
-			pthread_join(ligand_thread,NULL);
-			pthread_join(comp_thread,NULL);
-			pthread_join(recpt_thread,NULL);
-			std::cout << "Finished."<< std::endl;
-        }
-#endif
         //MMPBSA is complete. Save the state and update the process on the
         //status, if monitoring is being done, e.g. BOINC.
         checkpoint_mmpbsa(currState);
@@ -718,12 +719,6 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 #ifndef USE_MPI
         write_mmpbsa_data(previousEnergyData,currState);
 #endif
-
-        //clean up FinDiffMethods
-        if(ligand_fdm != 0 && ligand_fdm != &comp_fdm)
-        	delete ligand_fdm;
-        if(recpt_fdm != 0 && recpt_fdm != ligand_fdm && recpt_fdm != &comp_fdm)
-        	delete recpt_fdm;
 
         //If there was a snapshot list, has the list been completed?
         if(currState.snapList.size())
@@ -1505,7 +1500,7 @@ void update_gshmem()
 #endif
 }
 
-
+#if 0//why use threads if it's not supported in mead or molsurf
 void *do_mmpbsa_calculation_thread(void* args)
 {
 	struct mmpbsa_thread_arg * thread_args = (mmpbsa_thread_arg*) args;
@@ -1558,8 +1553,9 @@ int do_mmpbsa_calculation(void* thread_object,int useMultithread,
 	(*do_mmpbsa_calculation_thread)((void*) pass_these);
 	return 0;
 }
+#endif
 
-void thread_safe_checkpoint(const mmpbsa::MMPBSAState::MOLECULE& next_mole,const char* mole_name,
+void thread_safe_checkpoint(const char* mole_name,
 		const mmpbsa::EMap& EMap, mmpbsa::MMPBSAState& currState,
 		mmpbsa_utils::XMLNode* snapshotXML, void * mmpbsa_mutex)
 {
@@ -1573,7 +1569,6 @@ void thread_safe_checkpoint(const mmpbsa::MMPBSAState::MOLECULE& next_mole,const
 #endif
 
 	snapshotXML->insertChild(EMap.toXML(((mole_name) ? mole_name : "UNKNOWN_MOLECULE")));
-	currState.currentMolecule = next_mole;
 	::updateMMPBSAProgress(currState,0.33333333);
 	checkpoint_mmpbsa(currState);
 	study_cpu_time();

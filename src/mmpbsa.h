@@ -241,7 +241,7 @@ int do_mmpbsa_calculation(void* thread_object,int useMultithread,const std::vect
 		mmpbsa::MMPBSAState& currState,mmpbsa_utils::XMLNode* snapshotXML,
 		mmpbsa::MMPBSAState::MOLECULE next_mole, const char* mole_name, void * mmpbsa_mutex);
 
-void thread_safe_checkpoint(const mmpbsa::MMPBSAState::MOLECULE& next_mole,const char* mole_name,
+void thread_safe_checkpoint(const char* mole_name,
 		const mmpbsa::EMap& EMap, mmpbsa::MMPBSAState& currState,
 		mmpbsa_utils::XMLNode* snapshotXML, void * mmpbsa_mutex);
 

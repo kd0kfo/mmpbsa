@@ -34,7 +34,6 @@
 #include <sys/wait.h>
 #endif
 
-int mmpbsa_molsurf_error = 0;
 
 mmpbsa::MeadInterface::MeadInterface() {
     brad["N"] = 1.550;
@@ -145,69 +144,6 @@ FinDiffMethod mmpbsa::MeadInterface::createFDM(const std::valarray<mmpbsa::Vecto
     return fdm;
 }
 
-void mmpbsa_update_emap(mmpbsa::EMap& value, const mmpbsa_t *pbsa_values, const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset)
-{
-	value.set_elstat_solv(pbsa_values[0]);
-	if(value.molsurf_failed)
-	{
-		value.set_area(0);
-		value.set_sasol(0);
-	}
-	else
-	{
-		value.set_area(pbsa_values[1]);
-		value.set_sasol(pbsa_values[1]*surfTension+surfOffset);
-	}
-}
-
-mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa::Vector>& crds,
-        const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
-        const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
-        const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException)
-{
-	throw mmpbsa::MMPBSAException("mmpbsa::MeadInterface::full_EMap: Deprecated!");
-    mmpbsa::EMap returnMe(&efun,crds);
-    mmpbsa_t * pbsa_values = pbsa_solvation(efun,crds,fdm,radii,residueMap,interactionStrength);
-    if(mmpbsa_molsurf_error != 0)
-    	returnMe.molsurf_failed = true;
-    mmpbsa_update_emap(returnMe,pbsa_values,surfTension,surfOffset);
-    delete [] pbsa_values;
-    return returnMe;
-}
-
-mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa::Vector>& crds,
-        const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
-        const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
-        const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException)
-{
-    mmpbsa::EMap returnMe(atoms,ff,crds);
-    mmpbsa_t * pbsa_values = pbsa_solvation(atoms,ff,crds,fdm,radii,residueMap,interactionStrength);
-    if(mmpbsa_molsurf_error != 0)
-    	returnMe.molsurf_failed = true;
-    mmpbsa_update_emap(returnMe,pbsa_values,surfTension,surfOffset);
-    delete [] pbsa_values;
-    return returnMe;
-}
-
-mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa::Vector>& crds,
-        const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
-        const std::map<std::string,std::string>& residueMap,
-        const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius) throw (mmpbsa::MeadException)
-{
-	mmpbsa_t* returnMe;
-	std::vector<mmpbsa::atom_t> atoms;
-	mmpbsa::forcefield_t ff;
-	efun.extract_force_field(ff);
-	efun.extract_atom_structs(atoms);
-
-	returnMe = pbsa_solvation(atoms, ff,crds,fdm,radii,residueMap,interactionStrength,exclusionRadius);
-
-	destroy(&ff);
-	return returnMe;
-}
-
-
-
 mmpbsa_t mmpbsa::MeadInterface::molsurf_area(const std::vector<mmpbsa::atom_t>& atoms,
 		const std::valarray<mmpbsa::Vector>& crds,
 		const std::map<std::string,mead_data_t>& radii)
@@ -227,9 +163,10 @@ mmpbsa_t mmpbsa::MeadInterface::molsurf_area(const std::vector<mmpbsa::atom_t>& 
 }
 
 #ifndef _WIN32
-mmpbsa_t molsurf_posix(const std::vector<mmpbsa::atom_t>& atoms,
+mmpbsa_t mmpbsa::MeadInterface::molsurf_posix(const std::vector<mmpbsa::atom_t>& atoms,
 		const std::valarray<mmpbsa::Vector>& crds,
-		const std::map<std::string,mead_data_t>& radii)
+		const std::map<std::string,mead_data_t>& radii,
+		int *error_flag)
 {
 	using namespace mmpbsa;
 	// Start Molsurf and it's monitor
@@ -238,7 +175,7 @@ mmpbsa_t molsurf_posix(const std::vector<mmpbsa::atom_t>& atoms,
 	const char *molsurf_stdout = "molsurf.stdout";
 	const char *molsurf_stderr = "molsurf.stderr";
 	int molsurf_fd[2];
-	mmpbsa_molsurf_error = 0;
+	int mmpbsa_molsurf_error = 0;
 	if(pipe(molsurf_fd) == -1)
 	{
 		std::ostringstream error;
@@ -291,22 +228,21 @@ mmpbsa_t molsurf_posix(const std::vector<mmpbsa::atom_t>& atoms,
 			fclose(stdholders[i]);
 		exit(0);
 	}
+	if(error_flag != NULL)
+		*error_flag = mmpbsa_molsurf_error;
+
 	return areaval;
 }
-#endif
-
-
-mmpbsa_t molsurf_wrapper(const std::vector<mmpbsa::atom_t>& atoms,
-		const std::valarray<mmpbsa::Vector>& crds,
-		const std::map<std::string,mead_data_t>& radii)
+#else// windows environment
+mmpbsa_t mmpbsa::MeadInterface::molsurf_win32(const std::string& top_filename,
+    		const std::string& traj_filename, const std::string& radii_filename,
+    		const std::string& molecule_type, const size_t& snap_count,
+    		int *error_flag)
 {
-#ifdef _WIN32
-  return molsurf_win32(atoms,crds,radii);
-#else //posix
-	return molsurf_posix(atoms,crds,radii);
+	return mmpbsa_t molsurf_win32(top_filename,traj_filename,radii_filename,molecule_type,snap_count,error_flag);
+}
 #endif
 
-}
 
 mmpbsa_t mmpbsa::MeadInterface::pb_solvation(const std::vector<mmpbsa::atom_t>& atoms,
 		const std::valarray<mmpbsa::Vector>& crds,
@@ -350,6 +286,61 @@ mmpbsa_t mmpbsa::MeadInterface::pb_solvation(const std::vector<mmpbsa::atom_t>& 
 	return (prod_sol - prod_ref) / 2.0;
 }
 
+Coord ToCoord(const mmpbsa::Vector& v)
+{
+	return Coord(v.x(),v.y(),v.z());
+}
+
+
+
+
+#if 0// want to fully refactor PB & SA into seperate instances
+mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa::Vector>& crds,
+        const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
+        const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
+        const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException)
+{
+	throw mmpbsa::MMPBSAException("mmpbsa::MeadInterface::full_EMap: Deprecated!");
+    mmpbsa::EMap returnMe(&efun,crds);
+    mmpbsa_t * pbsa_values = pbsa_solvation(efun,crds,fdm,radii,residueMap,interactionStrength);
+    if(mmpbsa_molsurf_error != 0)
+    	returnMe.molsurf_failed = true;
+    mmpbsa_update_emap(returnMe,pbsa_values,surfTension,surfOffset);
+    delete [] pbsa_values;
+    return returnMe;
+}
+
+mmpbsa::EMap mmpbsa::MeadInterface::full_EMap(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff, const std::valarray<mmpbsa::Vector>& crds,
+        const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
+        const std::map<std::string,std::string>& residueMap,const mmpbsa_t& interactionStrength,
+        const mmpbsa_t& surfTension, const mmpbsa_t& surfOffset) throw (mmpbsa::MeadException)
+{
+    mmpbsa::EMap returnMe(atoms,ff,crds);
+    mmpbsa_t * pbsa_values = pbsa_solvation(atoms,ff,crds,fdm,radii,residueMap,interactionStrength);
+    if(mmpbsa_molsurf_error != 0)
+    	returnMe.molsurf_failed = true;
+    mmpbsa_update_emap(returnMe,pbsa_values,surfTension,surfOffset);
+    delete [] pbsa_values;
+    return returnMe;
+}
+
+mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const mmpbsa::EmpEnerFun& efun, const std::valarray<mmpbsa::Vector>& crds,
+        const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
+        const std::map<std::string,std::string>& residueMap,
+        const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius) throw (mmpbsa::MeadException)
+{
+	mmpbsa_t* returnMe;
+	std::vector<mmpbsa::atom_t> atoms;
+	mmpbsa::forcefield_t ff;
+	efun.extract_force_field(ff);
+	efun.extract_atom_structs(atoms);
+
+	returnMe = pbsa_solvation(atoms, ff,crds,fdm,radii,residueMap,interactionStrength,exclusionRadius);
+
+	destroy(&ff);
+	return returnMe;
+}
+
 mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t>& atoms, const mmpbsa::forcefield_t& ff,
 		const std::valarray<mmpbsa::Vector>& crds,
 		const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
@@ -367,9 +358,5 @@ mmpbsa_t* mmpbsa::MeadInterface::pbsa_solvation(const std::vector<mmpbsa::atom_t
     return returnMe;
 }
 
-Coord ToCoord(const mmpbsa::Vector& v)
-{
-	return Coord(v.x(),v.y(),v.z());
-}
-
+#endif//removing pbsa_solvation and full_emap
 

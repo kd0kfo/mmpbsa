@@ -1,7 +1,8 @@
 #include <windows.h> 
 #include <winbase.h>
 #include <tchar.h>
-#include <stdio.h> 
+#include <stdio.h>
+#include <sstream>
 
 #define BUFSIZE 4096 
  
@@ -12,16 +13,17 @@ HANDLE g_hChildStd_OUT_Wr = NULL;
 
 HANDLE g_hInputFile = NULL;
  
-void CreateChildProcess(void); 
+void CreateChildProcess(const std::string& top_filename,
+		const std::string& traj_filename, const std::string& radii_filename,
+		const std::string& molecule_type, const size_t& snap_number);
 void WriteToPipe(void); 
-void ReadFromPipe(void); 
+void ReadFromPipe(int *error_flag);
 void ErrorExit(PTSTR); 
  
-#if 0
-int _tmain(int argc, TCHAR *argv[]) 
-#else
-mmpbsa_t molsurf_win32(const char *moltype, size_t snap_number)
-#endif
+mmpbsa_t molsurf_win32(const std::string& top_filename,
+		const std::string& traj_filename, const std::string& radii_filename,
+		const std::string& molecule_type, const size_t& snap_number,
+		int *error_flag)
 { 
    SECURITY_ATTRIBUTES saAttr; 
  
@@ -85,7 +87,7 @@ mmpbsa_t molsurf_win32(const char *moltype, size_t snap_number)
 // Read from pipe that is the standard output for child process. 
  
    printf( "\n->Contents of child process STDOUT??:\n\n");
-   ReadFromPipe(); 
+   ReadFromPipe(error_flag);
 
    printf("\n->End of parent execution.\n");
 
@@ -95,11 +97,18 @@ mmpbsa_t molsurf_win32(const char *moltype, size_t snap_number)
    return 0.0; 
 } 
  
-void CreateChildProcess(const char *moltype, size_t snap_number)
+void CreateChildProcess(const std::string& top_filename,
+		const std::string& traj_filename, const std::string& radii_filename,
+		const std::string& molecule_type, const size_t& snap_number)
 // Create a child process that uses the previously created pipes for STDIN and STDOUT.
 { 
   std::ostringstream cmd_buffer;
-  cmd_buffer << "./area.exe --traj=traj  --surface_area=" << moltype << " --radii=radii --top=top --snap_list=" << snap_number << " ";
+  cmd_buffer << "./area.exe --traj=" << traj_filename
+		  << "  --surface_area=" << molecule_name
+		  << " --radii=" << radii_filename
+		  << " --top=" << top_filename
+		  << " --snap_list=" << snap_number << " ";
+
    PROCESS_INFORMATION piProcInfo; 
    STARTUPINFO siStartInfo;
    BOOL bSuccess = FALSE; 
@@ -123,7 +132,7 @@ void CreateChildProcess(const char *moltype, size_t snap_number)
    SetErrorMode(orig_err_mask | SEM_NOGPFAULTERRORBOX);
 
    bSuccess = CreateProcess(NULL, 
-      szCmdline,     // command line 
+      cmd_buffer.str().c_str(),     // command line
       NULL,          // process security attributes 
       NULL,          // primary thread security attributes 
       TRUE,          // handles are inherited 
@@ -172,7 +181,7 @@ void WriteToPipe(void)
       ErrorExit(TEXT("StdInWr CloseHandle")); 
 } 
  
-void ReadFromPipe(void) 
+void ReadFromPipe(int *error_flag)
 
 // Read output from the child process's pipe for STDOUT
 // and write to the parent process's pipe for STDOUT. 
@@ -183,7 +192,7 @@ void ReadFromPipe(void)
    BOOL bSuccess = FALSE;
    HANDLE hParentStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
    printf("Reading from pipe\n");
-
+   int error_val = 0;
 // Close the write end of the pipe before reading from the 
 // read end of the pipe, to control child process execution.
 // The pipe is assumed to have enough buffer space to hold the
@@ -198,6 +207,7 @@ void ReadFromPipe(void)
       if( ! bSuccess || dwRead == 0 ) 
 	{
 	  fprintf(stderr,"Parent: error in reading from pipe.\n");
+	  error_val = 1;
 	  break; 
 	}
 
@@ -206,9 +216,14 @@ void ReadFromPipe(void)
       if (! bSuccess ) 
 	{
 	  fprintf(stderr,"Parent: error writing to stdout from pipe.\n");
+	  error_val = 1;
 	  break; 
 	}
    } 
+
+   if(error_flag != NULL)
+	   *error_flag = error_val;
+
 } 
  
 void ErrorExit(PTSTR lpszFunction) 

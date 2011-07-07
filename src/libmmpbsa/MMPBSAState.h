@@ -27,6 +27,7 @@ namespace mmpbsa{
 class MMPBSAState
 {
 public:
+	typedef int MOLECULE;
     std::set<size_t> receptorStartPos;///<Starting positions for receptors. End positions are deduced from the parmtop file.
     std::set<size_t> ligandStartPos;///<Starting positions for ligands. End positions are deduced from the parmtop file.
     std::vector<size_t> snapList;///<List of snapshots to be used in the calculations. If the list is empty, all snapshots are used.
@@ -46,7 +47,8 @@ public:
     /**
      * List parts of the complex on which to perform MMPBSA. END_OF_MOLECUES signifies the snapshot is finished.
      */
-    enum MOLECULE{COMPLEX,RECEPTOR,LIGAND,END_OF_MOLECULES} currentMolecule;
+    enum {COMPLEX = 0,RECEPTOR,LIGAND,END_OF_MOLECULES};
+    MOLECULE currentMolecule;
 
     /**
      * Stage in the program.

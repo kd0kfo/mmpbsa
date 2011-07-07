@@ -95,6 +95,21 @@ public:
         const std::valarray<mmpbsa::Vector>& receptorCrds, const std::valarray<mmpbsa::Vector>& ligandCrds,
         const int& outbox_grid_dim = 41, const mmpbsa_t& fine_grid_spacing = 0.25) throw (mmpbsa::MeadException);
 
+#ifdef _WIN32 // not posix
+    static mmpbsa_t molsurf_win32(const std::string& top_filename,
+    		const std::string& traj_filename, const std::string& radii_filename,
+    		const std::string& molecule_type, const size_t& snap_count,
+    		int *error_flag);
+
+#else // posix
+    static mmpbsa_t molsurf_posix(const std::vector<mmpbsa::atom_t>& atoms,
+    		const std::valarray<mmpbsa::Vector>& crds,
+    		const std::map<std::string,mead_data_t>& radii,
+    		int *error_flag);
+#endif
+
+
+#if 0//
     /**
      * Creates an EMap object which will included Mead and molsurf calculated
      * energies and surface area.
@@ -144,12 +159,12 @@ public:
     		const FinDiffMethod& fdm, const std::map<std::string,float>& radii,
     		const std::map<std::string,std::string>& residueMap,
     		const mmpbsa_t& interactionStrength = 0.0, const mmpbsa_t& exclusionRadius = 2.0) throw (mmpbsa::MeadException);
-
+#endif
     static mmpbsa_t pb_solvation(const std::vector<mmpbsa::atom_t>& atoms,
     		const std::valarray<mmpbsa::Vector>& crds,
     		const FinDiffMethod& fdm, const std::map<std::string,mead_data_t>& radii,
     		const std::map<std::string,std::string>& residueMap,
-    		const mmpbsa_t& interactionStrength, const mmpbsa_t& exclusionRadius);
+    		const mmpbsa_t& interactionStrength = 0.0, const mmpbsa_t& exclusionRadius = 2.0);
 
     static mmpbsa_t molsurf_area(const std::vector<mmpbsa::atom_t>& atoms,
     		const std::valarray<mmpbsa::Vector>& crds,
@@ -159,6 +174,7 @@ public:
 
 };//end namespace mmpbsa
 
+// Convert the versatile mmpbsa::Vector the Coord used by mead.
 Coord ToCoord(const mmpbsa::Vector& v);
 
 #endif	/* MeadInterface_H */

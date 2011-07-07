@@ -24,6 +24,7 @@
 #include "structs.h"
 #include "globals.h"
 
+//Forward declaration in namespace mmpbsa_utils
 namespace mmpbsa_utils{ class XMLNode;}
 
 namespace mmpbsa{
