@@ -1,5 +1,6 @@
 #include "mmpbsa_io.h"
 #include "mmpbsa_utils.h"
+#include "Zipper.h"
 #include <fstream>
 #include <iomanip>
 

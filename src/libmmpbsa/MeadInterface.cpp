@@ -25,9 +25,14 @@
 
 //system
 #include <errno.h>
+#ifdef _WIN32
+
+#include "winfork.cpp"
+
+#else //posix
 #include <sys/types.h>
 #include <sys/wait.h>
-
+#endif
 
 int mmpbsa_molsurf_error = 0;
 
@@ -290,21 +295,13 @@ mmpbsa_t molsurf_posix(const std::vector<mmpbsa::atom_t>& atoms,
 }
 #endif
 
-#ifdef _WIN32
-mmpbsa_t molsurf_win32(const std::vector<mmpbsa::atom_t>& atoms,
-		const std::valarray<mmpbsa::Vector>& crds,
-		const std::map<std::string,mead_data_t>& radii)
-{
-	throw "Add non posix environment to molsurf_win32";
-}
-#endif
 
 mmpbsa_t molsurf_wrapper(const std::vector<mmpbsa::atom_t>& atoms,
 		const std::valarray<mmpbsa::Vector>& crds,
 		const std::map<std::string,mead_data_t>& radii)
 {
 #ifdef _WIN32
-#error Add non posix environment to molsurf wrapper
+  return molsurf_win32(atoms,crds,radii);
 #else //posix
 	return molsurf_posix(atoms,crds,radii);
 #endif

@@ -1,8 +1,10 @@
 #include "EmpEnerFun.h"
-#include <vector>
 #include "mmpbsa_io.h"
 #include "SanderParm.h"
 #include "Energy.h"
+
+#include <cstdio>
+#include <vector>
 
 mmpbsa::EmpEnerFun::EmpEnerFun()
 {
@@ -329,7 +331,7 @@ std::string mmpbsa::EmpEnerFun::ereport(const std::valarray<mmpbsa::Vector>& crd
     vdw = total_vdwaals_energy(crds);
     ele = total_elstat_energy(crds);
 
-    std::sprintf(ereport,"\n"
+    sprintf(ereport,"\n"
             "BOND    =  %12.4f  ANGLE   =  %12.4f  DIHED      =  %12.4f\n"
             "VDWAALS =  %12.4f  EEL     =  %12.4f  EGB        =  %12.4f\n"
             "1-4 VDW =  %12.4f  1-4 EEL =  %12.4f  RESTRAINT  =  %12.4f\n",

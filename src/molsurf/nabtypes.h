@@ -7,8 +7,6 @@
 	/* Fundamental nab types:	*/
 
 typedef	int	INT_T;
-typedef	size_t	SIZE_T;
-
 	/* geometric types: Frames are not directly accessible 	*/
 	/* at the nab level.					*/
 

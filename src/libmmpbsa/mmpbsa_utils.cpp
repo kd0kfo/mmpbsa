@@ -1,13 +1,10 @@
-#include <cmath>
-#ifndef isnan
-#define isnan(X) __isnan(X)
-#endif
-
-
 #include "StringTokenizer.h"
 #include "Vector.h"
 
 #include "mmpbsa_utils.h"
+
+#include <cmath>
+#include <ctime>
 
 
 
@@ -276,6 +273,7 @@ mmpbsa_t mmpbsa_utils::dihedral_angle(const mmpbsa::Vector& x, const mmpbsa::Vec
         mmpbsa_t d[3];//vector lengths
         mmpbsa_t temp,angle;
         using std::swap;
+	using std::isnan;
 
         d[0] = x.modulus();
         d[1] = y.modulus();

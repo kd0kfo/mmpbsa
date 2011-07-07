@@ -930,12 +930,10 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
     	}
     	else if (it->first == "trust_prmtop") {
     		currState.trustPrmtop = true;
-    		return 0;
     	}
     	else if (it->first == "mmpbsa_only") {
     		si.completed = true;
     		currState.currentProcess = mmpbsa::MMPBSAState::MMPBSA;
-    		return 0;
     	}
     	else if(it->first == "surface_area"){
     		if(it->second.size() == 0)

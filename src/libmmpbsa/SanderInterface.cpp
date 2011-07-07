@@ -1,6 +1,9 @@
 #include "SanderInterface.h"
 #include "mmpbsa_io.h"
 
+#include <cstdio>
+
+
 mmpbsa::SanderInterface::SanderInterface() {
     pid = 0;
     wall_cpu_time = 0;
@@ -137,6 +140,7 @@ HANDLE win_fopen(const char* path, const char* mode)
 }
 
 #ifndef USE_BOINC
+
 //provided by boinc/lib/str_util.cpp
 // get message for last error
 //
@@ -209,7 +213,7 @@ int suspend_or_resume_threads(DWORD pid, DWORD calling_thread_id, bool resume) {
     }
 
     do {
-      if(!diagnostics_is_thread_exempt_suspend(te.the32ThreadID))continue;
+      if(!diagnostics_is_thread_exempt_suspend(te.th32ThreadID))continue;
       if(te.th32ThreadID == calling_thread_id)continue;
         if (te.th32OwnerProcessID == pid) {
             thread = pOT(THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);

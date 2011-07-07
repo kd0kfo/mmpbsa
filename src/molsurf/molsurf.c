@@ -29,7 +29,7 @@
 #include "molsurf.h"
 
 static int natm_sel;
-static ATOM *atom;
+static molsurf_ATOM *atom;
 static RES *res;
 
 /* neighbor arrays:  these are big so amount of data stored must be small
@@ -83,80 +83,80 @@ int countmolatoms();
 static void check_broken_faces(int, BROKEN_CONCAVE_FACE[]);
 static void add_edge(int *, EDGE[], int, int, int, VERTEX[], CIRCLE[]);
 static void add_free_edge(int *, EDGE[], int);
-static void add_probe(int *, PROBE[], POINT, REAL_T,
+static void add_probe(int *, PROBE[], molsurf_POINT, REAL_T,
                       int, int, int, int, int, int, NEIGHBOR_TORUS[],
-                      REAL_T, ATOM[]);
+                      REAL_T, molsurf_ATOM[]);
 static void add_saddle_face(SADDLE_FACE[], int *, int, int, int, int, int);
-static void cross(POINT, POINT, POINT);
+static void cross(molsurf_POINT, molsurf_POINT, molsurf_POINT);
 #ifdef DEBUG
 static void memory_usage(void);
 #endif
 static void vnorm(REAL_T[], int);
 static void atom_vertex_match(VERTEX[], int, int);
-static int getneighbors(int, ATOM[], NEIGHBOR[], NEIGHBOR_TORUS[], REAL_T);
-static int get_probes(ATOM[], int *, NEIGHBOR[], NEIGHBOR_TORUS[],
+static int getneighbors(int, molsurf_ATOM[], NEIGHBOR[], NEIGHBOR_TORUS[], REAL_T);
+static int get_probes(molsurf_ATOM[], int *, NEIGHBOR[], NEIGHBOR_TORUS[],
                       PROBE[], REAL_T);
-static int probe_pos(ATOM *, ATOM *, ATOM *,
+static int probe_pos(molsurf_ATOM *, molsurf_ATOM *, molsurf_ATOM *,
                      NEIGHBOR_TORUS *, NEIGHBOR_TORUS *, NEIGHBOR_TORUS *,
-                     REAL_T, REAL_T, POINT, POINT, REAL_T *);
-static int no_bump(ATOM[], int, int, int,
-                   NEIGHBOR[], POINT, POINT, REAL_T, REAL_T, int[]);
-static int t_buried(ATOM[], int *, NEIGHBOR[], NEIGHBOR_TORUS[], REAL_T);
-static int bury_check(int, int, ATOM[], REAL_T, REAL_T, NEIGHBOR[]);
-static int is_buried(ATOM *, ATOM *, ATOM *, REAL_T, REAL_T);
-static int get_torus(ATOM[], int *, NEIGHBOR[], NEIGHBOR_TORUS[],
+                     REAL_T, REAL_T, molsurf_POINT, molsurf_POINT, REAL_T *);
+static int no_bump(molsurf_ATOM[], int, int, int,
+                   NEIGHBOR[], molsurf_POINT, molsurf_POINT, REAL_T, REAL_T, int[]);
+static int t_buried(molsurf_ATOM[], int *, NEIGHBOR[], NEIGHBOR_TORUS[], REAL_T);
+static int bury_check(int, int, molsurf_ATOM[], REAL_T, REAL_T, NEIGHBOR[]);
+static int is_buried(molsurf_ATOM *, molsurf_ATOM *, molsurf_ATOM *, REAL_T, REAL_T);
+static int get_torus(molsurf_ATOM[], int *, NEIGHBOR[], NEIGHBOR_TORUS[],
                      REAL_T, TORUS[]);
-static void torus_data(TORUS[], int, ATOM[], int, int, REAL_T);
+static void torus_data(TORUS[], int, molsurf_ATOM[], int, int, REAL_T);
 static void sort_neighbors(int, REAL_T[], int, NEIGHBOR[]);
-static int convex_circles(ATOM[], int, TORUS[], int, CIRCLE[], REAL_T);
-static int concave_circles(ATOM[], int, PROBE[], TORUS[], CIRCLE[],
+static int convex_circles(molsurf_ATOM[], int, TORUS[], int, CIRCLE[], REAL_T);
+static int concave_circles(molsurf_ATOM[], int, PROBE[], TORUS[], CIRCLE[],
                            REAL_T);
-static void concave_edges(REAL_T, ATOM[], int, PROBE[],
+static void concave_edges(REAL_T, molsurf_ATOM[], int, PROBE[],
                           int *, VERTEX[], int *, EDGE[], int *,
                           CONCAVE_FACE[], int, TORUS[]);
-static void addvert(REAL_T, int, ATOM[], int, PROBE[], int *, VERTEX[]);
-static void convex_edges(REAL_T, int, ATOM[], int, PROBE[],
+static void addvert(REAL_T, int, molsurf_ATOM[], int, PROBE[], int *, VERTEX[]);
+static void convex_edges(REAL_T, int, molsurf_ATOM[], int, PROBE[],
                          int, VERTEX[], int, EDGE[], int *, EDGE[], int,
                          TORUS[], int *, SADDLE_FACE[], CIRCLE[]);
-static void check_data(int, TORUS[], int, ATOM[], VERTEX[], EDGE[], int);
+static void check_data(int, TORUS[], int, molsurf_ATOM[], VERTEX[], EDGE[], int);
 static void add_convex_edge_to_torus(int, TORUS[], int, int);
-static void add_convex_edge_to_atom(int ia, ATOM atom[], int ne);
-static void convex_faces(int, ATOM[], int *, CONVEX_FACE[],
+static void add_convex_edge_to_atom(int ia, molsurf_ATOM atom[], int ne);
+static void convex_faces(int, molsurf_ATOM[], int *, CONVEX_FACE[],
                          int, CYCLE[], EDGE[], CIRCLE[], int, VERTEX[]);
 static void sort_edges(int, EDGE[], int, TORUS[], int, VERTEX[], CIRCLE[]);
-static void cycles(int, ATOM[], VERTEX[], int, EDGE[],
+static void cycles(int, molsurf_ATOM[], VERTEX[], int, EDGE[],
                    int *, CYCLE[], CIRCLE[], TORUS[]);
-static int new_edge(int, ATOM[], int, int[], int);
-static int next_edge(int, int, ATOM[], int, EDGE[], int[], int);
-static void dump_atom_edges(int, int, ATOM[], int, EDGE[], int[]);
+static int new_edge(int, molsurf_ATOM[], int, int[], int);
+static int next_edge(int, int, molsurf_ATOM[], int, EDGE[], int[], int);
+static void dump_atom_edges(int, int, molsurf_ATOM[], int, EDGE[], int[]);
 static void draw_circle(int *, int *, int, FILE *, FILE *, FILE *,
-                        POINT, REAL_T, POINT, int);
+                        molsurf_POINT, REAL_T, molsurf_POINT, int);
 static int is_cycle_inside(int, int, CYCLE[], EDGE[], CIRCLE[],
-                           VERTEX[], ATOM[]);
-static REAL_T get_angle(POINT, POINT, POINT);
-static REAL_T convex_area(ATOM[], RES[], CYCLE[], int, CONVEX_FACE[],
+                           VERTEX[], molsurf_ATOM[]);
+static REAL_T get_angle(molsurf_POINT, molsurf_POINT, molsurf_POINT);
+static REAL_T convex_area(molsurf_ATOM[], RES[], CYCLE[], int, CONVEX_FACE[],
                           EDGE[], CIRCLE[], VERTEX[], TORUS[]);
 static REAL_T cycle_piece(int, CYCLE[], CIRCLE[], EDGE[], VERTEX[],
-                          ATOM[], TORUS[]);
+                          molsurf_ATOM[], TORUS[]);
 static int concave_area(REAL_T, int, VERTEX[], CONCAVE_FACE[],
                         EDGE[], CIRCLE[], REAL_T *);
 static int saddle_area(int, SADDLE_FACE[], EDGE[], EDGE[],
-                       CIRCLE[], TORUS[], ATOM[], RES[], VERTEX[], PROBE[],
+                       CIRCLE[], TORUS[], molsurf_ATOM[], RES[], VERTEX[], PROBE[],
                        REAL_T, CIRCLE[], REAL_T *);
-static int id_torus(int, int, ATOM[], TORUS[]);
-static void make_cones(int, ATOM[], int, TORUS[],
+static int id_torus(int, int, molsurf_ATOM[], TORUS[]);
+static void make_cones(int, molsurf_ATOM[], int, TORUS[],
                        int, PROBE probe[], int, CONCAVE_FACE[], int,
                        SADDLE_FACE[], int, CONVEX_FACE[], int *, VERTEX[],
                        int *, EDGE[], int, EDGE[], int, CIRCLE[], int,
                        CIRCLE[], int, CYCLE[], REAL_T, int *, LOW_TORUS[],
                        CONE_FACE[], int *);
-static int one_sided_torus(int, TORUS[], ATOM[]);
+static int one_sided_torus(int, TORUS[], molsurf_ATOM[]);
 static void add_2_verts(REAL_T, int, TORUS[], int *, VERTEX[]);
 static int get_low_torus_index(int, LOW_TORUS[], int);
 static void kill_saddle_face(int, TORUS[], int, SADDLE_FACE[], EDGE[], int,
                              int);
 static void cone_init(int, CONE_FACE[], int, int, int);
-static void make_broken_faces(int, ATOM[], int, TORUS[], int, PROBE[],
+static void make_broken_faces(int, molsurf_ATOM[], int, TORUS[], int, PROBE[],
                               int, CONCAVE_FACE[], int, SADDLE_FACE[], int,
                               CONVEX_FACE[], int *, VERTEX[], int, EDGE[],
                               int, EDGE[], int, CIRCLE[], int, CIRCLE[],
@@ -166,9 +166,9 @@ static void make_broken_faces(int, ATOM[], int, TORUS[], int, PROBE[],
 static void add_concave_cycle(int, CONCAVE_CYCLE[], int, int, int, int,
                               int);
 static REAL_T get_cone_area(int, CONE_FACE[], EDGE[], EDGE[], CIRCLE[],
-                            CIRCLE[], TORUS[], ATOM[], VERTEX[], PROBE[],
+                            CIRCLE[], TORUS[], molsurf_ATOM[], VERTEX[], PROBE[],
                             REAL_T);
-static void axial_trim(int, ATOM[], RES[], int, TORUS[], int, PROBE[], int,
+static void axial_trim(int, molsurf_ATOM[], RES[], int, TORUS[], int, PROBE[], int,
                        CONCAVE_FACE[], int, VERTEX[], int *, EDGE[], int *,
                        CIRCLE[], REAL_T, int, LOW_TORUS[], int,
                        BROKEN_CONCAVE_FACE[], CONCAVE_CYCLE[], int,
@@ -178,7 +178,7 @@ static void sort_faces(int, LOW_TORUS[], REAL_T[], int[], int *, EDGE[],
                        VERTEX[], int, TORUS[]);
 static void add_circle(PROBE[], int, int, CIRCLE[], int *, REAL_T);
 static int cone_edge(int, int, LOW_TORUS[], int, EDGE[], CONE_FACE[],
-                     VERTEX[], ATOM[]);
+                     VERTEX[], molsurf_ATOM[]);
 static void add_edges_2_cycle(int *, CUSP_EDGE[], CONCAVE_CYCLE[], int,
                               int, int, int, int, int);
 #ifdef DEBUG
@@ -193,7 +193,7 @@ static void reroute(int, int, int, int, int *, CONCAVE_CYCLE[],
 static void split_cycle(int *, BROKEN_CONCAVE_FACE[], int *,
                         CONCAVE_CYCLE[], int, EDGE[], CUSP_EDGE[]);
 static int next_cycle_edge(CONCAVE_CYCLE, EDGE[], int, int[]);
-static void non_axial_trim(int, ATOM[], RES[], int, TORUS[], int, PROBE[],
+static void non_axial_trim(int, molsurf_ATOM[], RES[], int, TORUS[], int, PROBE[],
                            int, CONCAVE_FACE[], int, VERTEX[], int *,
                            EDGE[], int *, CIRCLE[], REAL_T, int,
                            LOW_TORUS[], int, BROKEN_CONCAVE_FACE[],
@@ -208,7 +208,7 @@ static void get_probe_id(CUSP_EDGE[], int, int, CONCAVE_CYCLE[], int *,
                          int *);
 static void add_new_cusp(CUSP_EDGE[], int, int, PROBE[], CONCAVE_CYCLE[],
                          EDGE[], VERTEX[], CIRCLE[], REAL_T, CUSP_PAIR[],
-                         int *, REAL_T, POINT, int, POINT, POINT, POINT,
+                         int *, REAL_T, molsurf_POINT, int, molsurf_POINT, molsurf_POINT, molsurf_POINT,
                          int);
 static int center_cycle(CUSP_EDGE[], int, int);
 static int number_of_cusps(CUSP_GROUP[], int, CUSP_PAIR[]);
@@ -236,7 +236,7 @@ static int cusp_match(int, int, int[], int, int[], CUSP_EDGE[], EDGE[],
 static int normal_match(CONCAVE_CYCLE, EDGE[], int, int[]);
 static void add_non_axial_cusp(int *, CUSP_EDGE[], int, int, int, int,
                                int);
-static void add_1_vert(int *, VERTEX[], POINT);
+static void add_1_vert(int *, VERTEX[], molsurf_POINT);
 static void add_cusp_verts(int *, VERTEX[], CUSP_PAIR[], EXTREME_VERTEX[],
                            int, int, CIRCLE[], int);
 static void add_cusp_circle(int *, CIRCLE[], PROBE[], int, int, REAL_T);
@@ -277,7 +277,7 @@ REAL_T molsurf(REAL_T *xcrds, REAL_T *ycrds, REAL_T *zcrds,
    int r, a, n;
    STRAND_T *sp;
    RESIDUE_T *resp;
-   //ATOM_T *ap;
+   //molsurf_ATOM_T *ap;
 
 /*  Take info from NAB molecule and put into Paul's data structure,
    (only for atoms matching aex).                                    */
@@ -610,12 +610,12 @@ static void add_free_edge(int *n_edges, EDGE edge[], int icircle)
       exit(ERROR);
    }
 }
-static void add_probe(int *np, PROBE probelist[], POINT px, REAL_T height,
+static void add_probe(int *np, PROBE probelist[], molsurf_POINT px, REAL_T height,
                       int ia, int ja, int ka, int ij, int jk, int ik,
                       NEIGHBOR_TORUS upper_neighbors[], REAL_T probe_rad,
-                      ATOM atom[])
+                      molsurf_ATOM atom[])
 {
-   POINT r_12, r_13, r_1p, r_cross;
+   molsurf_POINT r_12, r_13, r_1p, r_cross;
    int ii, counter_clockwise;
 
 /* want to atoms to be arranged counter-clockwise */
@@ -676,7 +676,7 @@ static void add_saddle_face(SADDLE_FACE saddle_face[], int *nface,
 
 /**********************************************************************/
 /* c = a x b */
-static void cross(POINT a, POINT b, POINT c)
+static void cross(molsurf_POINT a, molsurf_POINT b, molsurf_POINT c)
 {
    c[0] = a[1] * b[2] - a[2] * b[1];
    c[1] = a[2] * b[0] - a[0] * b[2];
@@ -693,9 +693,9 @@ static void memory_usage(void)
 
    printf("size requirements in bytes\n");
 
-   printf("one atom              %ld\n", sizeof(ATOM));
-   printf("atom            total %ld\n", natm_sel * sizeof(ATOM));
-   total += natm_sel * sizeof(ATOM);
+   printf("one atom              %ld\n", sizeof(molsurf_ATOM));
+   printf("atom            total %ld\n", natm_sel * sizeof(molsurf_ATOM));
+   total += natm_sel * sizeof(molsurf_ATOM);
 
    printf("one NEIGHBOR_TORUS    %ld\n", sizeof(NEIGHBOR_TORUS));
    printf("NEIGHBOR_TORUS  total %ld\n",
@@ -774,7 +774,7 @@ static void atom_vertex_match(VERTEX vertex[], int iv, int iatom)
 
 #define MAX_NSORT 500
 
-static int getneighbors(int nat, ATOM a[], NEIGHBOR neighbors[],
+static int getneighbors(int nat, molsurf_ATOM a[], NEIGHBOR neighbors[],
                         NEIGHBOR_TORUS upper_neighbors[], REAL_T probe_rad)
 {
    REAL_T probe_diam, maxrad = 0.0, d, cutoff, d_ext;
@@ -868,14 +868,14 @@ static int getneighbors(int nat, ATOM a[], NEIGHBOR neighbors[],
 }
 
 
-static int get_probes(ATOM atom[], int *nat,
+static int get_probes(molsurf_ATOM atom[], int *nat,
                       NEIGHBOR neighbors[],
                       NEIGHBOR_TORUS upper_neighbors[], PROBE probelist[],
                       REAL_T probe_rad)
 {
    int ia, ja, ka, ij, jk, ik, k1, bump[2];
    REAL_T probe_diam;
-   POINT px1, px2;
+   molsurf_POINT px1, px2;
    REAL_T height;
    int nprobes = 0;
 
@@ -943,14 +943,14 @@ static int get_probes(ATOM atom[], int *nat,
    return nprobes;
 }
 
-static int probe_pos(ATOM * ai, ATOM * aj, ATOM * ak,
+static int probe_pos(molsurf_ATOM * ai, molsurf_ATOM * aj, molsurf_ATOM * ak,
                      NEIGHBOR_TORUS * upper_neighbor_ij,
                      NEIGHBOR_TORUS * upper_neighbor_jk,
                      NEIGHBOR_TORUS * upper_neighbor_ik, REAL_T probe_rad,
-                     REAL_T probe_diam, POINT p1_ijk, POINT p2_ijk,
+                     REAL_T probe_diam, molsurf_POINT p1_ijk, molsurf_POINT p2_ijk,
                      REAL_T * height)
 {
-   POINT u_ij, u_ik, u_ijk, u_tb, t_ij, t_ik, t_diff, b_ijk, r_ib;
+   molsurf_POINT u_ij, u_ik, u_ijk, u_tb, t_ij, t_ik, t_diff, b_ijk, r_ib;
    REAL_T d_ij, d_ik, t_fact1, t_fact2, w_ijk, w_sin;
    REAL_T b_factor, h_ijk;
    int i;
@@ -1048,8 +1048,8 @@ static int probe_pos(ATOM * ai, ATOM * aj, ATOM * ak,
 /* returns 1 if one or both of the probe positions
    is not bumped by a 4th atom */
 
-static int no_bump(ATOM atom[], int i0, int j0, int k0,
-                   NEIGHBOR neighbors[], POINT px1, POINT px2,
+static int no_bump(molsurf_ATOM atom[], int i0, int j0, int k0,
+                   NEIGHBOR neighbors[], molsurf_POINT px1, molsurf_POINT px2,
                    REAL_T probe_rad, REAL_T probe_diam, int bump[])
 {
    int ij, ia;
@@ -1110,7 +1110,7 @@ static int no_bump(ATOM atom[], int i0, int j0, int k0,
    associated with them.
  */
 
-static int t_buried(ATOM atom[], int *nat, NEIGHBOR neighbors[],
+static int t_buried(molsurf_ATOM atom[], int *nat, NEIGHBOR neighbors[],
                     NEIGHBOR_TORUS upper_neighbors[], REAL_T probe_rad)
 {
    REAL_T probe_diam;
@@ -1142,7 +1142,7 @@ static int t_buried(ATOM atom[], int *nat, NEIGHBOR neighbors[],
    return nb;
 }
 
-static int bury_check(int ia, int ja, ATOM atom[],
+static int bury_check(int ia, int ja, molsurf_ATOM atom[],
                       REAL_T probe_rad, REAL_T probe_diam,
                       NEIGHBOR neighbors[])
 {
@@ -1162,17 +1162,17 @@ static int bury_check(int ia, int ja, ATOM atom[],
    return 0;
 }
 
-static int is_buried(ATOM * ai, ATOM * aj, ATOM * ak,
+static int is_buried(molsurf_ATOM * ai, molsurf_ATOM * aj, molsurf_ATOM * ak,
                      REAL_T probe_rad, REAL_T probe_diam)
 {
-   POINT u_ij, u_ik, u_ijk, u_tb;
+   molsurf_POINT u_ij, u_ik, u_ijk, u_tb;
    REAL_T d_ij, d_ik;
    REAL_T t_rad, t_fact1, t_fact2;
-   POINT t_ij, t_ik, t_diff;
+   molsurf_POINT t_ij, t_ik, t_diff;
    REAL_T b_factor, h_ijk, xtest;
    REAL_T w_ijk, w_sin, r_pk2;
    REAL_T sarg1, sarg2, check1, check2, check3, check4;
-   POINT b_ijk, r_ib;
+   molsurf_POINT b_ijk, r_ib;
    int i;
 
 
@@ -1279,7 +1279,7 @@ static int is_buried(ATOM * ai, ATOM * aj, ATOM * ak,
    return 0;
 }
 
-static int get_torus(ATOM atom[], int *nat, NEIGHBOR neighbors[],
+static int get_torus(molsurf_ATOM atom[], int *nat, NEIGHBOR neighbors[],
                      NEIGHBOR_TORUS upper_neighbors[], REAL_T probe_rad,
                      TORUS toruslist[])
 {
@@ -1340,7 +1340,7 @@ static int get_torus(ATOM atom[], int *nat, NEIGHBOR neighbors[],
 }
 
 
-static void torus_data(TORUS tor[], int nt, ATOM atom[],
+static void torus_data(TORUS tor[], int nt, molsurf_ATOM atom[],
                        int ia, int ja, REAL_T prad)
 {
    REAL_T d_ij, c_fact;
@@ -1415,7 +1415,7 @@ static void sort_neighbors(int n, REAL_T x[], int istart,
    return;
 }
 
-static int convex_circles(ATOM atom[], int nat, TORUS toruslist[],
+static int convex_circles(molsurf_ATOM atom[], int nat, TORUS toruslist[],
                           int n_torus, CIRCLE circlelist[],
                           REAL_T probe_rad)
 {
@@ -1474,13 +1474,13 @@ static int convex_circles(ATOM atom[], int nat, TORUS toruslist[],
 /* probe triplet is counter-clockwise.  This should be assured by */
 /* the add_probe() routine                                        */
 
-static int concave_circles(ATOM atom[], int n_probes,
+static int concave_circles(molsurf_ATOM atom[], int n_probes,
                            PROBE probelist[], TORUS toruslist[],
                            CIRCLE concave_circle_list[], REAL_T probe_rad)
 {
 
    int ic, ip, ii, jj, it;
-   POINT r_pt, vec;
+   molsurf_POINT r_pt, vec;
    int p_torus[3], p_atom[3];
    REAL_T change_sign[3];
 
@@ -1546,7 +1546,7 @@ static int concave_circles(ATOM atom[], int n_probes,
   /* add_probe()                                                                */
 /******************************************************************************/
 
-static void concave_edges(REAL_T probe_rad, ATOM atom[],
+static void concave_edges(REAL_T probe_rad, molsurf_ATOM atom[],
                           int nprobes, PROBE probe[], int *nverts,
                           VERTEX vert[], int *nedges, EDGE edge[],
                           int *nfaces, CONCAVE_FACE face[], int ntorus,
@@ -1661,7 +1661,7 @@ static void concave_edges(REAL_T probe_rad, ATOM atom[],
 }
 
 
-static void addvert(REAL_T probe_rad, int ia, ATOM atom[],
+static void addvert(REAL_T probe_rad, int ia, molsurf_ATOM atom[],
                     int ip, PROBE probe[], int *nverts, VERTEX vert[])
 {
    REAL_T invradsum;
@@ -1706,7 +1706,7 @@ static void addvert(REAL_T probe_rad, int ia, ATOM atom[],
 /******************************************************************************/
 
 
-static void convex_edges(REAL_T probe_rad, int nat, ATOM atom[],
+static void convex_edges(REAL_T probe_rad, int nat, molsurf_ATOM atom[],
                          int n_probes, PROBE probelist[], int n_vertex,
                          VERTEX vertexlist[], int n_concave_edges,
                          EDGE concave_edge[], int *n_convex_edges,
@@ -1801,7 +1801,7 @@ static void convex_edges(REAL_T probe_rad, int nat, ATOM atom[],
 
 /********************************************************************************/
 static void check_data(int n_torus, TORUS toruslist[],
-                       int nat, ATOM atom[], VERTEX vertexlist[],
+                       int nat, molsurf_ATOM atom[], VERTEX vertexlist[],
                        EDGE convex_edge[], int ne)
 {
    int ntmp, it, i, ia, ie;
@@ -1878,7 +1878,7 @@ static void add_convex_edge_to_torus(int it, TORUS toruslist[],
    return;
 }
 
-static void add_convex_edge_to_atom(int ia, ATOM atom[], int ne)
+static void add_convex_edge_to_atom(int ia, molsurf_ATOM atom[], int ne)
 {
    atom[ia].convex_edges[atom[ia].n_convex_edges] = ne;
    ++atom[ia].n_convex_edges;
@@ -1889,7 +1889,7 @@ static void add_convex_edge_to_atom(int ia, ATOM atom[], int ne)
    return;
 }
 
-static void convex_faces(int nat, ATOM atom[],
+static void convex_faces(int nat, molsurf_ATOM atom[],
                          int *nface, CONVEX_FACE face[], int n_cycles,
                          CYCLE cycle[], EDGE edge[], CIRCLE circle[],
                          int nverts, VERTEX vert[])
@@ -2029,7 +2029,7 @@ static void sort_edges(int n_concave_edges, EDGE concave_edge_list[],
    int iatom, jatom, iedge, itmp, icircle;
    /* u[3] is the vector from the circle center to the first vertex    */
    /* v[3] is the vector from the circle center each successive vertex */
-   POINT u, v;
+   molsurf_POINT u, v;
    int i, j, n;
    REAL_T vtmp, twopi;
 
@@ -2145,10 +2145,10 @@ static void sort_edges(int n_concave_edges, EDGE concave_edge_list[],
          iv1 = concave_edge_list[ie].vert1;
          iv2 = concave_edge_list[ie].vert2;
          ++counter;
-         printf("ATOM  %5d O    PRO  1001    %8.3f%8.3f%8.3f\n", counter,
+         printf("molsurf_ATOM  %5d O    PRO  1001    %8.3f%8.3f%8.3f\n", counter,
          vertexlist[iv1].pos[0], vertexlist[iv1].pos[1], vertexlist[iv1].pos[2]);
          ++counter;
-         printf("ATOM  %5d C    PRO  1001    %8.3f%8.3f%8.3f\n", counter,
+         printf("molsurf_ATOM  %5d C    PRO  1001    %8.3f%8.3f%8.3f\n", counter,
          vertexlist[iv2].pos[0], vertexlist[iv2].pos[1], vertexlist[iv2].pos[2]);
          printf("BND %d %d\n", counter-1, counter);
          }
@@ -2157,7 +2157,7 @@ static void sort_edges(int n_concave_edges, EDGE concave_edge_list[],
    return;
 }
 
-static void cycles(int nat, ATOM atom[], VERTEX vertexlist[],
+static void cycles(int nat, molsurf_ATOM atom[], VERTEX vertexlist[],
                    int n_convex_edges, EDGE convex_edge_list[],
                    int *n_cycles, CYCLE clist[], CIRCLE circlelist[],
                    TORUS toruslist[])
@@ -2250,7 +2250,7 @@ static void cycles(int nat, ATOM atom[], VERTEX vertexlist[],
 }
 
 
-static int new_edge(int ia, ATOM atom[], int nae, int atom_edge_cycle[],
+static int new_edge(int ia, molsurf_ATOM atom[], int nae, int atom_edge_cycle[],
                     int ncycle)
 {
    int iae, ie;
@@ -2266,7 +2266,7 @@ static int new_edge(int ia, ATOM atom[], int nae, int atom_edge_cycle[],
    return -1;                   /* no new edges found */
 }
 
-static int next_edge(int ivert, int ia, ATOM atom[],
+static int next_edge(int ivert, int ia, molsurf_ATOM atom[],
                      int nae, EDGE convex_edges[], int atom_edge_cycle[],
                      int ncycle)
 {
@@ -2287,7 +2287,7 @@ static int next_edge(int ivert, int ia, ATOM atom[],
    return -1;
 }
 
-static void dump_atom_edges(int ivert, int ia, ATOM atom[],
+static void dump_atom_edges(int ivert, int ia, molsurf_ATOM atom[],
                             int nae, EDGE convex_edges[],
                             int atom_edge_cycle[])
 {
@@ -2309,7 +2309,7 @@ static void dump_atom_edges(int ivert, int ia, ATOM atom[],
 
 static void draw_circle(int *narc, int *npt, int n,
                         FILE * atomfile, FILE * bondfile, FILE * propfile,
-                        POINT center, REAL_T rad, POINT zaxis, int resnum)
+                        molsurf_POINT center, REAL_T rad, molsurf_POINT zaxis, int resnum)
 {
    REAL_T aij[3][3];
    REAL_T dx, dy, dz;
@@ -2383,7 +2383,7 @@ static void draw_circle(int *narc, int *npt, int n,
              center[ii] + aij[0][ii] * xc[0] + aij[1][ii] * xc[1] +
              aij[2][ii] * xc[2];
       }
-      fprintf(atomfile, "ATOM      1 N    VRT  %4d    %8.3f%8.3f%8.3f\n",
+      fprintf(atomfile, "molsurf_ATOM      1 N    VRT  %4d    %8.3f%8.3f%8.3f\n",
               resnum, xpoint[0], xpoint[1], xpoint[2]);
       fprintf(propfile, "0.5\n");
       (*npt)++;
@@ -2414,11 +2414,11 @@ static void draw_circle(int *narc, int *npt, int n,
 
 static int is_cycle_inside(int icycle, int jcycle, CYCLE cycle[],
                            EDGE edge[], CIRCLE circle[], VERTEX vert[],
-                           ATOM atom[])
+                           molsurf_ATOM atom[])
 {
    int ic, ia, iv, i, j, ii, ie, je, ne;
-   POINT p, u_qp, u_pq, u_pr, uvec, vvec;
-   POINT pt[MAXAT_EDGE];
+   molsurf_POINT p, u_qp, u_pq, u_pr, uvec, vvec;
+   molsurf_POINT pt[MAXAT_EDGE];
    REAL_T dist, sdist, theta, theta_tot, dpq;
 
    if (icycle == jcycle)
@@ -2569,10 +2569,10 @@ static int is_cycle_inside(int icycle, int jcycle, CYCLE cycle[],
 /*                                                                      */
 /************************************************************************/
 
-static REAL_T get_angle(POINT u, POINT v, POINT zaxis)
+static REAL_T get_angle(molsurf_POINT u, molsurf_POINT v, molsurf_POINT zaxis)
 {
    REAL_T x, y;
-   POINT xaxis, yaxis;
+   molsurf_POINT xaxis, yaxis;
 
    yaxis[0] = u[0];
    yaxis[1] = u[1];
@@ -2588,7 +2588,7 @@ static REAL_T get_angle(POINT u, POINT v, POINT zaxis)
    return atan2(x, y);
 }
 
-static REAL_T convex_area(ATOM atom[], RES res[], CYCLE cycle[],
+static REAL_T convex_area(molsurf_ATOM atom[], RES res[], CYCLE cycle[],
                           int n_faces, CONVEX_FACE face[],
                           EDGE convex_edge[], CIRCLE circle[],
                           VERTEX vert[], TORUS torus[])
@@ -2635,12 +2635,12 @@ static REAL_T convex_area(ATOM atom[], RES res[], CYCLE cycle[],
 
 
 static REAL_T cycle_piece(int ic, CYCLE cycle[], CIRCLE circle[],
-                          EDGE convex_edge[], VERTEX vert[], ATOM atom[],
+                          EDGE convex_edge[], VERTEX vert[], molsurf_ATOM atom[],
                           TORUS torus[])
 {
    REAL_T sum, wrap_angle;
    int i, ii, ie, icircle, iatom, itorus, iv1, iv2;
-   POINT v1, v2, d_c;
+   molsurf_POINT v1, v2, d_c;
    REAL_T cos_theta;
    sum = 0;
 
@@ -2723,7 +2723,7 @@ static int concave_area(REAL_T probe_rad, int n_c_faces, VERTEX vertex[],
                         CIRCLE c_circle[], REAL_T * c_area)
 {
    int iface, ie1, ie2, ie3, ii, iv, jv, kv;
-   POINT n_ij, n_jk, n_ik, n_ji, n_kj, n_ki;
+   molsurf_POINT n_ij, n_jk, n_ik, n_ji, n_kj, n_ki;
    REAL_T total_area = 0;
    int ic1, ic2, ic3, n_surfaced = 0;
 
@@ -2771,14 +2771,14 @@ static int concave_area(REAL_T probe_rad, int n_c_faces, VERTEX vertex[],
 static int saddle_area(int n_faces, SADDLE_FACE saddle_face[],
                        EDGE convex_edge[], EDGE concave_edge[],
                        CIRCLE convex_circle_list[], TORUS torus[],
-                       ATOM atom[], RES res[], VERTEX vertex[],
+                       molsurf_ATOM atom[], RES res[], VERTEX vertex[],
                        PROBE probe[], REAL_T probe_rad,
                        CIRCLE concave_circle_list[], REAL_T * sad_area)
 {
    int iface, itorus, icv1, icv2, icircle, jcircle;
    int ia, ja, ii, iv1, circle1, circle2;
    int icc1, icc2;
-   POINT d_c1, d_c2, zaxis, uvec, vvec;
+   molsurf_POINT d_c1, d_c2, zaxis, uvec, vvec;
    REAL_T theta1, theta2, wrap_angle;
    REAL_T sin_theta1, sin_theta2;
    REAL_T area1, area2, total_area = 0.0;
@@ -2913,7 +2913,7 @@ static int saddle_area(int n_faces, SADDLE_FACE saddle_face[],
    return n_surfaced;
 }
 
-static int id_torus(int ia1, int ia2, ATOM atom[], TORUS torus[])
+static int id_torus(int ia1, int ia2, molsurf_ATOM atom[], TORUS torus[])
 {
    int it, itmp;
 
@@ -2939,7 +2939,7 @@ static int id_torus(int ia1, int ia2, ATOM atom[], TORUS torus[])
 }
 
 
-static void make_cones(int nat, ATOM atom[], int n_torus, TORUS torus[],
+static void make_cones(int nat, molsurf_ATOM atom[], int n_torus, TORUS torus[],
                        int n_probes, PROBE probe[],
                        int n_concave_faces, CONCAVE_FACE concave_face[],
                        int n_saddle_faces, SADDLE_FACE saddle_face[],
@@ -3070,7 +3070,7 @@ static void make_cones(int nat, ATOM atom[], int n_torus, TORUS torus[],
 }
 
 /************************************************************************************/
-static int one_sided_torus(int i, TORUS torus[], ATOM atom[])
+static int one_sided_torus(int i, TORUS torus[], molsurf_ATOM atom[])
 {
    int ia, ja;
 
@@ -3180,7 +3180,7 @@ static void cone_init(int ncones, CONE_FACE cone_face[], int it,
 /* in later routines.                                                */
 /* as low_torus[i].probe[count] = broken_concave_face[iface].probe;  */
 /*********************************************************************/
-static void make_broken_faces(int nat, ATOM atom[], int n_torus,
+static void make_broken_faces(int nat, molsurf_ATOM atom[], int n_torus,
                               TORUS torus[], int n_probes, PROBE probe[],
                               int n_concave_faces,
                               CONCAVE_FACE concave_face[],
@@ -3328,12 +3328,12 @@ static REAL_T get_cone_area(int n_faces, CONE_FACE cone_face[],
                             EDGE convex_edge[], EDGE concave_edge[],
                             CIRCLE convex_circle[],
                             CIRCLE concave_circle[], TORUS torus[],
-                            ATOM atom[], VERTEX vertex[], PROBE probe[],
+                            molsurf_ATOM atom[], VERTEX vertex[], PROBE probe[],
                             REAL_T probe_rad)
 {
    int iface, itorus, icv1, icircle;
    int ii, iv1, iv2, ia;
-   POINT zaxis, uvec, vvec;
+   molsurf_POINT zaxis, uvec, vvec;
    REAL_T theta1, theta2, wrap_angle;
    REAL_T total_area = 0.0;
    int cusp_vert;
@@ -3436,7 +3436,7 @@ static REAL_T get_cone_area(int n_faces, CONE_FACE cone_face[],
    trimming between the broken faces.
  */
 
-static void axial_trim(int nat, ATOM atom[], RES res[], int n_torus,
+static void axial_trim(int nat, molsurf_ATOM atom[], RES res[], int n_torus,
                        TORUS toruslist[], int n_probes, PROBE probelist[],
                        int n_concave_faces, CONCAVE_FACE concave_face[],
                        int n_vertex, VERTEX vertexlist[],
@@ -3452,7 +3452,7 @@ static void axial_trim(int nat, ATOM atom[], RES res[], int n_torus,
 
    int face_edge[MAXTOR_PROBE];
    REAL_T face_angle[MAXTOR_PROBE];     /* angle from starting probe */
-   POINT face_vector[MAXTOR_PROBE];     /* vector from torus center to probe pos */
+   molsurf_POINT face_vector[MAXTOR_PROBE];     /* vector from torus center to probe pos */
    int it, iface, jface, iprobe, itorus, iedge, jedge;
    int a1, a2;
    int icycle, jcycle, i, ii;
@@ -3761,7 +3761,7 @@ static void add_circle(PROBE probelist[], int iprobe, int jprobe,
 {
    REAL_T d_pp;
    int ii;
-   POINT axis;
+   molsurf_POINT axis;
 
    /*  create circle */
    d_pp = 0.0;
@@ -3794,7 +3794,7 @@ static void add_circle(PROBE probelist[], int iprobe, int jprobe,
 /************************************************************************/
 static int cone_edge(int v1, int v2, LOW_TORUS low_torus[], int it,
                      EDGE concave_edge[], CONE_FACE cone_face[],
-                     VERTEX vertexlist[], ATOM atom[])
+                     VERTEX vertexlist[], molsurf_ATOM atom[])
 {
    int ic, icone, e2, e3, iv1, iv2;
 
@@ -4241,7 +4241,7 @@ static int next_cycle_edge(CONCAVE_CYCLE cycle, EDGE concave_edge[],
 
 /*****************************************************************/
 
-static void non_axial_trim(int nat, ATOM atom[], RES res[], int n_torus,
+static void non_axial_trim(int nat, molsurf_ATOM atom[], RES res[], int n_torus,
                            TORUS toruslist[], int n_probes,
                            PROBE probelist[], int n_concave_faces,
                            CONCAVE_FACE concave_face[], int n_vertex,
@@ -4440,15 +4440,15 @@ static void non_axial_trim(int nat, ATOM atom[], RES res[], int n_torus,
       for (ig = 0; ig < n_groups; ++ig) {
       for (nc = 0; nc < group[ig].n_pairs; ++ nc) {
       inew = group[ig].cusp_pair[nc]; 
-      printf("ATOM      1 O    VAN  %4d    %8.3f%8.3f%8.3f\n", ig,
+      printf("molsurf_ATOM      1 O    VAN  %4d    %8.3f%8.3f%8.3f\n", ig,
       cusp_pair[inew].circle_center[0], 
       cusp_pair[inew].circle_center[1], 
       cusp_pair[inew].circle_center[2]);
-      printf("ATOM      1 C    VAN  %4d    %8.3f%8.3f%8.3f\n", ig,
+      printf("molsurf_ATOM      1 C    VAN  %4d    %8.3f%8.3f%8.3f\n", ig,
       cusp_pair[inew].vert1[0], 
       cusp_pair[inew].vert1[1], 
       cusp_pair[inew].vert1[2]);
-      printf("ATOM      1 N    VAN  %4d    %8.3f%8.3f%8.3f\n", ig,
+      printf("molsurf_ATOM      1 N    VAN  %4d    %8.3f%8.3f%8.3f\n", ig,
       cusp_pair[inew].vert2[0], 
       cusp_pair[inew].vert2[1], 
       cusp_pair[inew].vert2[2]);
@@ -4497,13 +4497,13 @@ static void cusp_intersect(CUSP_EDGE cusp_edge[], int icusp, int jcusp,
                            CUSP_PAIR cusp_pair[], int *n_cusp_pairs)
 {
    int icycle, iprobe, ie1, ie2, c1, c2, ii;
-   POINT uv1, uv2;
+   molsurf_POINT uv1, uv2;
    REAL_T h1, h2;
-   POINT xaxis, yaxis, zaxis, midpoint;
+   molsurf_POINT xaxis, yaxis, zaxis, midpoint;
    REAL_T alpha, offset;
    REAL_T v1_angle, v2_angle, angle_range;
    int ivert1, ivert2;
-   POINT v1_vector, v2_vector, midpoint_axis;
+   molsurf_POINT v1_vector, v2_vector, midpoint_axis;
    int flag;
    int left_flag;
    FILE *atomfile, *bondfile, *propfile;
@@ -4819,14 +4819,14 @@ static void add_new_cusp(CUSP_EDGE cusp_edge[], int icusp, int jcusp,
                          EDGE concave_edge[], VERTEX vertex[],
                          CIRCLE concave_circle[], REAL_T probe_rad,
                          CUSP_PAIR cusp_pair[], int *n, REAL_T angle_range,
-                         POINT midpoint, int c1, POINT xaxis, POINT yaxis,
-                         POINT zaxis, int flag)
+                         molsurf_POINT midpoint, int c1, molsurf_POINT xaxis, molsurf_POINT yaxis,
+                         molsurf_POINT zaxis, int flag)
 {
    REAL_T d_pp;
    int p1, p2, ii;
-   POINT v1, v2;
+   molsurf_POINT v1, v2;
    int ie, iv1;
-   POINT v_a, v_b, v_c;
+   molsurf_POINT v_a, v_b, v_c;
    REAL_T angle1, angle2;
 
 
@@ -5102,7 +5102,7 @@ static void split_old_cusps(int cusp_list[], int nlist,
    int cut_vert[MAXTMP], icut, ncut, i, ix, icusp, ip;
    REAL_T cut_angle[2];
    int iva, ivb, iedge, icircle, ii, itmp;
-   POINT va, vb;
+   molsurf_POINT va, vb;
 
    for (i = 0; i < nlist; ++i) {
       icusp = cusp_list[i];
@@ -5502,7 +5502,7 @@ static void add_non_axial_cusp(int *nc, CUSP_EDGE cusp_edge[],
 }
 
 /***************************************************************/
-static void add_1_vert(int *nv, VERTEX vertex[], POINT v)
+static void add_1_vert(int *nv, VERTEX vertex[], molsurf_POINT v)
 {
    int ii;
 
@@ -5521,7 +5521,7 @@ static void add_cusp_verts(int *nverts, VERTEX vertex[],
                            int icircle)
 {
    int ip1, ip2, ii;
-   POINT vert1, vert2;
+   molsurf_POINT vert1, vert2;
 
    ip1 = xvertex[ix].cusp_pair;
    if (xvertex[ix].vert == 1) {
@@ -5670,7 +5670,7 @@ static REAL_T conc_cycle_piece(int ic, CONCAVE_CYCLE concave_cycle[],
 {
    REAL_T sum = 0, wrap_angle;
    int i, ii, ie, icircle, itorus, iv1, iv2;
-   POINT v1, v2;
+   molsurf_POINT v1, v2;
    REAL_T cos_theta;
    int edge1, edge2, direction1, direction2;
    REAL_T int_angle;
@@ -5760,7 +5760,7 @@ static REAL_T interior_angle(int e1, int dir1, int e2, int dir2,
                              VERTEX vertex[])
 {
    int c1, c2, ii;
-   POINT v1, v2, zaxis, vtmp1, vtmp2;
+   molsurf_POINT v1, v2, zaxis, vtmp1, vtmp2;
 
    c1 = concave_edge[e1].circle;
    c2 = concave_edge[e2].circle;
@@ -5817,7 +5817,7 @@ static REAL_T interior_angle(int e1, int dir1, int e2, int dir2,
 
 static void allocate_memory(void)
 {
-   if ((atom = (ATOM *) malloc(natm_sel * sizeof(ATOM))) == NULL) {
+   if ((atom = (molsurf_ATOM *) malloc(natm_sel * sizeof(molsurf_ATOM))) == NULL) {
       fprintf(stderr, "Unable to allocate space for atom: %d\n", natm_sel);
       exit(1);
    }
