@@ -234,12 +234,12 @@ mmpbsa_t mmpbsa::MeadInterface::molsurf_posix(const std::vector<mmpbsa::atom_t>&
 	return areaval;
 }
 #else// windows environment
-mmpbsa_t mmpbsa::MeadInterface::molsurf_win32(const std::string& top_filename,
+mmpbsa_t mmpbsa::MeadInterface::molsurf_windows32(const std::string& top_filename,
     		const std::string& traj_filename, const std::string& radii_filename,
     		const std::string& molecule_type, const size_t& snap_count,
     		int *error_flag)
 {
-	return mmpbsa_t molsurf_win32(top_filename,traj_filename,radii_filename,molecule_type,snap_count,error_flag);
+  return molsurf_win32(top_filename,traj_filename,radii_filename,molecule_type,snap_count,error_flag);
 }
 #endif
 

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <sstream>
 
-#define BUFSIZE 4096 
+#define winfork_BUFSIZE 4096 
  
 HANDLE g_hChildStd_IN_Rd = NULL;
 HANDLE g_hChildStd_IN_Wr = NULL;
@@ -17,7 +17,7 @@ void CreateChildProcess(const std::string& top_filename,
 		const std::string& traj_filename, const std::string& radii_filename,
 		const std::string& molecule_type, const size_t& snap_number);
 void WriteToPipe(void); 
-void ReadFromPipe(int *error_flag);
+mmpbsa_t ReadFromPipe(int *error_flag);
 void ErrorExit(PTSTR); 
  
 mmpbsa_t molsurf_win32(const std::string& top_filename,
@@ -26,8 +26,8 @@ mmpbsa_t molsurf_win32(const std::string& top_filename,
 		int *error_flag)
 { 
    SECURITY_ATTRIBUTES saAttr; 
- 
-   printf("\n->Start of parent execution.\n");
+   mmpbsa_t area = 0;
+   //printf("\n->Start of parent execution.\n");
 
 // Set the bInheritHandle flag so pipe handles are inherited. 
  
@@ -57,7 +57,7 @@ mmpbsa_t molsurf_win32(const std::string& top_filename,
  
 // Create the child process. 
    
-   CreateChildProcess();
+   CreateChildProcess(top_filename, traj_filename, radii_filename, molecule_type, snap_number);
 
 // Get a handle to an input file for the parent. 
 // This example assumes a plain text file and uses string output to verify data flow. 
@@ -86,15 +86,15 @@ mmpbsa_t molsurf_win32(const std::string& top_filename,
  
 // Read from pipe that is the standard output for child process. 
  
-   printf( "\n->Contents of child process STDOUT??:\n\n");
-   ReadFromPipe(error_flag);
+   //printf( "\n->Contents of child process STDOUT??:\n\n");
+   area = ReadFromPipe(error_flag);
 
-   printf("\n->End of parent execution.\n");
+   //printf("\n->End of parent execution.\n");
 
 // The remaining open handles are cleaned up when this process terminates. 
 // To avoid resource leaks in a larger application, close handles explicitly. 
 
-   return 0.0; 
+   return area; 
 } 
  
 void CreateChildProcess(const std::string& top_filename,
@@ -104,11 +104,12 @@ void CreateChildProcess(const std::string& top_filename,
 { 
   std::ostringstream cmd_buffer;
   cmd_buffer << "./area.exe --traj=" << traj_filename
-		  << "  --surface_area=" << molecule_name
+		  << "  --surface_area=" << molecule_type
 		  << " --radii=" << radii_filename
 		  << " --top=" << top_filename
 		  << " --snap_list=" << snap_number << " ";
-
+  CHAR cmdstr[cmd_buffer.str().size() + 1];
+  strncpy(cmdstr,cmd_buffer.str().c_str(),cmd_buffer.str().size());
    PROCESS_INFORMATION piProcInfo; 
    STARTUPINFO siStartInfo;
    BOOL bSuccess = FALSE; 
@@ -122,7 +123,7 @@ void CreateChildProcess(const std::string& top_filename,
  
    ZeroMemory( &siStartInfo, sizeof(STARTUPINFO) );
    siStartInfo.cb = sizeof(STARTUPINFO); 
-   siStartInfo.hStdError = g_hChildStd_OUT_Wr;
+   //siStartInfo.hStdError = g_hChildStd_OUT_Wr;
    siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
    siStartInfo.hStdInput = g_hChildStd_IN_Rd;
    siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
@@ -132,7 +133,7 @@ void CreateChildProcess(const std::string& top_filename,
    SetErrorMode(orig_err_mask | SEM_NOGPFAULTERRORBOX);
 
    bSuccess = CreateProcess(NULL, 
-      cmd_buffer.str().c_str(),     // command line
+      cmdstr,     // command line
       NULL,          // process security attributes 
       NULL,          // primary thread security attributes 
       TRUE,          // handles are inherited 
@@ -163,12 +164,12 @@ void WriteToPipe(void)
 // Stop when there is no more data. 
 { 
    DWORD dwRead, dwWritten; 
-   CHAR chBuf[BUFSIZE];
+   CHAR chBuf[winfork_BUFSIZE];
    BOOL bSuccess = FALSE;
  
    for (;;) 
    { 
-      bSuccess = ReadFile(g_hInputFile, chBuf, BUFSIZE, &dwRead, NULL);
+      bSuccess = ReadFile(g_hInputFile, chBuf, winfork_BUFSIZE, &dwRead, NULL);
       if ( ! bSuccess || dwRead == 0 ) break; 
       
       bSuccess = WriteFile(g_hChildStd_IN_Wr, chBuf, dwRead, &dwWritten, NULL);
@@ -181,17 +182,18 @@ void WriteToPipe(void)
       ErrorExit(TEXT("StdInWr CloseHandle")); 
 } 
  
-void ReadFromPipe(int *error_flag)
+mmpbsa_t ReadFromPipe(int *error_flag)
 
 // Read output from the child process's pipe for STDOUT
 // and write to the parent process's pipe for STDOUT. 
 // Stop when there is no more data. 
 { 
    DWORD dwRead, dwWritten; 
-   CHAR chBuf[BUFSIZE]; 
+   CHAR chBuf[winfork_BUFSIZE],*strtod_result; 
    BOOL bSuccess = FALSE;
    HANDLE hParentStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-   printf("Reading from pipe\n");
+   mmpbsa_t childresult = 0;
+   //printf("Reading from pipe\n");
    int error_val = 0;
 // Close the write end of the pipe before reading from the 
 // read end of the pipe, to control child process execution.
@@ -201,29 +203,32 @@ void ReadFromPipe(int *error_flag)
    if (!CloseHandle(g_hChildStd_OUT_Wr)) 
       ErrorExit(TEXT("StdOutWr CloseHandle")); 
  
-   for (;;) 
-   { 
-      bSuccess = ReadFile( g_hChildStd_OUT_Rd, chBuf, BUFSIZE, &dwRead, NULL);
-      if( ! bSuccess || dwRead == 0 ) 
-	{
-	  fprintf(stderr,"Parent: error in reading from pipe.\n");
-	  error_val = 1;
-	  break; 
-	}
+   bSuccess = ReadFile( g_hChildStd_OUT_Rd, chBuf, winfork_BUFSIZE, &dwRead, NULL);
+   if( ! bSuccess || dwRead == 0 ) 
+     {
+       if(error_flag != NULL)
+	 *error_flag = 1;
+       return 0.0;
+     }
+      
+   //if(strchr(chBuf,'\n') != NULL)
+   //*strchr(chBuf,'\n') = (char)0;
 
-      bSuccess = WriteFile(hParentStdOut, chBuf, 
-                           dwRead, &dwWritten, NULL);
-      if (! bSuccess ) 
-	{
-	  fprintf(stderr,"Parent: error writing to stdout from pipe.\n");
-	  error_val = 1;
-	  break; 
-	}
-   } 
-
+   if((childresult = strtod(chBuf,&strtod_result)) == 0)
+     {
+       if(strtod_result == chBuf)
+	 {
+	   fprintf(stderr,"Parent: could not interpret child data: %s\n",chBuf);
+	   if(error_flag != NULL)
+	     *error_flag = 1;
+	   return 0.0;
+	 }
+     }
+   //printf("Read %f as a double from child (%s).\n",childresult,chBuf);
+      
    if(error_flag != NULL)
 	   *error_flag = error_val;
-
+   return childresult;
 } 
  
 void ErrorExit(PTSTR lpszFunction) 

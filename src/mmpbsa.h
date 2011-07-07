@@ -245,7 +245,7 @@ void thread_safe_checkpoint(const char* mole_name,
 		const mmpbsa::EMap& EMap, mmpbsa::MMPBSAState& currState,
 		mmpbsa_utils::XMLNode* snapshotXML, void * mmpbsa_mutex);
 
-typedef struct mmpbsa_thread_arg
+struct mmpbsa_thread_arg
 {
 	const std::vector<mmpbsa::atom_t>* atoms;
 	const mmpbsa::forcefield_t* ff;
