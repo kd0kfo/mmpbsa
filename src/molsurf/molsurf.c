@@ -2174,7 +2174,6 @@ static void cycles(int nat, molsurf_ATOM atom[], VERTEX vertexlist[],
    int nc;                      /* index for cyclelist */
 
    int ia, i, ie, je, last_vert, second_vert;
-
    nc = 0;
 
    for (ia = 0; ia < nat; ++ia) {
@@ -2186,6 +2185,11 @@ static void cycles(int nat, molsurf_ATOM atom[], VERTEX vertexlist[],
 /************************************************/
       /* initialize atom_edge_cycle elements to -1    */
 /************************************************/
+      if(atom[ia].n_convex_edges > MAXAT_EDGE)
+	{
+	  fprintf(stderr,"Atom has more convex edges than is allowed by the fixed convex edge array size.\nNumber of edges: %d Max Edges: %d\n",atom[ia].n_convex_edges,MAXAT_EDGE);
+	  exit(1);
+	}
       for (i = 0; i < atom[ia].n_convex_edges; ++i)
          atom_edge_cycle[i] = -1;
 
@@ -2243,6 +2247,7 @@ static void cycles(int nat, molsurf_ATOM atom[], VERTEX vertexlist[],
 
 
       }
+      
    }
    *n_cycles = nc;
 
@@ -2284,7 +2289,6 @@ static int next_edge(int ivert, int ia, molsurf_ATOM atom[],
    dump_atom_edges(ivert, ia, atom, nae, convex_edges, atom_edge_cycle);
 
    exit(ERROR);
-   return -1;
 }
 
 static void dump_atom_edges(int ivert, int ia, molsurf_ATOM atom[],

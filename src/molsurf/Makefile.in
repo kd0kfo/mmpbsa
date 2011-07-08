@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 
+
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -35,6 +36,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+bin_PROGRAMS = xyzr2sas$(EXEEXT)
 subdir = src/molsurf
 DIST_COMMON = $(libmolsurf_a_include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
@@ -51,7 +53,7 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(libdir)" \
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(libmolsurf_a_includedir)"
 libLIBRARIES_INSTALL = $(INSTALL_DATA)
 LIBRARIES = $(lib_LIBRARIES)
@@ -61,6 +63,11 @@ libmolsurf_a_AR = $(AR) $(ARFLAGS)
 libmolsurf_a_LIBADD =
 am_libmolsurf_a_OBJECTS = molsurf.$(OBJEXT)
 libmolsurf_a_OBJECTS = $(am_libmolsurf_a_OBJECTS)
+binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
+PROGRAMS = $(bin_PROGRAMS)
+am_xyzr2sas_OBJECTS = xyzr2sas.$(OBJEXT) molsurf.$(OBJEXT)
+xyzr2sas_OBJECTS = $(am_xyzr2sas_OBJECTS)
+xyzr2sas_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -68,8 +75,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libmolsurf_a_SOURCES)
-DIST_SOURCES = $(libmolsurf_a_SOURCES)
+SOURCES = $(libmolsurf_a_SOURCES) $(xyzr2sas_SOURCES)
+DIST_SOURCES = $(libmolsurf_a_SOURCES) $(xyzr2sas_SOURCES)
 libmolsurf_a_includeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(libmolsurf_a_include_HEADERS)
 ETAGS = etags
@@ -178,6 +185,8 @@ libmolsurf_adir = $(libdir)/lib
 libmolsurf_a_SOURCES = molsurf.c
 libmolsurf_a_includedir = $(includedir)/molsurf
 libmolsurf_a_include_HEADERS = molsurf.h
+xyzr2sas_SOURCES = xyzr2sas.c molsurf.c
+xyzr2sas_LDADD = -lm
 all: all-am
 
 .SUFFIXES:
@@ -244,6 +253,32 @@ libmolsurf.a: $(libmolsurf_a_OBJECTS) $(libmolsurf_a_DEPENDENCIES)
 	-rm -f libmolsurf.a
 	$(libmolsurf_a_AR) libmolsurf.a $(libmolsurf_a_OBJECTS) $(libmolsurf_a_LIBADD)
 	$(RANLIB) libmolsurf.a
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	test -z "$(bindir)" || $(mkdir_p) "$(DESTDIR)$(bindir)"
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  if test -f $$p \
+	  ; then \
+	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(binPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(bindir)/$$f'"; \
+	   $(INSTALL_PROGRAM_ENV) $(binPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(bindir)/$$f" || exit 1; \
+	  else :; fi; \
+	done
+
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  f=`echo "$$p" | sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
+	  echo " rm -f '$(DESTDIR)$(bindir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(bindir)/$$f"; \
+	done
+
+clean-binPROGRAMS:
+	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+xyzr2sas$(EXEEXT): $(xyzr2sas_OBJECTS) $(xyzr2sas_DEPENDENCIES) 
+	@rm -f xyzr2sas$(EXEEXT)
+	$(LINK) $(xyzr2sas_LDFLAGS) $(xyzr2sas_OBJECTS) $(xyzr2sas_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -252,6 +287,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/molsurf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xyzr2sas.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -362,9 +398,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(HEADERS)
+all-am: Makefile $(LIBRARIES) $(PROGRAMS) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libmolsurf_a_includedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libmolsurf_a_includedir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -393,7 +429,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLIBRARIES mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-libLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -413,7 +450,7 @@ info-am:
 
 install-data-am: install-libmolsurf_a_includeHEADERS
 
-install-exec-am: install-libLIBRARIES
+install-exec-am: install-binPROGRAMS install-libLIBRARIES
 
 install-info: install-info-am
 
@@ -438,20 +475,21 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-info-am uninstall-libLIBRARIES \
-	uninstall-libmolsurf_a_includeHEADERS
+uninstall-am: uninstall-binPROGRAMS uninstall-info-am \
+	uninstall-libLIBRARIES uninstall-libmolsurf_a_includeHEADERS
 
-.PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-libLIBRARIES ctags distclean distclean-compile \
-	distclean-generic distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-libLIBRARIES \
-	install-libmolsurf_a_includeHEADERS install-man install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-info-am uninstall-libLIBRARIES \
+.PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
+	clean-generic clean-libLIBRARIES ctags distclean \
+	distclean-compile distclean-generic distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-binPROGRAMS install-data install-data-am install-exec \
+	install-exec-am install-info install-info-am \
+	install-libLIBRARIES install-libmolsurf_a_includeHEADERS \
+	install-man install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
+	ps ps-am tags uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-info-am uninstall-libLIBRARIES \
 	uninstall-libmolsurf_a_includeHEADERS
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
