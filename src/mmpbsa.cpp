@@ -677,25 +677,19 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         	}
 
         	std::cout << "Calculating " << mol_name << std::endl;
-		
-		std::cerr << "Doing MM" << std::endl;
         	// Constructor performs MM
         	EMap results(atom_lists[currState.currentMolecule],split_ff[currState.currentMolecule],*curr_crds);
 
         	// PB
-		std::cerr << "Doing PB" << std::endl;
         	energy = MeadInterface::pb_solvation(atom_lists[currState.currentMolecule],*curr_crds,fdm,radii,residues,mi.istrength);
         	results.set_elstat_solv(energy);
 
         	// SA
-		std::cerr << "Doing SA" << std::endl;
 #ifdef _WIN32
 		energy = MeadInterface::molsurf_windows32(atom_lists[currState.currentMolecule],*curr_crds,radii,&molsurf_error_flag);
 #else //posix
         	energy = MeadInterface::molsurf_posix(atom_lists[currState.currentMolecule],*curr_crds,radii,&molsurf_error_flag);
 #endif
-		std::cerr << "Checkpointing" << std::endl;
-
         	if(molsurf_error_flag != 0)
         	{
         		results.molsurf_failed = true;
