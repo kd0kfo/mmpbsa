@@ -96,10 +96,10 @@ public:
         const int& outbox_grid_dim = 41, const mmpbsa_t& fine_grid_spacing = 0.25) throw (mmpbsa::MeadException);
 
 #ifdef _WIN32 // not posix
-    static mmpbsa_t molsurf_windows32(const std::string& top_filename,
-    		const std::string& traj_filename, const std::string& radii_filename,
-    		const std::string& molecule_type, const size_t& snap_count,
-    		int *error_flag);
+    static mmpbsa_t molsurf_windows32(const std::vector<mmpbsa::atom_t>& atoms,
+				      const std::valarray<mmpbsa::Vector>& crds,
+				      const std::map<std::string,mead_data_t>& radii,
+				      int *error_flag);
 
 #else // posix
     static mmpbsa_t molsurf_posix(const std::vector<mmpbsa::atom_t>& atoms,

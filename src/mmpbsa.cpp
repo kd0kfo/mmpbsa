@@ -331,10 +331,10 @@ void dump_crds(const std::vector<mmpbsa::atom_t>& atoms,
 		std::map<std::string,float> radii)
 {
 	size_t size = crds.size();
-	std::cout << "---- Start Coordinates ----" << std::endl;
+	std::cout << "# Start Coordinates" << std::endl;
 	for(size_t i = 0;i<size;i++)
 		std::cout << crds[i].x() << " " << crds[i].y() << " " << crds[i].z() << " " << mmpbsa_utils::lookup_radius(atoms[i].name,radii) << std::endl;
-	std::cout << "---- End Coordinates ----" << std::endl;
+	std::cout << "# End Coordinates" << std::endl;
 }
 
 
@@ -690,7 +690,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
         	// SA
 		std::cerr << "Doing SA" << std::endl;
 #ifdef _WIN32
-        	energy = MeadInterface::molsurf_windows32(get_filename(MMPBSA_TOPOLOGY_TYPE,currState),get_filename(MMPBSA_TRAJECTORY_TYPE,currState),get_filename(RADII_TYPE,currState),mol_name,currState.currentSnap, &molsurf_error_flag);
+		energy = MeadInterface::molsurf_windows32(atom_lists[currState.currentMolecule],*curr_crds,radii,&molsurf_error_flag);
 #else //posix
         	energy = MeadInterface::molsurf_posix(atom_lists[currState.currentMolecule],*curr_crds,radii,&molsurf_error_flag);
 #endif

@@ -1,3 +1,5 @@
+#include "mmpbsa_utils.h"
+
 #include <windows.h> 
 #include <winbase.h>
 #include <tchar.h>
@@ -13,17 +15,21 @@ HANDLE g_hChildStd_OUT_Wr = NULL;
 
 HANDLE g_hInputFile = NULL;
  
-void CreateChildProcess(const std::string& top_filename,
-		const std::string& traj_filename, const std::string& radii_filename,
-		const std::string& molecule_type, const size_t& snap_number);
-void WriteToPipe(void); 
+void CreateChildProcess(const std::vector<mmpbsa::atom_t>& atoms,
+			const std::valarray<mmpbsa::Vector>& crds,
+			const std::map<std::string,mead_data_t>& radii,
+			int *error_flag);
+void WriteToPipe(const std::vector<mmpbsa::atom_t>& atoms,
+		 const std::valarray<mmpbsa::Vector>& crds,
+		 const std::map<std::string,mead_data_t>& radii,
+		 int *error_flag);
 mmpbsa_t ReadFromPipe(int *error_flag);
 void ErrorExit(PTSTR); 
  
-mmpbsa_t molsurf_win32(const std::string& top_filename,
-		const std::string& traj_filename, const std::string& radii_filename,
-		const std::string& molecule_type, const size_t& snap_number,
-		int *error_flag)
+mmpbsa_t molsurf_win32(const std::vector<mmpbsa::atom_t>& atoms,
+		       const std::valarray<mmpbsa::Vector>& crds,
+		       const std::map<std::string,mead_data_t>& radii,
+		       int *error_flag)
 { 
    SECURITY_ATTRIBUTES saAttr; 
    mmpbsa_t area = 0;
@@ -57,7 +63,7 @@ mmpbsa_t molsurf_win32(const std::string& top_filename,
  
 // Create the child process. 
    
-   CreateChildProcess(top_filename, traj_filename, radii_filename, molecule_type, snap_number);
+   CreateChildProcess(atoms,crds,radii,error_flag);
 
 // Get a handle to an input file for the parent. 
 // This example assumes a plain text file and uses string output to verify data flow. 
@@ -81,7 +87,7 @@ mmpbsa_t molsurf_win32(const std::string& top_filename,
 // Data is written to the pipe's buffers, so it is not necessary to wait
 // until the child process is running before writing data.
  
-   //WriteToPipe(); 
+   WriteToPipe(atoms,crds,radii,error_flag); 
    //printf( "\n->Contents of %s written to child STDIN pipe.\n", argv[1]);
  
 // Read from pipe that is the standard output for child process. 
@@ -97,17 +103,14 @@ mmpbsa_t molsurf_win32(const std::string& top_filename,
    return area; 
 } 
  
-void CreateChildProcess(const std::string& top_filename,
-		const std::string& traj_filename, const std::string& radii_filename,
-		const std::string& molecule_type, const size_t& snap_number)
+void CreateChildProcess(const std::vector<mmpbsa::atom_t>& atoms,
+						  const std::valarray<mmpbsa::Vector>& crds,
+						  const std::map<std::string,mead_data_t>& radii,
+						  int *error_flag)
 // Create a child process that uses the previously created pipes for STDIN and STDOUT.
 { 
   std::ostringstream cmd_buffer;
-  cmd_buffer << "./area.exe --traj=" << traj_filename
-		  << "  --surface_area=" << molecule_type
-		  << " --radii=" << radii_filename
-		  << " --top=" << top_filename
-		  << " --snap_list=" << snap_number << " ";
+  cmd_buffer << "./xyzr2sas.exe " << crds.size();
   CHAR cmdstr[cmd_buffer.str().size() + 1];
   strncpy(cmdstr,cmd_buffer.str().c_str(),cmd_buffer.str().size());
    PROCESS_INFORMATION piProcInfo; 
@@ -133,7 +136,7 @@ void CreateChildProcess(const std::string& top_filename,
    SetErrorMode(orig_err_mask | SEM_NOGPFAULTERRORBOX);
 
    bSuccess = CreateProcess(NULL, 
-      cmdstr,     // command line
+			    cmdstr,     // command line
       NULL,          // process security attributes 
       NULL,          // primary thread security attributes 
       TRUE,          // handles are inherited 
@@ -147,7 +150,11 @@ void CreateChildProcess(const std::string& top_filename,
 
    // If an error occurs, exit the application. 
    if ( ! bSuccess ) 
-      ErrorExit(TEXT("CreateProcess"));
+     {
+       if(error_flag != NULL)
+	 *error_flag  = 1;
+       ErrorExit(TEXT("Could not start child process"));
+     }
    else 
    {
       // Close handles to the child process and its primary thread.
@@ -158,28 +165,37 @@ void CreateChildProcess(const std::string& top_filename,
    }
 }
  
-void WriteToPipe(void) 
+void WriteToPipe(const std::vector<mmpbsa::atom_t>& atoms,
+		 const std::valarray<mmpbsa::Vector>& crds,
+		 const std::map<std::string,mead_data_t>& radii,
+		 int *error_flag) 
 
 // Read from a file and write its contents to the pipe for the child's STDIN.
 // Stop when there is no more data. 
 { 
    DWORD dwRead, dwWritten; 
-   CHAR chBuf[winfork_BUFSIZE];
    BOOL bSuccess = FALSE;
- 
-   for (;;) 
-   { 
-      bSuccess = ReadFile(g_hInputFile, chBuf, winfork_BUFSIZE, &dwRead, NULL);
-      if ( ! bSuccess || dwRead == 0 ) break; 
-      
-      bSuccess = WriteFile(g_hChildStd_IN_Wr, chBuf, dwRead, &dwWritten, NULL);
-      if ( ! bSuccess ) break; 
-   } 
- 
+   std::vector<mmpbsa::atom_t>::const_iterator curr_atom = atoms.begin();
+   size_t atom_counter = 0;
+   std::ostringstream buffer;
+   static const char delim[] = " ";
+   
+   for(;curr_atom != atoms.end();curr_atom++,atom_counter++)
+     {
+       const mmpbsa::Vector& curr_pos = crds[atom_counter];
+       buffer.str("");buffer.clear();
+       buffer << curr_pos.x() << delim << curr_pos.y() << delim << curr_pos.z() << delim << mmpbsa_utils::lookup_radius(curr_atom->name,radii) << std::endl;
+       bSuccess = WriteFile(g_hChildStd_IN_Wr, buffer.str().c_str(), buffer.str().size(), &dwWritten, NULL);
+       if ( ! bSuccess )
+	 {
+	   if(error_flag != NULL)
+	     *error_flag = 1;
+	   break; 
+	 }
+     } 
 // Close the pipe handle so the child process stops reading. 
- 
    if ( ! CloseHandle(g_hChildStd_IN_Wr) ) 
-      ErrorExit(TEXT("StdInWr CloseHandle")); 
+     fprintf(stderr,"Could not close child input handle.");
 } 
  
 mmpbsa_t ReadFromPipe(int *error_flag)
@@ -193,7 +209,6 @@ mmpbsa_t ReadFromPipe(int *error_flag)
    BOOL bSuccess = FALSE;
    HANDLE hParentStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
    mmpbsa_t childresult = 0;
-   //printf("Reading from pipe\n");
    int error_val = 0;
 // Close the write end of the pipe before reading from the 
 // read end of the pipe, to control child process execution.
