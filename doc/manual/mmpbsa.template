@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<refentry id="mmpbsa">
+
+  <refentryinfo>
+    %author
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>
+      mmpbsa
+    </refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="software">MMPBSA</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>mmpbsa</refname>
+    <refpurpose>Molecular free energy calculation using MMPBSA methods</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      %command
+      <arg choice="opt">
+	<option>options</option>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+    <para> %command </para>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+    <para>All of the following options may be used either as command line arguments with the "-" or "--" prefix OR as entries in an xml file. For an example of an XML file with parameters, run  %command <option> --sample_queue=&lt;filename&gt;</option></para>
+    <para><option>traj=&lt;trajectory file&gt;</option></para>
+    <para>Trajectory file. May be either an Amber mdcrd file or Gromacs .trr file (see Gromacs Section).</para>
+    <para><option>top=&lt;topology file&gt;</option></para>
+    <para>Trajectory file. May be either an Amber parmtop file or Gromacs .tpr file (see Gromacs Section).</para>
+    <para><option>radii=&lt;radii file&gt;</option></para>
+    <para>SIZ radii file. If no file is values are used from a lookup table built into mmpbsa</para>
+    <para><option>istrength=&lt;strength value&gt;</option></para>
+    <para>(default = 0)</para>
+    <para><option>surf_offset=&lt;surface offset&gt;</option></para>
+    <para>(default = 0.92 kcal/mol)</para>
+    <para><option>surf_tension=&lt;surface tension value&gt;</option></para>
+    <para>(default = 0.00542 kcal/mol/Ang^2)</para>
+    <para><option>rec_list=&lt;comma separated list&gt;</option></para>
+    <para>List of beginning atoms of residues, where the length is deduced from the parmtop file. Note: this is a one-indexed list. Example: rec_list=0,13,25 would use recptors beginning with the first, fourteenth and twenty-sixth atoms</para>
+    <para><option>lig_list=&lt;comma separated list&gt;</option></para>
+    <para>List of beginning atoms of ligand. See also, rec_list.</para>
+    <para><option>snap_list=&lt;comma separated list&gt;</option></para>
+    <para>1-indexed list of snapshots to be included. If this option is not used, all snapshots are calculated.</para>
+    <para><option>trust_prmtop</option></para>
+    <para>Override the Parmtop sanity check. Use with caution!</para>
+    <para><option>sample_queue=&lt;filename&gt;</option></para>
+    <para>Creates a sample queue XML file.</para>
+  </refsect1>
+
+
+</refentry>
