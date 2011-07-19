@@ -1,5 +1,5 @@
 install_dir=.
-PROGRAMS=mmpbsa.template
+PROGRAMS=mmpbsa.template mmmpbsa_analyzer.template
 MANPAGES=$(PROGRAMS:.template=.1)
 XMLS=$(PROGRAMS:.template=.xml)
 XHTMLS=$(PROGRAMS:.template=.xhtml)
@@ -17,7 +17,7 @@ install: all
 	mkdir -p $(install_dir)/xml
 	\cp $(XMLS) $(install_dir)/xml/
 
-%.xml : %.template
+%.xml : %.template author.xml
 	cat $< |sed '/[^\\]%author/r author.xml'|sed '/[^\\]%author/d' > $@
 	sed '/[^\\]%planefiles/r planefiles.xml' $@|sed '/[^\\]%planefiles/d' > $@.tmp
 	\mv $@.tmp $@

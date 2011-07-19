@@ -36,7 +36,9 @@
 
   <refsect1>
     <title>Options</title>
-    <para>All of the following options may be used either as command line arguments with the "-" or "--" prefix OR as entries in an xml file. For an example of an XML file with parameters, run  %command <option> --sample_queue=&lt;filename&gt;</option></para>
+    <para>All of the following options may be used either as command line arguments with the "-" or "--" prefix OR as entries in an xml file. For an example of an XML file with parameters, run:</para>
+    <para> %command --sample_queue=&lt;filename&gt;</para>
+    <para>Options:</para>
     <para><option>traj=&lt;trajectory file&gt;</option></para>
     <para>Trajectory file. May be either an Amber mdcrd file or Gromacs .trr file (see Gromacs Section).</para>
     <para><option>top=&lt;topology file&gt;</option></para>
