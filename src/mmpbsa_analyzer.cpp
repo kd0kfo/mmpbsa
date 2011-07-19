@@ -14,7 +14,7 @@
 #include "libmmpbsa/EMap.h"
 
 static char mmpbsa_analyzer_doc[] = "mmpbsa_analyzer -- Program for analyzing and manipulating data produced by mmpbsa.";
-static char mmpbsa_analyzer_usage[] = "Usage: mmpbsa_analyzer [options]";
+static char mmpbsa_analyzer_usage[] = "Usage: mmpbsa_analyzer [options] [input file]\n\tIf no input file is supplied, standard input is used.\n\tOutput is sent to standard output.";
 void args_usage();
 
 enum NON_CHAR_OPTIONS{VERSION_OPT = 1};
