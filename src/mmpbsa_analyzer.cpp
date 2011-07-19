@@ -18,7 +18,6 @@ static char mmpbsa_analyzer_usage[] = "Usage: mmpbsa_analyzer [options] [input f
 void args_usage();
 
 enum NON_CHAR_OPTIONS{VERSION_OPT = 1};
-enum ANALYZER_COMMANDS{SUMMARIZE,NUM_COMMANDS};
 enum ERR_CODES{INVALID_INPUT_PARAMETER,INVALID_CLI_ARGUMENT};
 typedef struct{
 	struct option getoptions;/* getopt.h option type. */
@@ -27,10 +26,21 @@ typedef struct{
 
 typedef struct {
 	int verbosity;
-	int command;
 	std::istream *input;
 	std::ostream *output;
 }mmpbsa_analyzer_arguments ;
+
+enum MOLECULE_ENUM{COMPLEX=0,RECEPTOR,LIGAND,DELTA,NUM_MOLECULES};
+
+typedef struct{
+  mmpbsa_t ele, vdw, internal, gas, pbsur, pbsolv, area; 
+}mmpbsa_analyzer_data;
+
+typedef struct{
+  size_t molsurf_dependent[NUM_MOLECULES], molsurf_independent[NUM_MOLECULES];
+  mmpbsa_analyzer_data averages[NUM_MOLECULES],stddev[NUM_MOLECULES];
+}mmpbsa_analyzer_average;
+
 
 /**
  * Possible options provided to the command line.
@@ -77,7 +87,6 @@ void parse_opt(const int& key, mmpbsa_analyzer_arguments& args, char** argv)
 
 void mmpbsa_analyzer_defaults(mmpbsa_analyzer_arguments& args)
 {
-	args.command = SUMMARIZE;
 	args.input = &std::cin;
 	args.output = &std::cout;
 	args.verbosity = 0;
@@ -116,7 +125,86 @@ void args_usage()
 	exit(0);
 }
 
-void summarize_delta(std::ostream* output,mmpbsa::EMap* delta, mmpbsa_t* gas_energies)
+void finalize_average(mmpbsa_analyzer_average& avg)
+{
+  for(size_t i = 0;i<NUM_MOLECULES;i++)
+    {
+
+    }
+  
+}
+
+void average_data(const mmpbsa::EMap& new_emap, mmpbsa_analyzer_average& avg, mmpbsa::EMap& curr_delta,int molecule)
+{
+  mmpbsa_t curr_data;
+  size_t i;//index into arrays 0 <= i < NUM_MOLECULES
+  if(molecule < 0 || molecule >= NUM_MOLECULES)
+    throw mmpbsa::MMPBSAException("average_data: invalid molecule enum value.",mmpbsa::DATA_FORMAT_ERROR);
+
+  i = (size_t) molecule;
+  curr_data = new_emap.total_elec_energy();
+  avg.averages[i].ele += curr_data;
+  avg.stddev[i].ele += curr_data*curr_data;
+  
+  curr_data = new_emap.total_vdw_energy();
+  avg.averages[i].vdw += curr_data; 
+  avg.stddev[i].vdw += curr_data*curr_data; 
+  
+  curr_data = new_emap.total_internal_energy();
+  avg.averages[i].internal += curr_data;
+  avg.stddev[i].internal += curr_data*curr_data;
+  
+  curr_data = new_emap.total_gas_energy();
+  avg.averages[i].gas += curr_data;
+  avg.stddev[i].gas += curr_data*curr_data;
+  
+  curr_data = new_emap.elstat_solv;
+  avg.averages[i].pbsolv += curr_data;
+  avg.stddev[i].pbsolv += curr_data*curr_data;
+
+  avg.molsurf_independent[i]++;
+
+  if(new_emap.molsurf_failed)
+    {
+      curr_data = new_emap.sasol;
+      avg.averages[i].pbsur += curr_data;
+      avg.stddev[i].pbsur += curr_data*curr_data;
+      
+      curr_data = new_emap.area;
+      avg.averages[i].area += curr_data;
+      avg.stddev[i].area += curr_data*curr_data;
+      avg.molsurf_dependent[i]++;
+    }
+
+}
+
+void sanity_check_average(mmpbsa_analyzer_average& avg)
+{
+	if(num_complex != num_receptor || num_receptor != num_ligand)
+		cerr << "Warning: Number of components differs." << endl
+			<< "Receptor: " << num_receptor << endl
+			<< "Ligand: " << num_ligand << endl
+			<< "Complex: " << num_complex << endl;
+
+}
+
+void init_average(mmpbsa_analyzer_average& avg)
+{
+  for(size_t i = 0;i<NUM_MOLECULES;i++)
+    {
+      molsurf_dependent[i] = molsurf_independent[i] = 0;
+      
+      avg.averages[i].ele = avg.stddev[i].ele = 0.0;
+      avg.averages[i].vdw = avg.stddev[i].vdw = 0.0;
+      avg.averages[i].internal = avg.stddev[i].internal = 0.0;
+      avg.averages[i].gas = avg.stddev[i].gas = 0.0;
+      avg.averages[i].pbsur = avg.stddev[i].pbsur = 0.0;
+      avg.averages[i].pbsolv = avg.stddev[i].pbsolv = 0.0;
+      avg.averages[i].area = avg.stddev[i].area = 0.0;
+    }
+}
+
+void summarize_delta(std::ostream* output, mpbsa::EMap* delta, mmpbsa_t* gas_energies)
 {
 	using std::ios;
 	if(output == 0)
@@ -264,110 +352,89 @@ void summarize(mmpbsa_analyzer_arguments& args)
 	using mmpbsa_utils::XMLNode;
 	using mmpbsa::EMap;
 
+	XMLNode *data = NULL;
+
+	//some data does depend on molsurf results; others do not. Therefore the averaging is different if molsurf fails.
+	mmpbsa_analyzer_average avg;
+	size_t bad_area_com, bad_area_rec, bad_area_lig;
+	
+	EMap curr_delta;//place holder for calculating the DELTA energy for a given snapshot.
+
 	if(args.input == NULL)
 		throw mmpbsa::MMPBSAException("summarize: No input stream provided.",mmpbsa::FILE_IO_ERROR);
 	if(args.output == NULL)
 		throw mmpbsa::MMPBSAException("summarize: No output stream provided.",mmpbsa::FILE_IO_ERROR);
 
-	bool added_snapshot;
-	size_t snapshot_counter = 0;
-	EMap curr_delta,curr,ecomplex[2],receptor[2],ligand[2],delta[2];//[0] = mean, [1] = stddev.
-	size_t num_complex,num_receptor,num_ligand;
-	size_t bad_area_com,bad_area_rec,bad_area_lig;
-	mmpbsa_t gas_energies[4];//complex, receptor, ligand, delta
-	XMLNode *data = XMLParser::parse(*args.input);
+	bad_area_com = bad_area_rec = bad_area_lig = 0;
+	
+	*data = XMLParser::parse(*args.input);
 	if(data == NULL)
 		throw mmpbsa::MMPBSAException("summarize: Could not parse data from input stream.",mmpbsa::FILE_IO_ERROR);
-	num_complex = num_receptor = num_ligand = 0;
-	bad_area_com = bad_area_lig = bad_area_rec = 0;
-	for(size_t i = 0;i<4;i++)
-		gas_energies[i] = 0;
+
+	init_average(avg);
 
 	if(data->children != 0)
 	{
 		XMLNode *molecule, *snap = data->children;
 		for(;snap != 0;snap = snap->siblings)
 		{
-			EMap curr_delta;
-			added_snapshot = false;
+		  curr_delta.clear();
 			for(molecule = snap->children;molecule != 0;molecule = molecule->siblings)
 			{
 				if(molecule->getName() == "COMPLEX")
 				{
 					curr = EMap::loadXML(molecule);
-					ecomplex[0] += curr;
-					ecomplex[1] += stddev_couple(curr,gas_energies[0]);
-					curr_delta += curr;
-					num_complex++;
+					average_data(curr,avg,curr_delta,COMPLEX);
 					if(curr.molsurf_failed)
-						bad_area_com++;
+					  bad_area_com++;
 				}
 				else if(molecule->getName() == "RECEPTOR")
 				{
 					curr = EMap::loadXML(molecule);
-					receptor[0] += curr;
-					receptor[1] += stddev_couple(curr,gas_energies[1]);
-					curr_delta -= curr;
-					num_receptor++;
+					average_data(curr,avg,curr_delta,RECEPTOR);
 					if(curr.molsurf_failed)
-						bad_area_rec++;
+					  bad_area_rec++;
 				}
 				else if(molecule->getName() == "LIGAND")
 				{
 					curr = EMap::loadXML(molecule);
-					ligand[0] += curr;
-					ligand[1] += stddev_couple(curr,gas_energies[2]);
-					curr_delta -= curr;
-					num_ligand++;
+					average_data(curr,avg,curr_delta,LIGAND);
 					if(curr.molsurf_failed)
 						bad_area_lig++;
 				}
+				else if(args.verbosity)
+				  {
+				    *args.output << "Ignoring tag: " << molecule->getName() << std::endl;				
+				  }
 			}
-			delta[0] += curr_delta;
-			delta[1] += stddev_couple(curr_delta,gas_energies[3]);
-			if(!added_snapshot)
-			{
-				snapshot_counter++;
-				added_snapshot = true;
-			}
+			average_data(curr_delta,avg,curr_delta,DELTA);
 		}
 	}
 
-	if(num_complex != num_receptor || num_receptor != num_ligand)
-		cerr << "Warning: Number of components differs." << endl
-			<< "Receptor: " << num_receptor << endl
-			<< "Ligand: " << num_ligand << endl
-			<< "Complex: " << num_complex << endl;
-
-	for(size_t i = 0;i<4;i++)
-		gas_energies[i] /= num_complex;
+	// Verify that the data collected makes sense
+	sanity_check_average(avg);
 
 	//Finish average and std. dev. calculations
-	mmpbsa_t useless;
-	// adjust for failed data
-	if(bad_area_com > 0)
-	{
+	finalize_average(avg);
+	
+	// Display failed data information
+	if(args.verbosity)
+	  {
+	    if(bad_area_com > 0)
+	      {
 		fprintf(stderr,"Data contains %d occurances where molsurf failed in complex.\n",bad_area_com);
-		for(size_t areaidx = 0;areaidx<2;areaidx++)
-			ecomplex[areaidx].area *= (num_complex)/(num_complex - bad_area_com);
-	}
-	if(bad_area_lig > 0)
-	{
+	      }
+	    if(bad_area_lig > 0)
+	      {
 		fprintf(stderr,"Data contains %d occurances where molsurf failed in ligand.\n",bad_area_lig);
-		for(size_t areaidx = 0;areaidx<2;areaidx++)
-			ligand[areaidx].area *= (num_complex)/(num_complex - bad_area_lig);
-	}
-	if(bad_area_rec > 0)
-	{
+	      }
+	    if(bad_area_rec > 0)
+	      {
 		fprintf(stderr,"Data contains %d occurances where molsurf failed in receptor.\n",bad_area_rec);
-		for(size_t areaidx = 0;areaidx<2;areaidx++)
-			receptor[areaidx].area *= (num_complex)/(num_complex - bad_area_rec);
-	}
-	ecomplex[0] /= num_complex;ecomplex[1] /= num_complex;ecomplex[1] = sqrt(ecomplex[1] - stddev_couple(ecomplex[0],useless));
-	receptor[0] /= num_complex;receptor[1] /= num_complex;receptor[1] = sqrt(receptor[1] - stddev_couple(receptor[0],useless));
-	ligand[0] /= num_complex;ligand[1] /= num_complex;ligand[1] = sqrt(ligand[1] - stddev_couple(ligand[0],useless));
-	delta[0] /= num_complex;delta[1] /= num_complex;delta[1] = sqrt(delta[1] - stddev_couple(delta[0],useless));
+	      }
+	  }
 
+	// Output results
 	*args.output << "Summary of " << snapshot_counter << " snapshots." << std::endl;
 
 	summarize_molecules(args.output,ecomplex,receptor,ligand,gas_energies);
@@ -421,8 +488,8 @@ int main(int argc, char** argv)
 
 	delete [] long_opts;
 
-	if(args.command == SUMMARIZE)
-		summarize(args);
+	summarize(args);
+	
 	if(args.input != &std::cin)
 		delete args.input;
 	return 0;
