@@ -24,7 +24,8 @@
 #include "MEAD/FinDiffElstatPot.h"
 
 //system
-#include <errno.h>
+#include <cerrno>
+#include <cstring>
 #ifdef _WIN32
 
 #include "winfork.cpp"
