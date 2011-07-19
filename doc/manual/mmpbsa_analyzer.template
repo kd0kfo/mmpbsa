@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<refentry id="mmpbsa_analyzer">
+
+  <refentryinfo>
+    %author
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>
+      mmpbsa_analyzer
+    </refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="software">MMPBSA</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>mmpbsa_analyzer</refname>
+    <refpurpose>Provides a summary of energy data over multiple snapshots</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      %command
+      <arg choice="opt">
+	<option>options</option>
+      </arg>
+      <arg choice="opt">
+	<option>input file</option>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Options</title>
+    <para><option>-v, --verbose</option></para>
+    <para>Sets the verbosity of the program.</para>
+    <para><option>-h, --help</option></para>
+    <para>This help dialog</para>
+    <para><option>--version</option></para>
+    <para>Display version</para>
+    <para><option>--usage</option></para>
+    <para>Same as --help</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Description</title>
+    <para> %command reads through mmpbsa XML-formatted data files and average energy data over all snapshots provided in the data file.  %command only preforms statistical functions; therefore, output energy units match input units.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Energy types</title>
+    <para>The following energy types are averaged over the snapshots in the data file:</para>
+    <para><option>ELE</option></para>
+    <para>Electrostatic energy</para>
+    <para><option>VDW</option></para>
+    <para>Van der Waals Energy</para>
+    <para><option>INT</option></para>
+    <para>Total internal energy, which is the sum of the Bond, Angle and Dihedral energies</para>
+    <para><option>GAS</option></para>
+    <para>Sum of Internal, Electrostatic and Van der Waals energies.</para>
+    <para><option>PBSUR</option></para>
+    <para>Surface Area Solvation Energy. This energy is calculated using the formula, Energy = Surface Area * Surface Tension + Surface Offset.</para>
+    <para><option>PBSOLV</option></para>
+    <para>Electrostatic solvation energy. This energy is calculated using MEAD.</para>
+    <para><option>AREA</option></para>
+    <para>Surface Area calculated using <emphasis>Molsurf</emphasis></para>
+  </refsect1>
+
+</refentry>
