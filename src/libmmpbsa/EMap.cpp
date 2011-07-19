@@ -103,6 +103,11 @@ std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite)
     return theStream;
 }
 
+  void mmpbsa::EMap::clear()
+  {
+    *this = EMap();
+  }
+
 mmpbsa::EMap abs(const mmpbsa::EMap& obj)
 {
     mmpbsa::EMap returnMe = obj;

@@ -64,6 +64,11 @@ public:
 
     ~EMap(){}
 
+    /**
+     * Sets all data equal to zero
+     */
+    void clear();
+
     const mmpbsa_t& set_elstat_solv(const mmpbsa_t& val){return elstat_solv = val;}
     const mmpbsa_t& set_area(const mmpbsa_t& val){return area = val;}
     const mmpbsa_t& set_sasol(const mmpbsa_t& val){return sasol = val;}
