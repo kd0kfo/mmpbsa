@@ -107,8 +107,6 @@ public:
     bool operator!=(const EMap& rhs)const{return !(*this == rhs);}
 
     friend std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite);
-    friend EMap abs(const mmpbsa::EMap& obj);
-    friend EMap sqrt(const mmpbsa::EMap& obj);
 
     /**
      * Creates an XML document node using the energy data. The name of the data
@@ -131,22 +129,22 @@ public:
     /**
      * Gives the net electrostatic energy, which is the sum of ele14 and vacele.
      */
-    mmpbsa_t total_elec_energy(){return ele14 + vacele;}
+    mmpbsa_t total_elec_energy()const{return ele14 + vacele;}
 
     /**
      * Gives the net Van der Waals energy, which is the sum: vdw14 + vdwaals.
      */
-    mmpbsa_t total_vdw_energy(){return vdw14 + vdwaals;}
+    mmpbsa_t total_vdw_energy()const{return vdw14 + vdwaals;}
 
     /**
      * Gives the net internal energy, which is the sum: angle + bond + dihed
      */
-    mmpbsa_t total_internal_energy(){return angle + bond + dihed;}
+    mmpbsa_t total_internal_energy()const{return angle + bond + dihed;}
 
     /**
      * Gives the total gas energy, which is the sum: total_elec_energy() + total_vdw_energy() + total_internal_energy()
      */
-    mmpbsa_t total_gas_energy(){return total_elec_energy() + total_vdw_energy() + total_internal_energy();}
+    mmpbsa_t total_gas_energy()const{return total_elec_energy() + total_vdw_energy() + total_internal_energy();}
 
     mmpbsa_t bond;///<Bond Energy
     mmpbsa_t angle;///<Angle Energy
@@ -164,6 +162,8 @@ public:
 };
 
 }//end namespace mmpbsa
+mmpbsa::EMap abs(const mmpbsa::EMap& obj);
+mmpbsa::EMap sqrt(const mmpbsa::EMap& obj);
 
 
 #endif
