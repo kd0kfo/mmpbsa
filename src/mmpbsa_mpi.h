@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <set>
 #include <sstream>
-#include <mpi.h>
 #include <stdlib.h>
 
+#include "libmmpbsa/XMLParser.h"
 #include "libmmpbsa/mmpbsa_exceptions.h"
 #include "libmmpbsa/MMPBSAState.h"
 

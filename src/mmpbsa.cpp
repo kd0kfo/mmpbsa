@@ -1,6 +1,10 @@
 #include "mmpbsa.h"
 #include <iomanip>
 
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
+
 int main(int argc, char** argv)
 {
 	using mmpbsa::MMPBSAState;
@@ -761,7 +765,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
     	my_status[0] = mpi_rank;
     	my_status[1] = 0;
 	if(previousEnergyData.getHead() != 0 && previousEnergyData.getHead()->children != 0)
-	  my_status[1] = ceil(float(previousEnergyData.toString().size())/MMPBSA_MPI_MAX_BUFFER);
+	  my_status[1] = (int)ceil(float(previousEnergyData.toString().size())/MMPBSA_MPI_MAX_BUFFER);
 
     	MPI_Send(my_status,2,MPI_INT,MMPBSA_MASTER,mmpbsa_utils::STATUS,MPI_COMM_WORLD);
     }
