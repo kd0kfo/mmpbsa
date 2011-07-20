@@ -35,7 +35,7 @@
   <refsect1>
     <title>Options</title>
     <para><option>-v, --verbose</option></para>
-    <para>Sets the verbosity of the program.</para>
+    <para>Sets the verbosity of the program. Optionally, an number may be provided to vary the level of verbosity. The higher the number the more verbose. This mainly pertains to error reporting.</para>
     <para><option>-h, --help</option></para>
     <para>This help dialog</para>
     <para><option>--version</option></para>
@@ -46,7 +46,7 @@
 
   <refsect1>
     <title>Description</title>
-    <para> %command reads through mmpbsa XML-formatted data files and average energy data over all snapshots provided in the data file.  %command only preforms statistical functions; therefore, output energy units match input units.</para>
+    <para> %command reads through mmpbsa XML-formatted data files and average energy data over all snapshots provided in the data file. If no input file is specified, input is read from standard input.  %command only preforms statistical functions; therefore, output energy units match input units.</para>
   </refsect1>
 
   <refsect1>
@@ -65,7 +65,7 @@
     <para><option>PBSOLV</option></para>
     <para>Electrostatic solvation energy. This energy is calculated using MEAD.</para>
     <para><option>AREA</option></para>
-    <para>Surface Area calculated using <emphasis>Molsurf</emphasis></para>
+    <para>Surface Area calculated using Molsurf</para>
   </refsect1>
 
 </refentry>
