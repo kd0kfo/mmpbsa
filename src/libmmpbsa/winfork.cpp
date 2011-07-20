@@ -1,4 +1,5 @@
 #include "mmpbsa_utils.h"
+#include "mmpbsa_io.h"
 
 #include <windows.h> 
 #include <winbase.h>
@@ -109,13 +110,16 @@ void CreateChildProcess(const std::vector<mmpbsa::atom_t>& atoms,
 						  int *error_flag)
 // Create a child process that uses the previously created pipes for STDIN and STDOUT.
 { 
-  std::ostringstream cmd_buffer;
-  cmd_buffer << "./xyzr2sas.exe " << crds.size();
-  CHAR cmdstr[cmd_buffer.str().size() + 1];
-  strncpy(cmdstr,cmd_buffer.str().c_str(),cmd_buffer.str().size());
-   PROCESS_INFORMATION piProcInfo; 
-   STARTUPINFO siStartInfo;
-   BOOL bSuccess = FALSE; 
+  const size_t max_chars = 4096;
+  CHAR cmdstr[max_chars], appname[max_chars];
+  PROCESS_INFORMATION piProcInfo; 
+  STARTUPINFO siStartInfo;
+  BOOL bSuccess = FALSE;
+
+  if(mmpbsa_io::resolve_filename("./xyzr2sas.exe",appname,max_chars) != 0)
+    ErrorExit(TEXT("Could not resolve the area application filename"));
+  
+  snprintf(cmdstr,max_chars,"\"%s\" %lu",appname,crds.size());			      
  
 // Set up members of the PROCESS_INFORMATION structure. 
  
@@ -135,7 +139,7 @@ void CreateChildProcess(const std::vector<mmpbsa::atom_t>& atoms,
    UINT WINAPI orig_err_mask = SetErrorMode(SEM_NOGPFAULTERRORBOX);
    SetErrorMode(orig_err_mask | SEM_NOGPFAULTERRORBOX);
 
-   bSuccess = CreateProcess(NULL, 
+   bSuccess = CreateProcess(appname, 
 			    cmdstr,     // command line
       NULL,          // process security attributes 
       NULL,          // primary thread security attributes 

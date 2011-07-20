@@ -281,7 +281,7 @@ int mmpbsa::SanderInterface::start(const std::map<std::string,std::string>& file
     //setup executable
     char buff[] = "./moldyn";
     char application[1024];
-    mmpbsa_io::resolve_filename(buff, application,sizeof(application));
+    mmpbsa_io::resolve_filename(buff, application,1024);
     
     //append filename arguments.
     command_line = "-O ";

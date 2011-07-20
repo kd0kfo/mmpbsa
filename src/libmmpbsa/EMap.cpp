@@ -102,6 +102,7 @@ std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite)
     theStream.setf(prevFloatfield,std::ios::floatfield);
     return theStream;
 }
+}
 
 mmpbsa::EMap abs(const mmpbsa::EMap& obj)
 {
@@ -137,7 +138,10 @@ mmpbsa::EMap sqrt(const mmpbsa::EMap& obj)
     return returnMe;
 }
 
-}
+  void mmpbsa::EMap::clear()
+  {
+    *this = EMap();
+  }
 
 mmpbsa::EMap& mmpbsa::EMap::operator=(const mmpbsa::EMap& rhs)
 {
