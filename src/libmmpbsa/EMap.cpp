@@ -1,8 +1,11 @@
-#include <iomanip>
 #include "XMLNode.h"
 #include "EmpEnerFun.h"
 #include "Energy.h"
 #include "EMap.h"
+
+#include <iomanip>
+
+const char mmpbsa::EMap::DEFAULT_XML_TAG[] = "energy";
 
 mmpbsa::EMap::EMap()
 {

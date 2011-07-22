@@ -35,6 +35,9 @@ class EmpEnerFun;
 
 class EMap{
 public:
+
+    static const char DEFAULT_XML_TAG[];
+
     /**
      * Default Constructor for Energy Map Object
      * @see EMap(const EmpEnerFun* efun,const std::valarray<mmpbsa_t>& crds)
@@ -115,7 +118,7 @@ public:
      * @param name -- optional std::string title for the XMLNode (default = "energy")
      * @return
      */
-    mmpbsa_utils::XMLNode* toXML(const std::string& name = "energy")const;
+    mmpbsa_utils::XMLNode* toXML(const std::string& name = DEFAULT_XML_TAG)const;
 
     /**
      * Creates an EMap object based on the given XML Node. Assumes that
