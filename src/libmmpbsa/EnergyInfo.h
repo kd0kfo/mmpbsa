@@ -9,13 +9,13 @@
 #ifndef ENERGYINFO_H
 #define	ENERGYINFO_H
 
+
+#include "SanderParm.h"
+#include "globals.h"
 #include <valarray>
 #include <string>
-#include "globals.h"
 
 namespace mmpbsa{
-//forward declarations
-class SanderIOException;
 
 class EnergyInfo : public std::valarray<mmpbsa_t> {
 public:
