@@ -112,6 +112,13 @@ public:
     friend std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite);
 
     /**
+     * Divides each like energy term by its corresponding value in rhs.
+     *
+     */
+    EMap elementwise_division(const mmpbsa::EMap& rhs)const;
+
+
+    /**
      * Creates an XML document node using the energy data. The name of the data
      * in captial letters is the name of each energy data tag.
      * 

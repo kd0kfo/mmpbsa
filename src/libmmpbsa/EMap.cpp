@@ -278,6 +278,24 @@ mmpbsa::EMap mmpbsa::EMap::operator/(const mmpbsa_t& rhs)const
     return returnMe;
 }
 
+mmpbsa::EMap mmpbsa::EMap::elementwise_division(const mmpbsa::EMap& rhs)const
+{
+	mmpbsa::EMap returnMe;
+	returnMe.bond = bond/rhs.bond;
+	returnMe.angle = angle/rhs.angle;
+	returnMe.dihed = dihed/rhs.dihed;
+	returnMe.vdw14 = vdw14/rhs.vdw14;
+	returnMe.ele14 = ele14/rhs.ele14;
+	returnMe.vdwaals = vdwaals/rhs.vdwaals;
+	returnMe.vacele = vacele/rhs.vacele;
+	returnMe.elstat_solv = elstat_solv/rhs.elstat_solv;
+	returnMe.area = area/rhs.area;
+	returnMe.sasol = sasol/rhs.sasol;
+
+	returnMe.molsurf_failed = molsurf_failed | rhs.molsurf_failed;
+	return returnMe;
+}
+
 mmpbsa::EMap& mmpbsa::EMap::operator/=(const mmpbsa_t& rhs)
 {
     bond /= rhs;
