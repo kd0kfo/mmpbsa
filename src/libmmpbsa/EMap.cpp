@@ -120,6 +120,7 @@ mmpbsa::EMap abs(const mmpbsa::EMap& obj)
     returnMe.vacele = std::abs(returnMe.vacele);
     returnMe.vdw14 = std::abs(returnMe.vdw14);
     returnMe.vdwaals = std::abs(returnMe.vdwaals);
+    returnMe.molsurf_failed = obj.molsurf_failed;
 
     return returnMe;
 }
@@ -137,6 +138,7 @@ mmpbsa::EMap sqrt(const mmpbsa::EMap& obj)
     returnMe.vacele = std::sqrt(returnMe.vacele);
     returnMe.vdw14 = std::sqrt(returnMe.vdw14);
     returnMe.vdwaals = std::sqrt(returnMe.vdwaals);
+    returnMe.molsurf_failed = obj.molsurf_failed;
 
     return returnMe;
 }
@@ -144,6 +146,7 @@ mmpbsa::EMap sqrt(const mmpbsa::EMap& obj)
   void mmpbsa::EMap::clear()
   {
     *this = EMap();
+    this->molsurf_failed = false;//just to be sure
   }
 
 mmpbsa::EMap& mmpbsa::EMap::operator=(const mmpbsa::EMap& rhs)
@@ -178,6 +181,7 @@ mmpbsa::EMap mmpbsa::EMap::operator+(const mmpbsa::EMap& rhs)const
     returnMe.elstat_solv = rhs.elstat_solv+elstat_solv;
     returnMe.area = rhs.area+area;
     returnMe.sasol = rhs.sasol+sasol;
+    returnMe.molsurf_failed = molsurf_failed | rhs.molsurf_failed;
     return returnMe;
 }
 
@@ -193,6 +197,7 @@ mmpbsa::EMap& mmpbsa::EMap::operator+=(const mmpbsa::EMap& rhs)
     elstat_solv += rhs.elstat_solv;
     area += rhs.area;
     sasol += rhs.sasol;
+    molsurf_failed |= rhs.molsurf_failed;
     return *this;
 }
 
@@ -209,6 +214,7 @@ mmpbsa::EMap mmpbsa::EMap::operator-(const mmpbsa::EMap& rhs)const
     returnMe.elstat_solv = elstat_solv-rhs.elstat_solv;
     returnMe.area = area-rhs.area;
     returnMe.sasol = sasol-rhs.sasol;
+    returnMe.molsurf_failed |= rhs.molsurf_failed;
     return returnMe;
 }
 
@@ -225,6 +231,7 @@ mmpbsa::EMap& mmpbsa::EMap::operator-=(const mmpbsa::EMap& rhs)
     elstat_solv -= rhs.elstat_solv;
     area -= rhs.area;
     sasol -= rhs.sasol;
+    molsurf_failed |= rhs.molsurf_failed;
 
     return *this;
 }
@@ -243,6 +250,8 @@ mmpbsa::EMap mmpbsa::EMap::operator*(const mmpbsa::EMap& rhs)const
     returnMe.elstat_solv = elstat_solv*rhs.elstat_solv;
     returnMe.area = area*rhs.area;
     returnMe.sasol = sasol*rhs.sasol;
+    returnMe.molsurf_failed = molsurf_failed | rhs.molsurf_failed;
+
     return returnMe;
 }
 
@@ -258,7 +267,7 @@ mmpbsa::EMap& mmpbsa::EMap::operator*=(const mmpbsa::EMap& rhs)
     elstat_solv *= rhs.elstat_solv;
     area *= rhs.area;
     sasol *= rhs.sasol;
-
+    molsurf_failed |= rhs.molsurf_failed;
     return *this;
 }
 
@@ -275,6 +284,8 @@ mmpbsa::EMap mmpbsa::EMap::operator/(const mmpbsa_t& rhs)const
     returnMe.elstat_solv = elstat_solv/rhs;
     returnMe.area = area/rhs;
     returnMe.sasol = sasol/rhs;
+    returnMe.molsurf_failed = molsurf_failed;
+
     return returnMe;
 }
 

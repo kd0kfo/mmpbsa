@@ -25,7 +25,10 @@ public:
      * 
      */
     EnergyInfo() : std::valarray<mmpbsa_t>(0.0,total_parameters){}
+    EnergyInfo(const EnergyInfo& rhs) : std::valarray<mmpbsa_t>(rhs){}
     virtual ~EnergyInfo(){}
+
+    //EnergyInfo& operator=(const EnergyInfo& rhs){std::valarray<mmpbsa_t>::operator=(rhs);return *this;}
 
     /**
      * Loads first energy info from the provided mdout file.
@@ -170,7 +173,7 @@ float get_minimized_energy(std::fstream& mdout) throw (SanderIOException);
 };//end namespace mmpbsa
 
 mmpbsa::EnergyInfo sqrt(const mmpbsa::EnergyInfo& rhs);
-
+mmpbsa::EnergyInfo abs(const mmpbsa::EnergyInfo& rhs);
 std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data);
 std::fstream& operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data);
 

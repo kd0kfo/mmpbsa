@@ -28,6 +28,14 @@ mmpbsa::EnergyInfo sqrt(const mmpbsa::EnergyInfo& rhs)
     return returnMe;
 }
 
+mmpbsa::EnergyInfo abs(const mmpbsa::EnergyInfo& rhs)
+{
+    mmpbsa::EnergyInfo returnMe = rhs;
+    for(size_t i = 0;i<returnMe.size();i++)
+        returnMe[i] = std::abs(returnMe[i]);
+    return returnMe;
+}
+
 std::fstream& operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data)
 {
     data.get_next_energyinfo(theStream);
