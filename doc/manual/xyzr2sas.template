@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+	  "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<refentry id="xyzr2sas">
+
+  <refentryinfo>
+    %author
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>
+      xyzr2sas
+    </refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="software">MMPBSA</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>xyzr2sas</refname>
+    <refpurpose>Calculates the Solvent Accessible Surface Area of a molecule</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      %command
+      <arg choice="opt">
+	<option>options</option>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Options</title>
+    <para><option>--version, -v</option></para>
+    <para>Displays the version</para>
+    <para><option>--input,   -i &lt;FILE&gt;</option></para>
+    <para>Atomic coordinates and radii (Default: standard input)</para>
+    <para><option>--help,    -h</option></para>
+    <para>This help message</para>
+    <para><option>--usage</option></para>
+    <para>Same as "--help"</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Description</title>
+    <para> %command calculates the surface area of a molecule using the molsurf algorithm from AmberTools (see also http://ambermd.org). The input to  %command should be a list of 3-dimensional coordinates and radii, with one line per atom. Each line should contain the x, y, z coordinates and the radii, in that order, delimited by one space character. </para>
+    <para>Coordinates may be provided to  %command either in a file, specified using the <option>-i &lt;FILE&gt;</option> flag, or through standard input.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples:</title>
+    <para><option>xyzr2sas -i coords.xyzr</option></para>
+    <para>Coordinates are read from the file coords.xyzr and the surface area is displayed in standard output. This command is the same as <command>xyzr2sas &lt; coords.xyzr</command></para>
+    <para><command>coordprog | xyzr2sas</command></para>
+    <para>Coordinates are piped from the standard output of a hypothetical program 'coordprog' to the standard input of  %command.</para>
+  </refsect1>
+
+</refentry>
