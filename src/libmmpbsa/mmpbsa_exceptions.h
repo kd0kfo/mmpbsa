@@ -17,21 +17,22 @@
 namespace mmpbsa{
 
 //MMPBSAErrorTypes could be used as return values. Therefore, zero is not used.
-enum MMPBSAErrorTypes {UNKNOWN_ERROR = 1, /*!General (default) error number. Should be used as a last resort as it is non-specific*/
-    FILE_IO_ERROR,/*!IO problem reading file.*/
-    BROKEN_PRMTOP_FILE,/*!prmtop file is improperly formatted or missing data.*/
-    BROKEN_TRAJECTORY_FILE,/*!trajectory file is improperly formatted or missing data.*/
-    INVALID_PRMTOP_DATA,/*!Data which was loaded into an array is incorrect based on what is expected.*/
-    DATA_FORMAT_ERROR,/*!Use this error, when data *within* the program no longer matches what it should due to formatting problems.*/
-    INVALID_ARRAY_SIZE,
-    UNEXPECTED_EOF,
-    COMMAND_LINE_ERROR,/*!Program supplied an invalid argument in the command line.*/
-    BAD_XML_TAG,
-    INVALID_XML_REQUEST, /*!Trying to access or modify nodes and node information that does not exist or is broken.*/
-    NULL_POINTER,/* :-( */
-    MPI_ERROR,
-    SYSTEM_ERROR/* OS and/or system call problems */
-};
+  enum MMPBSAErrorTypes {UNKNOWN_ERROR = 1, /*!General (default) error number. Should be used as a last resort as it is non-specific*/
+			 FILE_IO_ERROR,/*!IO problem reading file.*/
+			 BROKEN_PRMTOP_FILE,/*!prmtop file is improperly formatted or missing data.*/
+			 BROKEN_TRAJECTORY_FILE,/*!trajectory file is improperly formatted or missing data.*/
+			 INVALID_PRMTOP_DATA,/*!Data which was loaded into an array is incorrect based on what is expected.*/
+			 DATA_FORMAT_ERROR,/*!Use this error, when data *within* the program no longer matches what it should due to formatting problems.*/
+			 INVALID_ARRAY_SIZE,
+			 UNEXPECTED_EOF,
+			 COMMAND_LINE_ERROR,/*!Program supplied an invalid argument in the command line.*/
+			 BAD_XML_TAG,
+			 INVALID_XML_REQUEST, /*!Trying to access or modify nodes and node information that does not exist or is broken.*/
+			 NULL_POINTER,/* :-( */
+			 MPI_ERROR,
+			 SYSTEM_ERROR,/* OS and/or system call problems */
+			 NUMBER_OF_ERROR_TYPES/* for iteration or bounds checking */
+  };
 
 class MMPBSAException : public std::runtime_error
 {

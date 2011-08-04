@@ -15,6 +15,8 @@
 #include <valarray>
 #include <string>
 
+#define MDOUT_AVERAGE_HEADER "A V E R A G E"
+
 namespace mmpbsa{
 
 class EnergyInfo : public std::valarray<mmpbsa_t> {
@@ -33,19 +35,23 @@ public:
     /**
      * Loads first energy info from the provided mdout file.
      * 
+     * Returns an integer equal to zero if successful. Otherwise values correspond to mmpbsa::MMPBSAErrorTypes
+     *
      * @param fileName
-     * @return 
+     * @return error int equal to zero if successful. Otherwise values correspond to mmpbsa::MMPBSAErrorTypes.
      */
-    void get_first_energyinfo(const char* fileName);
-    void get_first_energyinfo(const std::string& filename){get_first_energyinfo(filename.c_str());}
+    int get_first_energyinfo(const char* fileName);
+    int get_first_energyinfo(const std::string& filename){return get_first_energyinfo(filename.c_str());}
 
     /**
      * Loads next energy info from the provided mdout file.
      * 
+     * Returns an integer equal to zero if successful. Otherwise values correspond to mmpbsa::MMPBSAErrorTypes
+     *
      * @param mdoutFile
-     * @return
+     * @return error int equal to zero if successful. Otherwise values correspond to mmpbsa::MMPBSAErrorTypes.
      */
-    void get_next_energyinfo(std::fstream& mdoutFile);
+    int get_next_energyinfo(std::fstream& mdoutFile);
 
     /**
      * Stores the provided energy value in the correct place in the EnergyInfo class
@@ -65,6 +71,7 @@ public:
      */
     static mmpbsa_t* get_minimization_header(const std::string& header_line) throw (mmpbsa::SanderIOException);
 
+    void clear();
 
     /**
      * Returns true if at least one element is greater than the corresponding
@@ -137,30 +144,22 @@ public:
      * @param mdoutFile
      * @return
      */
-    void get_next_energyinfo(std::fstream& mdoutFile);
+    int get_avg_rms_info(std::fstream& mdoutFile);
+
     void clear();
 
-
     AveRmsEnerInfo& operator=(const AveRmsEnerInfo& rhs);
+    
+    const EnergyInfo& get_average()const;
+    const EnergyInfo& get_rms()const;
+    const EnergyInfo& get_relrms()const;
 
-private:
-    EnergyInfo avg;//averages
-    EnergyInfo rms;//Root Mean Squares
+ protected:
+    EnergyInfo avg;///<Averages
+    EnergyInfo rms;///<Root Mean Squares
     EnergyInfo relrms;//rms/abs(avg)
 
 };
-
-/**
- * Since this file provides the classes to handle Energy Info, the definitions and
- * declarations are provided here as well, though placed in the expected mmpbsa_io
- * namespace.
- *
- * @param mdout
- * @param energyinfos
- * @param avginfos
- */
-void mdout2enerinfos(std::fstream& mdout, std::valarray<EnergyInfo>& energyinfos,
-        std::valarray<AveRmsEnerInfo>& avginfos);
 
 /**
  * Return final energy from the mdout file of a minization run
@@ -168,7 +167,7 @@ void mdout2enerinfos(std::fstream& mdout, std::valarray<EnergyInfo>& energyinfos
  * @param mdout
  * @return
  */
-float get_minimized_energy(std::fstream& mdout) throw (SanderIOException);
+mmpbsa_t get_minimized_energy(std::fstream& mdout) throw (SanderIOException);
 
 };//end namespace mmpbsa
 
