@@ -38,7 +38,83 @@ mmpbsa::EnergyInfo abs(const mmpbsa::EnergyInfo& rhs)
   return returnMe;
 }
 
-std::fstream& operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data)
+std::string mmpbsa::str_energy_type(int energy_type)
+{
+  switch(energy_type)
+    {
+    case EnergyInfo::nstep:
+      return "NSTEP";
+      break;
+    case EnergyInfo::time:
+      return "TIME";
+      break;
+    case EnergyInfo::temp:
+      return "TEMP(K)";
+      break;
+    case EnergyInfo::press:
+      return "PRESS";
+      break;
+    case EnergyInfo::etot:
+      return "Etot";
+      break;
+    case EnergyInfo::ektot:
+      return "EKtot";
+      break;
+    case EnergyInfo::eptot:
+      return "EPtot";
+      break;
+    case EnergyInfo::bond:
+      return "BOND";
+      break;
+    case EnergyInfo::angle:
+      return "ANGLE";
+      break;
+    case EnergyInfo::dihed:
+      return "DIHED";
+      break;
+    case EnergyInfo::nb14:
+      return "1-4 VDW";
+      break;
+    case EnergyInfo::eel14:
+      return "1-4 EEL";
+      break;
+    case EnergyInfo::vdwaals:
+      return "VDWAALS";
+      break;
+    case EnergyInfo::eelec:
+      return "EEL";
+      break;
+    case EnergyInfo::ehbond:
+      return "HBOND";
+      break;
+    case EnergyInfo::restraint:
+      return "RESTRAINT";
+      break;
+    case EnergyInfo::ekcmt:
+      return "EKCMT";
+      break;
+    case EnergyInfo::virial:
+      return "VIRIAL";
+      break;
+    case EnergyInfo::volume:
+      return "VOLUME";
+      break;
+    case EnergyInfo::density:
+      return "Density";
+      break;
+    case EnergyInfo::nonconst_pot:
+      return "EAMBER (non-restraint)";
+      break;
+    case EnergyInfo::ewalderr:
+      return "Ewald error estimate";
+      break;
+    default:
+      break;
+    }
+  return "UNKNOWN";
+}
+
+std::istream& operator>>(std::istream& theStream, mmpbsa::EnergyInfo& data)
 {
   int retval = data.get_next_energyinfo(theStream);
   if(retval == mmpbsa::UNEXPECTED_EOF)
@@ -53,39 +129,40 @@ std::fstream& operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data)
 std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data)
 {
   using mmpbsa::EnergyInfo;
+  using mmpbsa::str_energy_type;
   if(data.size() != EnergyInfo::total_parameters)
     throw mmpbsa::MMPBSAException("Uninitialized EnergyInfo object in operator<<.",mmpbsa::DATA_FORMAT_ERROR);
     
-  theStream << "NSTEP = " <<  data[EnergyInfo::nstep];
-  theStream << "  TIME(PS) = " << data[EnergyInfo::time];
-  theStream << "  TEMP(K) =  " << data[EnergyInfo::temp];
-  theStream << "  PRESS =    " <<data[EnergyInfo::press];
+  theStream << str_energy_type(EnergyInfo::nstep) << " = " <<  data[EnergyInfo::nstep];
+  theStream << "  " << str_energy_type(EnergyInfo::time) << "(PS) = " << data[EnergyInfo::time];
+  theStream << "  " << str_energy_type(EnergyInfo::temp) << " =  " << data[EnergyInfo::temp];
+  theStream << "  " << str_energy_type(EnergyInfo::press) << " =    " <<data[EnergyInfo::press];
   theStream << std::endl;
-  theStream << "Etot   = " << data[EnergyInfo::etot];
-  theStream << "  EKtot   =  " << data[EnergyInfo::ektot];
-  theStream << "  EPtot   =  " << data[EnergyInfo::eptot];
+  theStream << str_energy_type(EnergyInfo::etot) << "   = " << data[EnergyInfo::etot];
+  theStream << "  " << str_energy_type(EnergyInfo::ektot) << "   =  " << data[EnergyInfo::ektot];
+  theStream << "  " << str_energy_type(EnergyInfo::eptot) << "   =  " << data[EnergyInfo::eptot];
   theStream << std::endl;
-  theStream << "BOND   =  " << data[EnergyInfo::bond];
-  theStream << "  ANGLE   =   " << data[EnergyInfo::angle];
-  theStream << "  DIHED   =   " << data[EnergyInfo::dihed];
+  theStream << str_energy_type(EnergyInfo::bond) << "   =  " << data[EnergyInfo::bond];
+  theStream << "  " << str_energy_type(EnergyInfo::angle) << "   =   " << data[EnergyInfo::angle];
+  theStream << "  " << str_energy_type(EnergyInfo::dihed) << "   =   " << data[EnergyInfo::dihed];
   theStream << std::endl;
-  theStream << "1-4 VDW =  " << data[EnergyInfo::nb14];
-  theStream << "  1-4 EEL =   " << data[EnergyInfo::eel14];
-  theStream << "  VDWAALS    =  " << data[EnergyInfo::vdwaals];
+  theStream << str_energy_type(EnergyInfo::nb14) << " =  " << data[EnergyInfo::nb14];
+  theStream << "  " << str_energy_type(EnergyInfo::eel14) << " =   " << data[EnergyInfo::eel14];
+  theStream << "  " << str_energy_type(EnergyInfo::vdwaals) << "    =  " << data[EnergyInfo::vdwaals];
   theStream << std::endl;
-  theStream << "EEL  =  "  << data[EnergyInfo::eelec];
-  theStream << "  HBOND  =   "  << data[EnergyInfo::eelec];
-  theStream << "  RESTRAINT  =  "  << data[EnergyInfo::restraint];
+  theStream << str_energy_type(EnergyInfo::eelec) << "  =  "  << data[EnergyInfo::eelec];
+  theStream << "  " << str_energy_type(EnergyInfo::ehbond) << "  =   "  << data[EnergyInfo::ehbond];
+  theStream << "  " << str_energy_type(EnergyInfo::restraint) << "  =  "  << data[EnergyInfo::restraint];
   theStream << std::endl;
-  theStream << "EKCMT  =  " << data[EnergyInfo::ekcmt];
-  theStream << "  VIRIAL  =   " << data[EnergyInfo::virial];
-  theStream << "  VOLUME     =    " << data[EnergyInfo::volume];
+  theStream << str_energy_type(EnergyInfo::ekcmt) << "  =  " << data[EnergyInfo::ekcmt];
+  theStream << "  " << str_energy_type(EnergyInfo::virial) << "  =   " << data[EnergyInfo::virial];
+  theStream << "  " << str_energy_type(EnergyInfo::volume) << "     =    " << data[EnergyInfo::volume];
   theStream << std::endl;
-  theStream << "Density    =    " << data[EnergyInfo::density];
+  theStream << str_energy_type(EnergyInfo::density) << "    =    " << data[EnergyInfo::density];
   theStream << std::endl;
-  theStream << "EAMBER (non-restraint)  =  " << data[EnergyInfo::nonconst_pot];
+  theStream << str_energy_type(EnergyInfo::nonconst_pot) << "  =  " << data[EnergyInfo::nonconst_pot];
   theStream << std::endl;
-  theStream << "Ewald error estimate:   " << data[EnergyInfo::ewalderr];
+  theStream << str_energy_type(EnergyInfo::ewalderr) << ":   " << data[EnergyInfo::ewalderr];
 
   return theStream;
 }
@@ -124,7 +201,7 @@ mmpbsa_t* mmpbsa::EnergyInfo::get_minimization_header(const std::string& header_
   return returnMe;
 }
 
-int mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
+int mmpbsa::EnergyInfo::get_next_energyinfo(std::istream& mdoutFile)
 {
   using std::string;
   using mmpbsa_io::getNextLine;
@@ -145,7 +222,7 @@ int mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
   if(mdoutFile.eof())
     return mmpbsa::UNEXPECTED_EOF;
 
-  //The format of MDOUT varies depending on whether or not the run was minimization :-/
+  //The format of MDOUT varies depending on whether or not the run was minimization, thanks Amber :-/
   //Therefore, we must parse the NSTEP line differently if it is a minimization.
   if(currentLine.find("=") == string::npos)//in this case, this is minimization
     {
@@ -165,10 +242,9 @@ int mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
       (*this)[EnergyInfo::etot] = minimization_header[1];
       delete [] minimization_header;
       getNextLine(mdoutFile);//minimization skips a line before the Energy = ... block.
-
+      currentLine = getNextLine(mdoutFile);
     }
 
-  currentLine = getNextLine(mdoutFile);line_count++;
   //NSTEP data format.
   //Line with titles of information
   //Line with information about the STEP
@@ -178,7 +254,7 @@ int mmpbsa::EnergyInfo::get_next_energyinfo(std::fstream& mdoutFile)
     {
       currentLine = trimString(currentLine);
       if(currentLine.size() == 0 || currentLine.find("------------------------------------") != std::string::npos)
-	break;//end of data section.
+	break;//end of data section. 
       if(currentLine.find(CR_CHAR) != std::string::npos)
         {
 	  currentLine.erase(currentLine.find(CR_CHAR),1);
@@ -374,7 +450,7 @@ mmpbsa::AveRmsEnerInfo& mmpbsa::AveRmsEnerInfo::operator=(const mmpbsa::AveRmsEn
  * @param mdoutFile
  * @return
  */
-int mmpbsa::AveRmsEnerInfo::get_avg_rms_info(std::fstream& mdoutFile)
+int mmpbsa::AveRmsEnerInfo::get_avg_rms_info(std::istream& mdoutFile)
 {
   using std::string;
   using mmpbsa_io::getNextLine;
@@ -398,12 +474,12 @@ void mmpbsa::AveRmsEnerInfo::clear()
   relrms.clear();
 }
 
-mmpbsa_t mmpbsa::get_minimized_energy(std::fstream& mdout) throw (SanderIOException)
+mmpbsa_t mmpbsa::get_minimized_energy(std::istream& mdout) throw (SanderIOException)
 {
   using std::string;
   using mmpbsa_io::getNextLine;
     
-  if(!mdout.is_open())
+  if(!mdout.good())
     throw mmpbsa::SanderIOException("Cannot read mdout file to obtain final energy",FILE_IO_ERROR);
 
   mdout.seekg(0,std::ios::beg);

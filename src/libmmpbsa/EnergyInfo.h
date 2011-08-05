@@ -51,7 +51,7 @@ public:
      * @param mdoutFile
      * @return error int equal to zero if successful. Otherwise values correspond to mmpbsa::MMPBSAErrorTypes.
      */
-    int get_next_energyinfo(std::fstream& mdoutFile);
+    int get_next_energyinfo(std::istream& mdoutFile);
 
     /**
      * Stores the provided energy value in the correct place in the EnergyInfo class
@@ -71,6 +71,7 @@ public:
      */
     static mmpbsa_t* get_minimization_header(const std::string& header_line) throw (mmpbsa::SanderIOException);
 
+    
     void clear();
 
     /**
@@ -144,7 +145,7 @@ public:
      * @param mdoutFile
      * @return
      */
-    int get_avg_rms_info(std::fstream& mdoutFile);
+    int get_avg_rms_info(std::istream& mdoutFile);
 
     void clear();
 
@@ -167,14 +168,22 @@ public:
  * @param mdout
  * @return
  */
-mmpbsa_t get_minimized_energy(std::fstream& mdout) throw (SanderIOException);
+mmpbsa_t get_minimized_energy(std::istream& mdout) throw (SanderIOException);
+
+/**
+ * Takes an index into EnergyInfo class and returns the string representation of that
+ * energy type according to the Sander mdout file format.
+ *
+ * If energy_type is not a valid index of EnergyInfo, "UNKNOWN" is returned instead.
+ */
+std::string str_energy_type(int energy_type);
 
 };//end namespace mmpbsa
 
 mmpbsa::EnergyInfo sqrt(const mmpbsa::EnergyInfo& rhs);
 mmpbsa::EnergyInfo abs(const mmpbsa::EnergyInfo& rhs);
 std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EnergyInfo& data);
-std::fstream& operator>>(std::fstream& theStream, mmpbsa::EnergyInfo& data);
+std::istream& operator>>(std::istream& theStream, mmpbsa::EnergyInfo& data);
 
 #endif	/* ENERGYINFO_H */
 
