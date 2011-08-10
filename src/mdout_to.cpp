@@ -188,7 +188,7 @@ void load_input(std::vector<mmpbsa::EnergyInfo>& snapshots, mmpbsa::AveRmsEnerIn
 void print_help()
 {
   printf("mdout_to -- Sander mdout file format converter.\n");
-  printf("Reads an mdout file and writes the data usign the specified format\n");
+  printf("Reads an mdout file and writes the data using the specified format\n");
   printf("to standard output.\n");
   printf("Usage: mdout_to [options] <new format> <input file>\n\n");
   printf("Output formats: xml csv\n\n");
