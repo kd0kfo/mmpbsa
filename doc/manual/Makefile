@@ -1,5 +1,5 @@
 install_dir=.
-PROGRAMS := mmpbsa.template mmpbsa_analyzer.template xyzr2sas.template
+PROGRAMS := mmpbsa.template mmpbsa_analyzer.template xyzr2sas.template mdout_to.template
 MANPAGES=$(PROGRAMS:.template=.1)
 XMLS=$(PROGRAMS:.template=.xml)
 XHTMLS=$(PROGRAMS:.template=.xhtml)
