@@ -38,7 +38,7 @@
 #include <zlib.h>
 #include <fstream>
 #include <sstream>
-#include <vector>
+#include <set>
 #include <cstring>
 #include <time.h>
 #include <sys/types.h>
@@ -98,9 +98,11 @@ public:
 	 * i.e. the directory of the files after the tar file is unpacked, is
 	 * specified by prefix.
 	 *
+	 * std::set is used to guarantee unique file names.
+	 *
 	 * NOTE: Does not close out_file. Only writes to it.
 	 */
-	static void tar(const std::vector<std::string>& filenames,FILE* out_file,
+	static void tar(const std::set<std::string>& filenames,FILE* out_file,
 			const std::string& dir,const std::string& prefix);
 
 	/**
