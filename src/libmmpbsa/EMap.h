@@ -35,6 +35,9 @@ class EmpEnerFun;
 
 class EMap{
 public:
+
+    static const char DEFAULT_XML_TAG[];
+
     /**
      * Default Constructor for Energy Map Object
      * @see EMap(const EmpEnerFun* efun,const std::valarray<mmpbsa_t>& crds)
@@ -109,13 +112,20 @@ public:
     friend std::ostream& operator<<(std::ostream& theStream, const mmpbsa::EMap& toWrite);
 
     /**
+     * Divides each like energy term by its corresponding value in rhs.
+     *
+     */
+    EMap elementwise_division(const mmpbsa::EMap& rhs)const;
+
+
+    /**
      * Creates an XML document node using the energy data. The name of the data
      * in captial letters is the name of each energy data tag.
      * 
      * @param name -- optional std::string title for the XMLNode (default = "energy")
      * @return
      */
-    mmpbsa_utils::XMLNode* toXML(const std::string& name = "energy")const;
+    mmpbsa_utils::XMLNode* toXML(const std::string& name = DEFAULT_XML_TAG)const;
 
     /**
      * Creates an EMap object based on the given XML Node. Assumes that

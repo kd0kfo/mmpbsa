@@ -31,7 +31,7 @@ int load_coordinates(REAL_T **xcrds, REAL_T **ycrds, REAL_T **zcrds, REAL_T **ra
 	break;
       if(strlen(buffer) == 0 || buffer[0] == '#')//comment with # character
 	continue;
-      if(!isdigit(buffer[0]))
+      if(!isdigit(buffer[0]) && buffer[0] != '+' && buffer[0] != '-')
 	continue;
 
       test = sscanf(buffer,"%lf %lf %lf %lf",&(*xcrds)[linecount],&(*ycrds)[linecount],&(*zcrds)[linecount],&(*radii)[linecount]);
@@ -47,13 +47,26 @@ int load_coordinates(REAL_T **xcrds, REAL_T **ycrds, REAL_T **zcrds, REAL_T **ra
   return linecount;
 }
 
+void print_help()
+{
+  printf("xyzr2sas -- Molecular Surface Area Calculator\n");
+  printf("Usage: ./xyzr2sas [options]\n\n");
+  printf("Options:\n");
+  printf("--input,   -i <FILE>\tAtomic coordinates and radii (Default: standard input)\n");
+  printf("--version, -v       \tDisplays the version\n");
+  printf("--help,    -h       \tThis help message\n");
+  printf("--usage             \tSame as \"--help\"\n");
+}
+
 const struct option long_opts[] = 
   {
+    {"help",0,NULL,'h'},
+    {"usage",0,NULL,'h'},
     {"version",0,NULL,'v'},
     {"input",1,NULL,'i'},
     {NULL,0,NULL,0}
   };
-const char short_opts[] = "i:v";
+const char short_opts[] = "hi:v";
 
 int main(int argc, char **argv)
 {
@@ -83,6 +96,10 @@ int main(int argc, char **argv)
 	      }
 	    break;
 	  }
+	case 'h':
+	  print_help();
+	  exit(0);
+	  break;
 	case 'v':
 	  printf("xyz2sas %s\n",PACKAGE_VERSION);
 	  exit(0);

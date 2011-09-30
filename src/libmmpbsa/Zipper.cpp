@@ -236,14 +236,15 @@ std::stringstream* mmpbsa_utils::Zipper::funtar(FILE* in_file,const std::string&
 	return 0;
 }
 
-void mmpbsa_utils::Zipper::tar(const std::vector<std::string>& filenames,FILE* out_file,const std::string& dir,const std::string& prefix)
+void mmpbsa_utils::Zipper::tar(const std::set<std::string>& filenames,FILE* out_file,
+			const std::string& dir,const std::string& prefix)
 {
 
   if(filenames.size() == 0)
-	  throw mmpbsa::ZipperException("tar: At least one input file name is needed.");
+    return;
 
-  if(out_file == 0)
-	  throw mmpbsa::ZipperException("tar: the output file pointer is null.");
+  if(out_file == NULL)
+    throw mmpbsa::ZipperException("tar: the output file pointer is null.");
 
   using namespace std;
   fstream input_file;
@@ -251,7 +252,7 @@ void mmpbsa_utils::Zipper::tar(const std::vector<std::string>& filenames,FILE* o
   char header[512];
   std::string prefix_filename, full_filename;
   ostringstream copier;
-  vector<string>::const_iterator file = filenames.begin();
+  set<string>::const_iterator file = filenames.begin();
   for(;file != filenames.end();file++)
   {
     input_file.open((dir + *file).c_str());

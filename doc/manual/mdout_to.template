@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+	  "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<refentry id="mdout_to">
+
+  <refentryinfo>
+    %author
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>
+      mdout_to
+    </refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="software">MMPBSA</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>mdout_to</refname>
+    <refpurpose>Sander mdout file format converter.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      %command
+      <arg choice="opt">
+	<option>options</option>
+      </arg>
+      <arg choice="plain">
+	<option>&lt;output format&gt;</option>
+      </arg>
+      <arg choice="plain">
+	<option>&lt;mdout file&gt;</option>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Output formats</title>
+    <para>csv  xml</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+    <para><option>--version, -v</option></para>
+    <para>Displays the version</para>
+    <para><option>--help,    -h</option></para>
+    <para>This help message.</para>
+    <para><option>--usage</option></para>
+    <para>Same as "--help"</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Description</title>
+    <para> %command reads an mdout file and writes the data using the specified format to standard output.</para>
+  </refsect1>
+
+ 
+</refentry>
