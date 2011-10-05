@@ -155,7 +155,7 @@ bool has_filename(const std::string& filetype, const mmpbsa::MMPBSAState& the_st
  */
 const std::string& get_filename(const std::string& filetype, const mmpbsa::MMPBSAState&) throw (mmpbsa::MMPBSAException);
 
-std::vector<mmpbsa::MMPBSAState> getQueueFile(int argc,char** argv);
+std::vector<mmpbsa::MMPBSAState>& getQueueFile(std::vector<mmpbsa::MMPBSAState>& queue_vector, int argc,char** argv);
 
 /**
  * Creates a string about the usage of the program, listing the parameters and

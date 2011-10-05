@@ -184,13 +184,17 @@ mmpbsa_t mmpbsa::MeadInterface::molsurf_posix(const std::vector<mmpbsa::atom_t>&
 	if(pipe(molsurf_fd) == -1)
 	{
 		std::ostringstream error;
-		error << "mmpbsa::MeadInterface::pbsa_solvation: Could not setup pipe for molsurf. Reason: " << strerror(errno);
+		error << "mmpbsa::MeadInterface::pbsa_solvation: Could not setup pipe for molsurf. Reason(" << errno << "): " << strerror(errno);
 		perror("pipe error");
 		throw MeadException(error,SYSTEM_ERROR);
 	}
 	molsurf_pid = fork();
 	if(molsurf_pid == -1)
-		throw MeadException("mmpbsa::MeadInterface::pbsa_solvation: Could not setup a fork for molsurf.",SYSTEM_ERROR);
+	  {
+	    std::ostringstream error;
+	    error << "mmpbsa::MeadInterface::pbsa_solvation: Could not setup a fork for molsurf.\nReason(" << errno << "): " << strerror(errno);
+	    throw MeadException(error,SYSTEM_ERROR);
+	  }
 
 	if(molsurf_pid)
 	{

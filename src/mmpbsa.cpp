@@ -33,7 +33,7 @@ int main(int argc, char** argv)
         int retval = 0;
 
         //Try to create a queue based on a provided queue file.
-        ::processQueue = getQueueFile(argc,argv);
+        getQueueFile(processQueue,argc,argv);
 
         //If no queue was found, run based on arguments in argv. These should
         //correspond to what is placed in the queue XML file.
@@ -1346,11 +1346,11 @@ void poll_boinc_messages(mmpbsa::SanderInterface& si)
     a *= 42;
 }
 
-std::vector<mmpbsa::MMPBSAState> getQueueFile(int argc,char** argv)
+std::vector<mmpbsa::MMPBSAState>& getQueueFile(std::vector<mmpbsa::MMPBSAState>& queue_vector, int argc,char** argv)
 {
     using mmpbsa_utils::XMLParser;
     using mmpbsa::MMPBSAState;
-    std::vector<MMPBSAState> returnMe;
+    std::vector<MMPBSAState>& returnMe = queue_vector;
 
     XMLParser queueXML;
     std::string xmlFilename = "";
