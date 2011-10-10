@@ -6,20 +6,51 @@
 #include <cmath>
 #include <ctime>
 
-
-
 int mmpbsa_utils::loadListArg(const std::string& values,std::vector<size_t>& array, const size_t& offset)
 {
     using mmpbsa_utils::StringTokenizer;
+    using std::string;
     StringTokenizer valTokens(values,",");
-    int currValue = 0;
+    size_t currValue = 0, delim_pos;
+    string curr_token;
     while(valTokens.hasMoreTokens())
     {
-        std::istringstream curr(valTokens.nextToken());
-        curr >> currValue;
-        if(curr.fail())
-        	throw mmpbsa::MMPBSAException("mmpbsa_utils::loadListArg<std::vector>: Invalid value for size_t");
-        array.push_back(size_t(currValue) - offset);
+      std::istringstream buf;
+      curr_token = valTokens.nextToken();
+      if((delim_pos = curr_token.find("-")) != string::npos)
+	{
+	  size_t final_value_inclusive;
+	  buf.clear();
+	  buf.str(curr_token.substr(0,delim_pos));
+	  buf >> currValue;
+	  if(buf.fail())
+	    {
+	      std::ostringstream error;
+	      error << "mmpbsa_utils::loadListArg: Invalid value for size_t\nValue:" << curr_token.substr(0,delim_pos);
+	      throw mmpbsa::MMPBSAException(error);
+	    }
+	  buf.clear();
+	  buf.str(curr_token.substr(delim_pos+1));
+	  buf >> final_value_inclusive;
+	  if(buf.fail())
+	    {
+	      std::ostringstream error;
+	      error << "mmpbsa_utils::loadListArg: Invalid value for size_t\nValue:" << curr_token.substr(0,delim_pos);
+	      throw mmpbsa::MMPBSAException(error);
+	    }
+	  while(currValue != final_value_inclusive)
+	    {
+	      array.push_back(currValue - offset);
+	      currValue++;
+	    }
+	}
+      else
+	{
+	  buf.clear();
+	  buf.str();
+	}
+      array.push_back(currValue - offset);
+	
     }
     return 0;
 }
