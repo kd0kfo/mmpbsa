@@ -346,3 +346,23 @@ std::string mmpbsa_utils::get_human_time()
 	return asctime (timeinfo);
 }
 
+std::string mmpbsa_utils::get_iso8601_time(const time_t *rawtime)
+{
+  struct tm * timeinfo;
+  const size_t time_buffer_size = 24;
+  char time_buffer[time_buffer_size];
+  std::string retval;
+  if(rawtime != NULL)
+    timeinfo = localtime(rawtime);
+  else
+    {
+      time_t temp = time(NULL);
+      timeinfo = localtime(&temp);
+    }
+  memset(time_buffer,0,time_buffer_size*sizeof(char));
+  strftime(time_buffer,time_buffer_size-1,"%Y-%m-%dT%H%M",timeinfo);
+  retval = time_buffer;
+  return retval;
+
+}
+

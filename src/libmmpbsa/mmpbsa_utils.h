@@ -212,7 +212,7 @@ namespace mmpbsa_utils {
     mmpbsa_t dihedral_angle(const mmpbsa::Vector& x, const mmpbsa::Vector& y);
 
     std::string get_human_time();
-
+    std::string get_iso8601_time(const time_t *rawtime = NULL);
     
 }//end mmpbsa_utils namespace
 
