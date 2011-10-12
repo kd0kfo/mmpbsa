@@ -1,4 +1,4 @@
-bin_PROGRAMS = mmpbsa mmpbsa_graphics mmpbsa_analyzer mdout_to
+bin_PROGRAMS = mmpbsa mmpbsa_graphics mmpbsa_analyzer mdout_to mtraj
 mmpbsa_CPPFLAGS = $(XML_CPPFLAGS) -I$(MEAD_PATH)/include/ -I./libmmpbsa $(BOINC_CPPFLAGS) $(GRAPHICS_CPPFLAGS)
 mmpbsa_LDFLAGS = $(CUSTOM_LDFLAGS) -L$(MEAD_PATH)/lib  -L./libmmpbsa -L./molsurf $(BOINC_LDFLAGS) $(GRAPHICS_LDFLAGS) 
 mmpbsa_LDADD = -lmmpbsa -lmolsurf -lmead $(BOINC_LIBS) $(GRAPHICS_FLAGS) $(XML_LIBS) $(CUSTOM_LIBS)
@@ -21,6 +21,8 @@ mdout_to_LDFLAGS = $(mmpbsa_LDFLAGS)
 mdout_to_LDADD = $(mmpbsa_LDADD)
 mdout_to_DEPENDENCIES = libmmpbsa
 mdout_to_SOURCES = mdout_to.cpp
+
+mtraj_SOURCES = mtraj.c
 
 if BUILD_WITH_MPI
 mmpbsa_CPPFLAGS += -I $(MPI_PATH)/include/
