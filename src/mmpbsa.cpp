@@ -284,6 +284,10 @@ void get_sander_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t**
     trajfile.natoms = mol_list.size();
     trajfile.ifbox = sp->ifbox;
 
+    // These Energy Functions loose scope and their SanderParameters should be deleted.
+    delete complexEFun.parminfo;complexEFun.parminfo = 0;
+    delete receptorEFun.parminfo;receptorEFun.parminfo = 0;
+    delete ligandEFun.parminfo;ligandEFun.parminfo = 0;
     delete sp;
 }
 
