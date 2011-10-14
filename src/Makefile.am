@@ -22,7 +22,11 @@ mdout_to_LDADD = $(mmpbsa_LDADD)
 mdout_to_DEPENDENCIES = libmmpbsa
 mdout_to_SOURCES = mdout_to.cpp
 
-mtraj_SOURCES = mtraj.c
+mtraj_SOURCES = mtraj.cpp
+mtraj_CPPFLAGS = $(mmpbsa_CPPFLAGS)
+mtraj_LDFLAGS = $(mmpbsa_LDFLAGS)
+mtraj_LDADD = $(mmpbsa_LDADD)
+mtraj_DEPENDENCIES = libmmpbsa
 
 if BUILD_WITH_MPI
 mmpbsa_CPPFLAGS += -I $(MPI_PATH)/include/
