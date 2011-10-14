@@ -35,7 +35,7 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 bin_PROGRAMS = mmpbsa$(EXEEXT) mmpbsa_graphics$(EXEEXT) \
-	mmpbsa_analyzer$(EXEEXT) mdout_to$(EXEEXT)
+	mmpbsa_analyzer$(EXEEXT) mdout_to$(EXEEXT) mtraj$(EXEEXT)
 @BUILD_WITH_MPI_TRUE@am__append_1 = -I $(MPI_PATH)/include/
 @BUILD_WITH_GZIP_TRUE@am__append_2 = -lz
 @BUILD_WITH_GROMACS_TRUE@am__append_3 = -I $(GROMACS_PATH)/include/ 
@@ -75,6 +75,8 @@ am_mmpbsa_graphics_OBJECTS =  \
 mmpbsa_graphics_OBJECTS = $(am_mmpbsa_graphics_OBJECTS)
 mmpbsa_graphics_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+am_mtraj_OBJECTS = mtraj-mtraj.$(OBJEXT)
+mtraj_OBJECTS = $(am_mtraj_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -84,9 +86,11 @@ CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
 SOURCES = $(mdout_to_SOURCES) $(mmpbsa_SOURCES) \
-	$(mmpbsa_analyzer_SOURCES) $(mmpbsa_graphics_SOURCES)
+	$(mmpbsa_analyzer_SOURCES) $(mmpbsa_graphics_SOURCES) \
+	$(mtraj_SOURCES)
 DIST_SOURCES = $(mdout_to_SOURCES) $(am__mmpbsa_SOURCES_DIST) \
-	$(mmpbsa_analyzer_SOURCES) $(mmpbsa_graphics_SOURCES)
+	$(mmpbsa_analyzer_SOURCES) $(mmpbsa_graphics_SOURCES) \
+	$(mtraj_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -215,6 +219,11 @@ mdout_to_LDFLAGS = $(mmpbsa_LDFLAGS)
 mdout_to_LDADD = $(mmpbsa_LDADD)
 mdout_to_DEPENDENCIES = libmmpbsa
 mdout_to_SOURCES = mdout_to.cpp
+mtraj_SOURCES = mtraj.cpp
+mtraj_CPPFLAGS = $(mmpbsa_CPPFLAGS)
+mtraj_LDFLAGS = $(mmpbsa_LDFLAGS)
+mtraj_LDADD = $(mmpbsa_LDADD)
+mtraj_DEPENDENCIES = libmmpbsa
 all: all-am
 
 .SUFFIXES:
@@ -283,6 +292,9 @@ mmpbsa_analyzer$(EXEEXT): $(mmpbsa_analyzer_OBJECTS) $(mmpbsa_analyzer_DEPENDENC
 mmpbsa_graphics$(EXEEXT): $(mmpbsa_graphics_OBJECTS) $(mmpbsa_graphics_DEPENDENCIES) 
 	@rm -f mmpbsa_graphics$(EXEEXT)
 	$(CXXLINK) $(mmpbsa_graphics_LDFLAGS) $(mmpbsa_graphics_OBJECTS) $(mmpbsa_graphics_LDADD) $(LIBS)
+mtraj$(EXEEXT): $(mtraj_OBJECTS) $(mtraj_DEPENDENCIES) 
+	@rm -f mtraj$(EXEEXT)
+	$(CXXLINK) $(mtraj_LDFLAGS) $(mtraj_OBJECTS) $(mtraj_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -296,6 +308,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmpbsa_analyzer-mmpbsa_analyzer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmpbsa_graphics-mmpbsa_graphics.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmpbsa_graphics-mmpbsa_gutil.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mtraj-mtraj.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -394,6 +407,20 @@ mmpbsa_graphics-mmpbsa_gutil.obj: mmpbsa_gutil.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mmpbsa_gutil.cpp' object='mmpbsa_graphics-mmpbsa_gutil.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mmpbsa_graphics_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mmpbsa_graphics-mmpbsa_gutil.obj `if test -f 'mmpbsa_gutil.cpp'; then $(CYGPATH_W) 'mmpbsa_gutil.cpp'; else $(CYGPATH_W) '$(srcdir)/mmpbsa_gutil.cpp'; fi`
+
+mtraj-mtraj.o: mtraj.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mtraj_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mtraj-mtraj.o -MD -MP -MF "$(DEPDIR)/mtraj-mtraj.Tpo" -c -o mtraj-mtraj.o `test -f 'mtraj.cpp' || echo '$(srcdir)/'`mtraj.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/mtraj-mtraj.Tpo" "$(DEPDIR)/mtraj-mtraj.Po"; else rm -f "$(DEPDIR)/mtraj-mtraj.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mtraj.cpp' object='mtraj-mtraj.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mtraj_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mtraj-mtraj.o `test -f 'mtraj.cpp' || echo '$(srcdir)/'`mtraj.cpp
+
+mtraj-mtraj.obj: mtraj.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mtraj_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mtraj-mtraj.obj -MD -MP -MF "$(DEPDIR)/mtraj-mtraj.Tpo" -c -o mtraj-mtraj.obj `if test -f 'mtraj.cpp'; then $(CYGPATH_W) 'mtraj.cpp'; else $(CYGPATH_W) '$(srcdir)/mtraj.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/mtraj-mtraj.Tpo" "$(DEPDIR)/mtraj-mtraj.Po"; else rm -f "$(DEPDIR)/mtraj-mtraj.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mtraj.cpp' object='mtraj-mtraj.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mtraj_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mtraj-mtraj.obj `if test -f 'mtraj.cpp'; then $(CYGPATH_W) 'mtraj.cpp'; else $(CYGPATH_W) '$(srcdir)/mtraj.cpp'; fi`
 uninstall-info-am:
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)

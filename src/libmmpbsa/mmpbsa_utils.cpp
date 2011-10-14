@@ -47,7 +47,14 @@ int mmpbsa_utils::loadListArg(const std::string& values,std::vector<size_t>& arr
       else
 	{
 	  buf.clear();
-	  buf.str();
+	  buf.str(curr_token);
+	  buf >> currValue;
+	  if(buf.fail())
+	    {
+	      std::ostringstream error;
+	      error << "mmpbsa_utils::loadListArg: Invalid value for size_t\nValue:" << curr_token.substr(0,delim_pos);
+	      throw mmpbsa::MMPBSAException(error);
+	    }
 	}
       array.push_back(currValue - offset);
 	
