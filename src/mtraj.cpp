@@ -16,9 +16,10 @@ void print_help()
   
   printf("--input, -i FILE\tIndicates the input filename. If not provided, standard\n\t\t\tinput is used.\n");
   printf("--output, -o FILE\tIndicates the output filename. If not provided, standard\n\t\t\toutput is used.\n");
-  printf("--last, -l INTEGER\tSets the last snapshot number. If not provided, only\n\t\t\tone snapshot is extracted.\n");
-  printf("--first, -f INTEGER\tSets the first snapshot (Default: 1)\n");
-  printf("--natoms, -n INTEGER\tSets the number of atoms. (Required)\n");
+  printf("--first, -f INT\t\tSets the first snapshot (Default: 1)\n");
+  printf("--last, -l INT\t\tSets the last snapshot number. If not provided, only\n\t\t\tone snapshot is extracted.\n");
+  printf("--frame INT-INT\n--frame INT,..,INT\tExplicitly list the snapshots to be extracted. Cannot be used with -f or -l.\n");
+  printf("--natoms, -n INT\tSets the number of atoms. (Required)\n");
   printf("--periodic, -p\t\tFlag to indicate whether box coordinates are provided\n\t\t\tin the file.\n");
   
 }
