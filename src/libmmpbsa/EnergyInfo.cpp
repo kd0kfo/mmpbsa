@@ -208,6 +208,9 @@ int mmpbsa::EnergyInfo::get_next_energyinfo(std::istream& mdoutFile)
   using mmpbsa_utils::trimString;
    
   size_t line_count = 0;
+  this->is_minimization = false;// MD until proven minimization
+  this->has_converged = UNKNOWN;
+  
   if(!mdoutFile.good())
     throw SanderIOException("mmpbsa::EnergyInfo::get_next_energyinfo: Cannot open mdout file.",FILE_IO_ERROR);
 
@@ -217,6 +220,11 @@ int mmpbsa::EnergyInfo::get_next_energyinfo(std::istream& mdoutFile)
       if(currentLine.find(MDOUT_AVERAGE_HEADER) != string::npos)
 	return mmpbsa::UNEXPECTED_EOF;
       currentLine = getNextLine(mdoutFile);line_count++;
+      if(currentLine.find(CONVERGENCE_STRING) != string::npos)
+	this->has_converged = NOT_CONVERGED;
+      if(currentLine.find("FINAL RESULTS") != string::npos)
+	if(this->has_converged == UNKNOWN)
+	  this->has_converged  = CONVERGED;
     }
     
   if(mdoutFile.eof())
@@ -227,6 +235,8 @@ int mmpbsa::EnergyInfo::get_next_energyinfo(std::istream& mdoutFile)
   if(currentLine.find("=") == string::npos)//in this case, this is minimization
     {
       mmpbsa_t* minimization_header;
+      this->is_minimization = true;
+      
       currentLine = getNextLine(mdoutFile);line_count++;
       try{
 	minimization_header = get_minimization_header(currentLine);
