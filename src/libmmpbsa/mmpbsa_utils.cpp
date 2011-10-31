@@ -3,6 +3,7 @@
 
 #include "mmpbsa_utils.h"
 
+#include <cstring>
 #include <cmath>
 #include <ctime>
 
