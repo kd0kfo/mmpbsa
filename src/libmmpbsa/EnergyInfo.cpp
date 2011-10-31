@@ -375,7 +375,7 @@ bool mmpbsa::EnergyInfo::loadEnergyValue(const std::string& identifier,const mmp
     energydata[restraint] = value;
   else if(identifier == "ESURF")
     energydata[esurf] = value;
-  else if(identifier == "EAMBER (non-restraint)")
+  else if(identifier.find("EAMBER") != std::string::npos)
     energydata[nonconst_pot] = value;
   else if(identifier == "DV/DL")
     energydata[dvdl] = value;
