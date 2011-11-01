@@ -96,11 +96,23 @@ std::string mmpbsa_io::getNextLine(std::istream& file) throw (mmpbsa::MMPBSAExce
 
 
 bool mmpbsa_io::get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa::Vector>& snapshot,
-    const size_t& natoms,bool isPeriodic)
+			      const size_t& natoms,bool isPeriodic,mmpbsa_t *box_crds)
 {
     bool returnMe = loadValarray(trajFile,snapshot,natoms,8,10);
     if(isPeriodic)
-        getNextLine(trajFile);//ignoring periodic box information
+      {
+	std::string box_line = mmpbsa_utils::trimString(getNextLine(trajFile));
+	if(box_crds != NULL)//use or ignore periodic box information?
+	  {
+	    size_t idx = 0;
+	    for(;idx < 3;idx++)
+	      {
+		parseNumber(box_line.substr(0,8),box_crds[idx]);
+		box_line.erase(0,8);
+	      }
+	  }
+	
+      }
     return returnMe;
 }
 
@@ -770,7 +782,7 @@ std::ostream& streamPDB(std::ostream& theStream, const std::vector<mmpbsa::atom_
 
 
 
-bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa::Vector>& snapshot)
+bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa::Vector>& snapshot, mmpbsa_t *box_crds)
 {
 
 #ifdef USE_GROMACS
@@ -801,7 +813,7 @@ bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbs
 		error << "mmpbsa_io::get_next_snap: Cannot obtain " << traj.curr_snap << "th snapshot from trajectory file.";
 		throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_IO_ERROR);
 	}
-	returnMe = get_next_snap(*sander_file,snapshot,traj.natoms,(traj.ifbox > 0));
+	returnMe = get_next_snap(*sander_file,snapshot,traj.natoms,(traj.ifbox > 0),box_crds);
 
 	traj.curr_pos = sander_file->tellg();
 	if(returnMe)
@@ -814,19 +826,27 @@ bool mmpbsa_io::get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbs
 
 void mmpbsa_io::seek(std::iostream& stream, size_t natoms, int ifbox, size_t snap_pos)
 {
-	int offset;
+  int offset,num_lines,chars_per_snap;
+	char title[82];// max title for a sander trajectory is 80 chars.
 	if(!stream.good())
 	{
 		std::ostringstream error;
 		error << "mmpbsa_io::seek(stream): Problem skipping to snap number " << snap_pos;
 		throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_IO_ERROR);
 	}
-
-	offset = 81;//skip first line
-	offset += (snap_pos-1)*natoms*3*8;//number of characters due to coordinates
-	offset += (snap_pos-1)*((int)ceil(natoms*3.0/10.0));// number of line returns (assuming LF not CRLF)
-
-	if(ifbox > 0)
+	
+	stream.seekg(0,stream.beg);
+	stream.getline(title,81);
+	offset = stream.tellg();// offset after title.
+	
+	num_lines = (natoms*3)/10;
+	if(natoms*3%10 != 0)
+	  num_lines++;
+	
+	chars_per_snap = natoms*3*8 + num_lines;
+	offset += (snap_pos-1)*chars_per_snap;
+	
+	if(snap_pos != 1 && ifbox > 0)
 		offset += 25*(snap_pos-1);// number of box boundaries
 	stream.seekg(offset,stream.beg);
 }
@@ -852,7 +872,7 @@ void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,size_t snap_pos)
 		sander_file = sander_fstream;
 	}
 	if(traj.natoms == 0)
-		throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Trajectory cannot be read without paramters. However, sander paramter object is a null pointer.",mmpbsa::NULL_POINTER);
+		throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Trajectory cannot be read without parameters. However, sander paramter object is a null pointer.",mmpbsa::NULL_POINTER);
 
 	seek(*sander_file,traj.natoms,traj.ifbox,snap_pos);
 

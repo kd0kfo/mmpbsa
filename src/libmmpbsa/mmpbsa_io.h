@@ -90,7 +90,7 @@ size_t count_snapshots(std::iostream& trajFile,const size_t& natoms, bool isPeri
  * @return
  */
 bool get_next_snap(std::iostream& trajFile, std::valarray<mmpbsa::Vector>& snapshot,
-    const size_t& natoms,bool isPeriodic = false);
+		   const size_t& natoms,bool isPeriodic = false, mmpbsa_t *box_crds = NULL);
 
 /**
  * DEPRECATED!
@@ -118,7 +118,7 @@ std::string getNextLine(std::istream& file) throw (mmpbsa::MMPBSAException);
  *
  * Increments the trajectory_t data field, curr_snap.
  */
-bool get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa::Vector>& snapshot);
+bool get_next_snap(mmpbsa_io::trajectory_t& traj, std::valarray<mmpbsa::Vector>& snapshot, mmpbsa_t *box_crds = NULL);
 
 /**
  * Skips ahead (or behind) to the specified snapshot/frame of the

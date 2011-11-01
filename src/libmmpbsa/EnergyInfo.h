@@ -16,21 +16,28 @@
 #include <string>
 
 #define MDOUT_AVERAGE_HEADER "A V E R A G E"
+#define CONVERGENCE_STRING "Maximum number of minimization cycles reached."
+
 
 namespace mmpbsa{
 
 class EnergyInfo : public std::valarray<mmpbsa_t> {
 public:
+    enum CONVERGENCE_VALUES{UNKNOWN = -1, NOT_CONVERGED = 0, CONVERGED = 1};
+
     /**
      * MD Energy Class.
      * Wraps the energy data, providing arithmetic over the set of energy data.
      * 
+     * By default, minimization is set to false, i.e. assumed to be MD unless
+     * determined otherwise.
      */
-    EnergyInfo() : std::valarray<mmpbsa_t>(0.0,total_parameters){}
-    EnergyInfo(const EnergyInfo& rhs) : std::valarray<mmpbsa_t>(rhs){}
+  EnergyInfo() : std::valarray<mmpbsa_t>(0.0,total_parameters){is_minimization = false;has_converged = UNKNOWN;}
+
+  EnergyInfo(const EnergyInfo& rhs) : std::valarray<mmpbsa_t>(rhs){is_minimization = rhs.is_minimization;has_converged = rhs.has_converged;}
     virtual ~EnergyInfo(){}
 
-    //EnergyInfo& operator=(const EnergyInfo& rhs){std::valarray<mmpbsa_t>::operator=(rhs);return *this;}
+    //EnergyInfo& operator=(const EnergyInfo& rhs){std::valarray<mmpbsa_t>::operator=(rhs);is_minimization = rhs.is_minimization;return *this;}
 
     /**
      * Loads first energy info from the provided mdout file.
@@ -127,6 +134,9 @@ public:
         total_parameters/*gives the total number of energy data types in the EnergyInfo class. For use with loops internally.*/
     };
 
+    bool is_minimization;///< Indicates whether or not this is a minimization energy set. Default: FALSE
+    
+    int  has_converged;///< Indicates whether or not the convergence flag has been seen. Default: UNKNOWN
     
 };
 
