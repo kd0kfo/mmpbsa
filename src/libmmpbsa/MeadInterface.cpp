@@ -278,21 +278,32 @@ mmpbsa_t mmpbsa::MeadInterface::pb_solvation(const std::vector<mmpbsa::atom_t>& 
 			<< currAtom.atname << " (index = " << i << ")";
 		atmSet.insert(currAtom);
 	}
+
+
 	//Solvent energy
-	ChargeDist rho(new AtomChargeSet(atmSet));
-	DielectricEnvironment eps(new TwoValueDielectricByAtoms(atmSet,1.0,80.0,1.4));
-	ElectrolyteEnvironment ely( new ElectrolyteByAtoms(atmSet,interactionStrength,exclusionRadius));
+	AtomChargeSet rho_set(atmSet);
+	ChargeDist rho(&rho_set);
+	TwoValueDielectricByAtoms tvdba(atmSet,1.0,80.0,1.4);
+	DielectricEnvironment eps(&tvdba);
+	ElectrolyteByAtoms eba(atmSet,interactionStrength,exclusionRadius);
+	ElectrolyteEnvironment ely(&eba);
 	ElstatPot phi_solv(fdm, eps, rho, ely);
 	phi_solv.solve();
 	mmpbsa_t prod_sol = mmpbsa_t(phi_solv * rho);
 
 	//Electrolyte
-	ElectrolyteEnvironment ely_ref( new UniformElectrolyte(0.0));
-	DielectricEnvironment  eps_ref( new UniformDielectric(1.0));
+	UniformElectrolyte ue(0.0);
+	ElectrolyteEnvironment ely_ref(&ue);
+	UniformDielectric ud(1.0);
+	DielectricEnvironment  eps_ref(&ud);
+#if 1 // testing mead memory usage
 	ElstatPot phi_ref(fdm, eps_ref, rho, ely_ref);
 	phi_ref.solve();
 	mmpbsa_t prod_ref = mmpbsa_t(phi_ref * rho);
 	return (prod_sol - prod_ref) / 2.0;
+#else
+	return 42.0;
+#endif
 }
 
 Coord ToCoord(const mmpbsa::Vector& v)
