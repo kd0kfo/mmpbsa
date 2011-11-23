@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT([mmpbsa], [0.15.1], [David.Coss@stjude.org])
+AC_INIT([mmpbsa], [1.0.0], [David.Coss@stjude.org])
 AC_CONFIG_SRCDIR([src/libmmpbsa/])
 AC_CONFIG_SRCDIR([src/])
 AM_CONFIG_HEADER([config.h])
