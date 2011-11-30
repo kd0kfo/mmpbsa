@@ -875,6 +875,8 @@ void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,size_t snap_pos)
 		throw mmpbsa::MMPBSAException("mmpbsa_io::seek: Trajectory cannot be read without parameters. However, sander paramter object is a null pointer.",mmpbsa::NULL_POINTER);
 
 	seek(*sander_file,traj.natoms,traj.ifbox,snap_pos);
+	traj.curr_snap = snap_pos;
+	traj.curr_pos = sander_file->tellg();
 
 	if(sander_file->fail())
 	{
@@ -885,12 +887,8 @@ void mmpbsa_io::seek(mmpbsa_io::trajectory_t& traj,size_t snap_pos)
 		throw mmpbsa::MMPBSAException(error,mmpbsa::FILE_IO_ERROR);
 	}
 
-
-	traj.curr_snap = snap_pos;
-	traj.curr_pos = sander_file->tellg();
 	if(sander_file != traj.sander_crd_stream)
 		delete sander_file;
-
 }
 
 void mmpbsa_io::default_trajectory(mmpbsa_io::trajectory_t& traj)
@@ -951,24 +949,39 @@ mmpbsa_io::trajectory_t mmpbsa_io::open_trajectory(const std::string& filename,c
 bool mmpbsa_io::eof(trajectory_t& traj)
 {
 	using std::ifstream;
+	unsigned long long int curr_pos, eof_pos;
+
 	if(traj.sander_crd_stream == 0)
 	{
 #ifdef USE_GROMACS
 		if(traj.gromacs_filename != 0)
 			return traj.curr_snap >= traj.num_gmx_frames;
 #endif
-		ifstream::streampos eof;
 		if(traj.sander_filename == 0)
 			throw mmpbsa::MMPBSAException("mmpbsa_io::eof: No trajectory file provided.",mmpbsa::NULL_POINTER);
 		ifstream sander_file(traj.sander_filename->c_str());
 		if(!sander_file.good())
 			return true;
 		sander_file.seekg(0,sander_file.end);
-		eof = sander_file.tellg();
+		eof_pos = sander_file.tellg();
 		sander_file.seekg(traj.curr_pos,sander_file.beg);
-		return (traj.curr_pos >= eof);
+		curr_pos = traj.curr_pos;
+		return (curr_pos >= eof_pos);
 	}
-	return traj.sander_crd_stream->eof();
+
+	// EOF?
+	if(traj.sander_crd_stream->eof())
+	  return true;
+	
+	// Requesting beyond the file's size? Send EOF
+	bool retval;
+	curr_pos = traj.sander_crd_stream->tellg();
+	traj.sander_crd_stream->seekg(0,std::ios_base::end);
+	eof_pos = traj.sander_crd_stream->tellg();
+	retval = (curr_pos >= eof_pos);
+	traj.sander_crd_stream->seekg(curr_pos,std::ios_base::end);
+	
+	return retval;
 }
 
 
