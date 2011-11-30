@@ -11,6 +11,7 @@
 
 #include <fstream>
 #include <iomanip>
+#include <cstring>
 
 std::string mmpbsa_io::read_crds(std::fstream& crdFile, std::valarray<mmpbsa_t>& crds)
 {
