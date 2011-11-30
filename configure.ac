@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT([mmpbsa], [1.1.0], [David.Coss@stjude.org])
+AC_INIT([mmpbsa], [1.1.1], [David.Coss@stjude.org])
 AC_CONFIG_SRCDIR([src/libmmpbsa/])
 AC_CONFIG_SRCDIR([src/])
 AM_CONFIG_HEADER([config.h])
@@ -43,14 +43,19 @@ AC_ARG_WITH([gzip],AS_HELP_STRING([--with-gzip],[Includes the use of gzip'ed dat
 [case "${withval}" in
       yes) gzip=true ;;
       no) gzip=false ;;
-      *) AC_MSG_ERROR(bad value ${withval} for --with-gzip) ;;
-esac]
-AC_DEFINE([USE_GZIP],[1]),[gzip=false])
+      *) AC_MSG_ERROR([bad value ${withval} for --with-gzip]) ;;
+esac],[gzip=false])
+if [ test x$gzip == xtrue ];then
+   AC_DEFINE([USE_GZIP],[1])
+   AC_MSG_RESULT(Using GZIP)
+else
+   AC_MSG_RESULT(Not Using GZIP)
+fi
 AM_CONDITIONAL([BUILD_WITH_GZIP],[test x$gzip = xtrue])
 
 AC_ARG_WITH([gromacs],AS_HELP_STRING([--with-gromacs],[Includes the use of gromacs to open gromacs formatted topology and trajectory files.]),
 [case "${withval}" in
-      yes) gromacs=. ;;
+      yes) gromacs=true ;;
       no) gromacs=false ;;
       *) gromacs=${withval} ;;
 esac]
