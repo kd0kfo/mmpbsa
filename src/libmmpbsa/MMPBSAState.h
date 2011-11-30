@@ -63,6 +63,8 @@ public:
 
     int verbose;///<Flag to indicate whether the program needs to be verbose. Added in version 0.12.5. Not fully implemented yet
 
+    bool overwrite;///<Flag to indicate whether or not the program should overwrite output data or append. (Default: append);
+
     /**
      * Stores variables needed to restart the program. This is needed for running
      * on systems where the program may be closed and restarted again, i.e. BOINC Grid

@@ -200,17 +200,29 @@ int write_mmpbsa_data(mmpbsa_utils::XMLParser& energy_data, const mmpbsa::MMPBSA
 
 mmpbsa_utils::XMLNode* read_mmpbsa_data(const mmpbsa::MMPBSAState& currState)
 {
-	const string& filename = get_filename(SANDER_MDOUT_TYPE,currState);
-	std::stringstream data;
-	std::ios::openmode the_mode = std::ios::in;
-	if(filename.find(".gz") != std::string::npos || filename.find(".tar") != std::string::npos || filename.find(".tgz") != std::string::npos)
-		the_mode |= std::ios::binary;
-	std::fstream in_file(filename.c_str(),the_mode);
-	if(!in_file.good())
-		throw mmpbsa::MMPBSAException("read_mmpbsa_data: unable to open " + filename + " for writing.",mmpbsa::FILE_IO_ERROR);
-	mmpbsa_io::smart_read(data,in_file,&filename);
-	in_file.close();
-	return mmpbsa_utils::XMLParser::parse(data);
+  
+  using namespace mmpbsa;
+  using std::string;
+  
+  string filename;
+  std::stringstream data;
+  std::ios::openmode the_mode = std::ios::in;
+  
+  if(has_filename(MMPBSA_OUT_TYPE,currState))
+    filename = get_filename(MMPBSA_OUT_TYPE,currState);
+  else if(has_filename(SANDER_MDOUT_TYPE,currState))
+    filename = get_filename(SANDER_MDOUT_TYPE,currState);
+  else
+    throw MMPBSAException("read_mmpbsa_data: Not provided a data filename",COMMAND_LINE_ERROR);
+	
+  if(filename.find(".gz") != string::npos || filename.find(".tar") != string::npos || filename.find(".tgz") != string::npos)
+    the_mode |= std::ios::binary;
+  std::fstream in_file(filename.c_str(),the_mode);
+  if(!in_file.good())
+    throw MMPBSAException("read_mmpbsa_data: unable to open " + filename + " for writing.",FILE_IO_ERROR);
+  mmpbsa_io::smart_read(data,in_file,&filename);
+  in_file.close();
+  return mmpbsa_utils::XMLParser::parse(data);
 }
 
 void get_sander_forcefield(mmpbsa::MMPBSAState& currState,mmpbsa::forcefield_t** split_ff,std::vector<mmpbsa::atom_t>** atom_lists, std::valarray<mmpbsa::MMPBSAState::MOLECULE>& mol_list,mmpbsa_io::trajectory_t& trajfile)
@@ -476,27 +488,28 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
 #endif
 	std::cout << std::endl;
 
-    if(!has_filename(SANDER_MDOUT_TYPE,currState))
-        currState.filename_map[SANDER_MDOUT_TYPE] = "mmpbsa-output.xml";
+	if(!has_filename(MMPBSA_OUT_TYPE,currState) && !has_filename(SANDER_MDOUT_TYPE,currState))
+	  currState.filename_map[SANDER_MDOUT_TYPE] = "mmpbsa-output.xml";
 
     //Upon restart, MMPBSA needs to reload energy that was calculated previously and then
     //append new data to it.
-    mmpbsa_utils::XMLParser previousEnergyData;
-    try{
-    	mmpbsa_utils::XMLNode* old_data = read_mmpbsa_data(currState);
-    	if(old_data == 0)
-    		previousEnergyData.setHead(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
-    	else
-    		previousEnergyData.setHead(old_data);
-    }
-    catch(mmpbsa::MMPBSAException xmlpe)
-    {
-        if(xmlpe.getErrType() != mmpbsa::FILE_IO_ERROR)
-        {
-            std::cerr << "Previous energy data is corrupt. Overwriting." << std::endl;
-        }
-        previousEnergyData.setHead(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
-    }
+    mmpbsa_utils::XMLParser previousEnergyData(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
+    if(!currState.overwrite)
+      {
+	try{
+	  mmpbsa_utils::XMLNode* old_data = read_mmpbsa_data(currState);
+	  if(old_data != NULL)
+	    previousEnergyData.setHead(old_data);
+	}
+	catch(mmpbsa::MMPBSAException xmlpe)
+	  {
+	    if(xmlpe.getErrType() != mmpbsa::FILE_IO_ERROR)
+	      {
+		std::cerr << "Previous energy data is corrupt. Overwriting." << std::endl;
+	      }
+	    previousEnergyData.setHead(new mmpbsa_utils::XMLNode("mmpbsa_energy"));
+	  }
+      }
 
     //Setup Trajectory Structure
     if(!has_filename(MMPBSA_TRAJECTORY_TYPE,currState))
@@ -1014,6 +1027,18 @@ int parseParameter(std::map<std::string,std::string> args, mmpbsa::MMPBSAState& 
     			throw mmpbsa::MMPBSAException("parse_parameters: \"" + it->second + "\" is an invalid verbosity level.",
     					mmpbsa::COMMAND_LINE_ERROR);
     	}
+	else if(it->first == "overwrite")
+	  {
+	    if(it->second.size() > 0)
+	      {
+		if(it->second == "n" || it->second == "N" || it->second == "0")
+		  {
+		    currState.overwrite = false;
+		    continue;
+		  }
+	      }
+	    currState.overwrite = true;
+	  }
     	else//assuming if the argument is not one of the parameters listed above, it's a filename
     	{
     		mmpbsa_io::resolve_filename(it->second,resolved_filename);
@@ -1063,7 +1088,10 @@ std::string helpString()
 		  "\n\tOverride the Parmtop sanity check."
 		  "\n\tUse with caution!"
 		  "\nsample_queue=<filename>"
-		  "\n\tCreates a sample queue XML file.";
+		  "\n\tCreates a sample queue XML file."
+                  "\noverwrite"
+		  "\n\tOverwrites the output data file. By default, data is appended"
+                  "\n\tif the data file already exists";
 }
 
 bool restart_sander(mmpbsa::MMPBSAState& restartState, mmpbsa::SanderInterface& si)
