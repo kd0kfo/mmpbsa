@@ -1,6 +1,14 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "mmpbsa_io.h"
 #include "mmpbsa_utils.h"
+
+#ifdef USE_GZIP
 #include "Zipper.h"
+#endif
+
 #include <fstream>
 #include <iomanip>
 
