@@ -79,7 +79,7 @@ namespace mmpbsa_utils{
      *
      * @return int
      */
-    const int getIndex() const{ return index;}
+    int getIndex() const{ return index;}
     
     StringTokenizer operator=(const StringTokenizer& rhs);			
 

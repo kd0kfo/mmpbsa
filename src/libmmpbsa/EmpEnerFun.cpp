@@ -36,7 +36,7 @@ mmpbsa::EmpEnerFun::EmpEnerFun(mmpbsa::SanderParm * newparminfo, const mmpbsa_t&
 
     const size_t& ntypes = parminfo->ntypes;
     const size_t& natom = parminfo->natom;
-    valarray<size_t> resptr(-1,parminfo->residue_pointers.size());
+    valarray<size_t> resptr((size_t)0,parminfo->residue_pointers.size());
     resptr += parminfo->residue_pointers; //sander file pointers are 1-indexed
     res_ranges.resize(2*resptr.size());
     res_ranges = get_res_ranges(resptr,natom); //ranges is of the type (min,max),(min,max),...

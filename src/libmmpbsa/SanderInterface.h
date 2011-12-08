@@ -153,7 +153,7 @@ public:
      * 
      * @return
      */
-    const double netRuntime()const{return starting_cpu + final_cpu_time;}
+    double netRuntime()const{return starting_cpu + final_cpu_time;}
 
     /**
      * Returns the amount of time the process has been running (in seconds).

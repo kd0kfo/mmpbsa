@@ -582,7 +582,7 @@ int mmpbsa_run(mmpbsa::MMPBSAState& currState, mmpbsa::MeadInterface& mi)
       fflush(stdout);
     }
 #else
-  printf("Calculating %u Snapshots\n",currState.snapList.size());fflush(stdout);
+  printf("Calculating %Lu Snapshots\n",currState.snapList.size());fflush(stdout);
   fflush(stdout);
 #endif
 

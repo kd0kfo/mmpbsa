@@ -120,7 +120,7 @@ public:
      * @return Document Head
      */
     XMLNode * getHead(){return head;}
-    const XMLNode * const getHead() const {return head;}
+    const XMLNode * getHead() const {return head;}
 
     /**
      * Detaches (and returns) the head node from the parser object, after which

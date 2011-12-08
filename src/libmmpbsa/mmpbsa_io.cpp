@@ -1035,6 +1035,7 @@ void destroy(mmpbsa_io::trajectory_t* traj)
 //explicit instantiation
 template bool mmpbsa_io::loadValarray<size_t>(std::iostream&, std::valarray<size_t>&,const size_t&, const size_t&, const size_t&);
 template bool mmpbsa_io::loadValarray<int>(std::iostream&, std::valarray<int>&,const size_t&, const size_t&, const size_t&);
+template bool mmpbsa_io::loadValarray<double>(std::iostream&, std::valarray<double>&,const size_t&, const size_t&, const size_t&);
 
 
 

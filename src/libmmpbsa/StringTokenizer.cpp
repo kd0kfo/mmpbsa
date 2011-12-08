@@ -75,9 +75,17 @@ bool mmpbsa_utils::StringTokenizer::hasMoreTokens()
 
 std::string mmpbsa_utils::StringTokenizer::peek()
 {
-  std::string bean = nextToken(this->keepDelim);
-  this->index -= 1;
-  tokenStream.seekg(-1*bean.size(),std::ios::cur);
+  std::string bean;
+  std::ios::streamoff old_pos;
+  
+  // set marker
+  old_pos = tokenStream.tellg();
+  
+  // get token
+  bean = nextToken(this->keepDelim);
+
+  // rewind...
+  tokenStream.seekg(old_pos,std::ios::beg);
   return bean;
 }
 

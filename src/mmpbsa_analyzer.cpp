@@ -253,7 +253,7 @@ int sanity_check_average(mmpbsa_analyzer_average& avg)
 		else if(avg.molsurf_dependent[i] != num_complexes)
 		{
 			fprintf(stderr,"The number of %s does not equal the number of %s.\n",mole2str(COMPLEX).c_str(),mole2str(i).c_str());
-			fprintf(stderr,"# of %s: %u\t # of %s: %u\n",mole2str(COMPLEX).c_str(),num_complexes,mole2str(i).c_str(),avg.molsurf_dependent[i]);
+			fprintf(stderr,"# of %s: %Lu\t # of %s: %Lu\n",mole2str(COMPLEX).c_str(),num_complexes,mole2str(i).c_str(),avg.molsurf_dependent[i]);
 			num_failed++;
 		}
 	}
