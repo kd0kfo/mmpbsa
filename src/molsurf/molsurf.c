@@ -28,6 +28,8 @@
 //#include "nab.h" // dc: moved to molsurf.h because molsurf.h ITSELF has a dependency on nab.h (or files referenced therein). This is glossed over in nab
 #include "molsurf.h"
 
+REAL_T __dx__, __dy__, __dz__;
+
 static int natm_sel;
 static molsurf_ATOM *atom;
 static RES *res;

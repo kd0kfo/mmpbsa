@@ -25,8 +25,6 @@
 #define MAX_FACE_CYCLES    4
 #define MAXTMP            20
 
-REAL_T __dx__, __dy__, __dz__;
-
 #define DOT(pi,pj) ( (pi)[0]*(pj)[0] + (pi)[1]*(pj)[1] + (pi)[2]*(pj)[2] )
 
 #define DIST(pi,pj) \
