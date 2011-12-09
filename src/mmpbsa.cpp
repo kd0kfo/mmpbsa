@@ -24,7 +24,15 @@ int main(int argc, char** argv)
     data_list = 0;
 #endif
 
-  std::cerr << PACKAGE_STRING <<" started on " << mmpbsa_utils::get_human_time() << std::endl;
+  std::cerr << PACKAGE_STRING;
+
+#ifdef USE_MPI
+  if(mpi_rank == 0)
+    mpi_processes_running = mpi_size;
+  std::cerr << " with MPI on host number " << mpi_rank << " (" << getpid() << ")";
+#endif
+
+  std::cerr <<" started on " << mmpbsa_utils::get_human_time() << std::endl;
 
   try
     {
