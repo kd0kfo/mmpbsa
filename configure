@@ -4198,9 +4198,9 @@ fi
 if test x$with_boinc != x; then
    BOINC_CPPFLAGS="-I$with_boinc/include/"
 
-   BOINC_LIBS="-lboinc_api -lboinc"
+   BOINC_LIBS="-lboinc_api -lboinc -lpthread "
 
-   BOINC_LDFLAGS="-L$with_boinc/lib"
+   BOINC_LDFLAGS="-static -L$with_boinc/lib"
 
    $as_echo "#define USE_BOINC 1" >>confdefs.h
 
