@@ -253,7 +253,7 @@ int sanity_check_average(mmpbsa_analyzer_average& avg)
 		else if(avg.molsurf_dependent[i] != num_complexes)
 		{
 			fprintf(stderr,"The number of %s does not equal the number of %s.\n",mole2str(COMPLEX).c_str(),mole2str(i).c_str());
-			fprintf(stderr,"# of %s: %Lu\t # of %s: %Lu\n",mole2str(COMPLEX).c_str(),num_complexes,mole2str(i).c_str(),avg.molsurf_dependent[i]);
+			fprintf(stderr,"# of %s: %lu\t # of %s: %lu\n",mole2str(COMPLEX).c_str(),num_complexes,mole2str(i).c_str(),avg.molsurf_dependent[i]);
 			num_failed++;
 		}
 	}
@@ -518,15 +518,15 @@ void summarize(mmpbsa_analyzer_arguments& args)
 	{
 		if(bad_area_com > 0)
 		{
-			fprintf(stderr,"Data contains %u occurances where molsurf failed in complex.\n",bad_area_com);
+			fprintf(stderr,"Data contains %lu occurances where molsurf failed in complex.\n",bad_area_com);
 		}
 		if(bad_area_lig > 0)
 		{
-			fprintf(stderr,"Data contains %u occurances where molsurf failed in ligand.\n",bad_area_lig);
+			fprintf(stderr,"Data contains %lu occurances where molsurf failed in ligand.\n",bad_area_lig);
 		}
 		if(bad_area_rec > 0)
 		{
-			fprintf(stderr,"Data contains %u occurances where molsurf failed in receptor.\n",bad_area_rec);
+			fprintf(stderr,"Data contains %lu occurances where molsurf failed in receptor.\n",bad_area_rec);
 		}
 	}
 
