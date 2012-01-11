@@ -39,11 +39,11 @@ int mmpbsa_utils::loadListArg(const std::string& values,std::vector<size_t>& arr
 	      error << "mmpbsa_utils::loadListArg: Invalid value for size_t\nValue:" << curr_token.substr(0,delim_pos);
 	      throw mmpbsa::MMPBSAException(error);
 	    }
-	  while(currValue != final_value_inclusive)
-	    {
-	      array.push_back(currValue - offset);
-	      currValue++;
-	    }
+	  
+	  // Fill array with snapshot indices.
+	  // The final value will be added after the loop
+	  for(;currValue < final_value_inclusive;currValue++)
+	    array.push_back(currValue - offset);
 	}
       else
 	{
