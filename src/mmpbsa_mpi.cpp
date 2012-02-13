@@ -1,6 +1,7 @@
 #include "mmpbsa_mpi.h"
 
 #include <mpi.h>
+#include <cstring>
 
 void mmpbsa_utils::mpi_init_hosts(int* argc, char*** argv, int& mpi_rank,int& mpi_size)
 {
