@@ -18,8 +18,8 @@ AH_TEMPLATE([USE_GROMACS],[Define to compile with gromacs to read gromacs topolo
 AH_TEMPLATE([USE_MPI],[Define to compile with MPI.])
 
 # Checks for programs.
-AC_PROG_CXX([mpic++ icc g++])
-AC_PROG_CC([mpicc icc gcc])
+AC_PROG_CXX([g++])
+AC_PROG_CC([gcc])
 AC_PROG_RANLIB
 
 AC_SUBST(CUSTOM_CPPFLAGS,"-Wall")
