@@ -4,3 +4,5 @@ Then a development log may be found by running
 git log (which is generally dumped into ChangeLog)
 
 For help on installation see INSTALL.
+
+MMPBSA is released under the terms of the GNU General Public License version 3. For details, see COPYING or http://www.gnu.org/licenses/gpl.html.
