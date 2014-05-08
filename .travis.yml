@@ -1,0 +1,11 @@
+language: c
+install:
+    - wget http://ftp.stjude.org/pub/software/mead/mead-2.2.9.tar.gz
+    - tar xzvf mead-2.2.9.tar.gz
+    - cd mead-2.2.9
+    - ./configure --prefix=$PWD/../meadinstall
+    - make
+    - make install
+script:
+    - ./configure --with-mead=$PWD/meadinstall
+    - make
